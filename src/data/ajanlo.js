@@ -41,7 +41,9 @@ export function ajanlasok({ pontok, jelolesek, tempo = 'gyalog', magassag = null
     cimke: `${n.szo} — ${perc(ido)} menetidő`,
     szoveg: magassag
       ? `${km.toFixed(1)} km, ${magassag.fel} m emelkedő. ${n.leiras} A menetidő pihenők nélkül értendő; számolj még legalább fél órát.`
-      : `${km.toFixed(1)} km. ${n.leiras} Az emelkedőt még nem tudom — kérd le a magassági adatot a pontosabb becsléshez.`,
+      /* A magasság magától töltődik, nincs mit „lekérni” — a szöveg ezért
+         csak annyit mond, hogy a becslés még a táv alapján készült. */
+      : `${km.toFixed(1)} km. ${n.leiras} Az emelkedőt még töltöm; addig a menetidő csak a távból számol.`,
   });
 
   /* --- Világosság: ez a legfontosabb, ha ma indulsz --- */
