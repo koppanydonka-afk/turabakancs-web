@@ -18,6 +18,29 @@ const KEZDO_ZOOM = 12;
 
 /* A buborék tartalma a saját adatfájlunkból jön, de a szerzőneveket a
    Commonsról vettük át — ezért itt is megszűrjük, mielőtt HTML-be tesszük. */
+/* Törlőbuborék egy ponthoz.
+
+   Eddig csak jobbgombbal lehetett pontot törölni — telefonon viszont nincs
+   jobbgomb, tehát mobilon egyáltalán nem lehetett. Ez a buborék koppintásra
+   nyílik, és mindkét eszközön működik. */
+function torloBuborek(cimke, onTorol) {
+  const doboz = document.createElement('div');
+  doboz.className = 'pont-buborek';
+
+  const nev = document.createElement('span');
+  nev.textContent = cimke;
+  doboz.appendChild(nev);
+
+  const gomb = document.createElement('button');
+  gomb.type = 'button';
+  gomb.className = 'pont-buborek__torol';
+  gomb.textContent = 'Törlés';
+  gomb.addEventListener('click', onTorol);
+  doboz.appendChild(gomb);
+
+  return doboz;
+}
+
 const htmlBiztos = (szoveg) =>
   String(szoveg ?? '')
     .replace(/&/g, '&amp;')
@@ -150,6 +173,17 @@ export default function Terkep({
         L.DomEvent.preventDefault(e);
         friss.current.onPontTorol?.(i);
       });
+
+      if (friss.current.mod) {
+        jel.bindPopup(
+          () =>
+            torloBuborek(elso ? 'Rajt' : utolso ? 'Cél' : `${i + 1}. pont`, () => {
+              jel.closePopup();
+              friss.current.onPontTorol?.(i);
+            }),
+          { closeButton: false, className: 'pont-tipp', offset: [0, -4] },
+        );
+      }
     });
   }, [pontok]);
 
@@ -182,6 +216,17 @@ export default function Terkep({
         L.DomEvent.preventDefault(e);
         friss.current.onJelolesTorol?.(i);
       });
+
+      if (friss.current.mod) {
+        jel.bindPopup(
+          () =>
+            torloBuborek(j.cimke || 'Jelölés', () => {
+              jel.closePopup();
+              friss.current.onJelolesTorol?.(i);
+            }),
+          { closeButton: false, className: 'pont-tipp', offset: [0, -34] },
+        );
+      }
     });
   }, [jelolesek]);
 

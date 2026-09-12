@@ -190,6 +190,24 @@ Magasságot szándékosan nem írunk ki érdekességként: a domborzatmodell pá
 eltér a hivatalos értékektől (Kékestetőre 1022 m-t ad az 1014 helyett), tehát tényként
 nem közölhető.
 
+## Telefonon
+
+A tervező mobilon másképp működik, mert ott a térkép és a vezérlők egymás elől
+vennék el a helyet:
+
+- **A térkép a teljes képernyő**, a panel alulról felhúzható lap. Csukott
+  állapotban a fogantyú mutatja a lényeget („7,9 km · 3 pont · részletek”),
+  koppintásra feljön a többi.
+- **A pontok koppintásra törölhetők** — buborék nyílik rajtuk „Törlés” gombbal.
+  Korábban csak jobbgombbal lehetett, ami telefonon nem létezik: mobilon
+  egyáltalán nem lehetett pontot törölni.
+- A súgószövegek érintésre vannak szabva („érintsd”, nem „kattints”).
+
+> Buktató, amibe kétszer is belefutottunk: oszlopos flexben a gyerekek
+> zsugorodnak, és az értékrács `overflow: hidden`-je emiatt levágja a második
+> sorát. Ezért van a `.panel > *, .panel__tartalom > * { flex: 0 0 auto; }`
+> szabály — ne vedd ki.
+
 ## A szóvédjegy
 
 A „k” helyén egy bakancs áll. Nem képfájl, hanem **szöveg + SVG**: minden méretben

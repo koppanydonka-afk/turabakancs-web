@@ -51,6 +51,8 @@ export default function TervezoPage() {
   const [latvanyok, setLatvanyok] = useState(true);
   const [huzas, setHuzas] = useState(false);
   const [huzasElott, setHuzasElott] = useState(null);
+  /* Telefonon a panel alulról felhúzható lap; asztali gépen ez nem számít. */
+  const [lapNyitva, setLapNyitva] = useState(false);
 
   const tervek = useTervek();
   const km = useMemo(() => hossz(pontok), [pontok]);
@@ -252,12 +254,25 @@ export default function TervezoPage() {
 
           <p className="terkep__sug">
             {mod === 'ut'
-              ? 'Kattints a térképre a pontokért. A pontok húzhatók, jobbgombbal törölhetők.'
-              : `Kattints oda, ahová a(z) „${tipusSzerint(ujTipus).nev}” jelölés kerüljön.`}
+              ? 'Érintsd a térképet a pontokért. A pontok húzhatók; koppints rájuk a törléshez.'
+              : `Érintsd oda, ahová a(z) „${tipusSzerint(ujTipus).nev}” jelölés kerüljön.`}
           </p>
         </div>
 
-        <aside className="panel">
+        <aside className={`panel${lapNyitva ? ' panel--nyitva' : ''}`}>
+          <button
+            className="lapfogo"
+            onClick={() => setLapNyitva((v) => !v)}
+            aria-expanded={lapNyitva}
+            aria-controls="tervezo-panel"
+          >
+            <span className="lapfogo__csik" aria-hidden="true" />
+            <span className="lapfogo__szoveg">
+              {lapNyitva ? 'Térkép mutatása' : `${kmSzoveg(km)} · ${pontok.length} pont · részletek`}
+            </span>
+          </button>
+
+          <div className="panel__tartalom" id="tervezo-panel">
           <Helykereso onTalalat={(hely) => terkep.current?.setView([hely.lat, hely.lng], 14)} />
 
           <nav className="fulek" role="tablist" aria-label="Panel nézetei">
@@ -414,6 +429,7 @@ export default function TervezoPage() {
           {/* A teljes magasságú tervezőoldal alatt nincs külön lábsáv,
               ezért az adatkezelés apróbetűje a panel aljára kerül. */}
           <Labjegyzet tomor />
+          </div>
         </aside>
       </div>
     </section>
