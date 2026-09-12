@@ -1,22 +1,18 @@
 /* Az üzemeltető adatai — ez az egyetlen hely, ahol szerkeszteni kell.
 
-   ════════════════════════════════════════════════════════════════════
-   AZ E-MAIL-CÍM SZÁNDÉKOSAN ÜRES. Neked kell beírnod.
-   ════════════════════════════════════════════════════════════════════
+   Az `email` szándékosan üres: még nincs olyan postafiók, amit ide be
+   lehetne írni. Amíg üres, az impresszum kiírja, hogy nincs elérhetőség
+   — nem tesz úgy, mintha lenne.
 
-   Nem tettem be magamtól a személyes címedet, mert a nyilvános oldalra
-   kiírt e-mail visszafordíthatatlan: a levélszemét-gyűjtő robotok percek
-   alatt begyűjtik, és utána nem lehet visszavonni.
+   Az itt szereplő cím MEGJELENIK a nyilvános impresszum oldalon, és ez
+   visszafordíthatatlan: a levélszemét-gyűjtő robotok begyűjtik. Ezért:
 
-   Amit érdemes megfontolni:
-   - NE a személyes címedet írd ide. Készíts egy külön címet erre
-     (például kapcsolat@turabakancs.com, ha később e-mailt is kötsz a
-     domainhez, vagy egy ingyenes fiókot csak erre a célra).
-   - Amíg üres, az impresszum oldal kiírja, hogy hiányzik — nem tesz
-     úgy, mintha lenne elérhetőség.
+   - NE a személyes címedet írd ide, hanem egy erre a célra készültet.
+   - Csak olyat írj be, ami TÉNYLEG a tiéd. Ha a cím máshoz tartozik, a
+     neked szánt levelek hozzá mennek, ő pedig kéretlen postát kap.
 
-   A név kitöltve maradhat: az a git-előzményben és a domain
-   nyilvántartásában amúgy is szerepel. */
+   Ha megvan a fiók, elég ezt az egy sort átírni — az impresszum és a
+   lábjegyzet magától követi. */
 
 export const UZEMELTETO = {
   nev: 'Donka Koppány',
