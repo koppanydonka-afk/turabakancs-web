@@ -287,7 +287,7 @@ body.nincs-gorgetes { overflow: hidden; }
 .panel {
   min-width: 0;
   overflow-y: auto;
-  padding: var(--space-6) var(--space-4);
+  padding: var(--space-8) var(--space-6);
   display: flex;
   flex-direction: column;
   gap: var(--space-6);
@@ -302,6 +302,16 @@ body.nincs-gorgetes { overflow: hidden; }
    oszlopos flex, ezért annak a gyerekeire is kell. */
 .panel > *,
 .panel__tartalom > * { flex: 0 0 auto; }
+
+/* A panel tartalma külön dobozban él (a telefonos felhúzható lap miatt).
+   Az elrendezését korábban csak a mobilszabály adta meg, ezért asztali
+   gépen a blokkok térköz nélkül egymásra tapadtak. */
+.panel__tartalom {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  min-width: 0;
+}
 
 .nezet .panel { box-shadow: var(--lap-keret), var(--lap-arnyek); border-radius: var(--radius-lg); overflow: visible; }
 
@@ -1212,10 +1222,8 @@ input::placeholder { color: var(--muted); }
   .lapfogo__szoveg { font-variant-numeric: tabular-nums; }
 
   .panel__tartalom {
-    display: flex;
-    flex-direction: column;
     gap: var(--space-6);
-    padding: 0 var(--space-4) var(--space-8);
+    padding: var(--space-2) var(--space-4) var(--space-8);
     overflow-y: auto;
     max-height: calc(86vh - 62px);
     max-height: calc(86dvh - 62px);
@@ -1355,9 +1363,18 @@ input::placeholder { color: var(--muted); }
 .kartya { animation: beuszik 340ms var(--ease-out) both; }
 .velemeny-lista > *, .turak__elem { animation: beuszik 280ms var(--ease-out) both; }
 
-/* ---------- Buborékok a térképen ---------- */
+/* ---------- Buborékok a térképen ----------
+   FIGYELEM: itt CSAK az átlátszóságot szabad animálni. A Leaflet a
+   buborékokat `transform: translate3d(...)` értékkel helyezi el, és a
+   `beuszik` animáció `transform: none` végállapota ezt felülírná — a
+   buborék ilyenkor a térkép bal felső sarkába ugrik. */
 .latvany-tipp.leaflet-tooltip,
-.pont-tipp.leaflet-popup { animation: beuszik 200ms var(--ease-out) both; }
+.pont-tipp.leaflet-popup { animation: halkanElo 200ms var(--ease-out) both; }
+
+@keyframes halkanElo {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
 
 /* ==========================================================
    Aki kevesebb mozgást kért, annak nincs mozgás.
@@ -1377,8 +1394,8 @@ input::placeholder { color: var(--muted); }
 }
 
 /* ---------- „Honnan hova” a panelen ---------- */
-.hh-panel { display: flex; flex-direction: column; gap: var(--space-3); }
-.hh-panel__gombok { display: flex; gap: var(--space-2); }
+.hh-panel { display: flex; flex-direction: column; gap: var(--space-4); }
+.hh-panel__gombok { display: flex; gap: var(--space-3); margin-top: var(--space-1); }
 .hh-panel__gombok .gomb { flex: 1 1 auto; padding-inline: var(--space-3); }
 
 /* ---------- Közeli túrák a panelen ---------- */
