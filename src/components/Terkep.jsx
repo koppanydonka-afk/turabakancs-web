@@ -183,6 +183,17 @@ export default function Terkep({
       });
 
       if (friss.current.mod) {
+        /* Ez a kezelő a bindPopup ELŐTT kerül fel, ezért előbb fut, mint a
+           Leaflet saját buboréknyitása. Így az első kattintás még csukott
+           buborékot lát (megnyílik), a második viszont nyitottat — akkor
+           törlünk. Egy kattintással törölni túl könnyű lenne elvéteni. */
+        jel.on('click', () => {
+          if (jel.isPopupOpen()) {
+            jel.closePopup();
+            friss.current.onPontTorol?.(i);
+          }
+        });
+
         jel.bindPopup(
           () =>
             torloBuborek(elso ? 'Rajt' : utolso ? 'Cél' : `${i + 1}. pont`, () => {
@@ -226,6 +237,14 @@ export default function Terkep({
       });
 
       if (friss.current.mod) {
+        /* Ugyanaz, mint az útvonalpontoknál: második kattintás = törlés. */
+        jel.on('click', () => {
+          if (jel.isPopupOpen()) {
+            jel.closePopup();
+            friss.current.onJelolesTorol?.(i);
+          }
+        });
+
         jel.bindPopup(
           () =>
             torloBuborek(j.cimke || 'Jelölés', () => {

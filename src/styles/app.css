@@ -137,6 +137,12 @@ body.nincs-gorgetes { overflow: hidden; }
 .nezet__terkep .terkep { border-radius: var(--radius-lg); }
 
 /* ---- Lebegő vezérlők a térkép fölött ---- */
+/* A térkép fölött lebegő vezérlők: a böngésző ne értelmezze őket
+   görgetésnek vagy nagyításnak — a térkép kezeli a gesztusokat. */
+.modvalto,
+.paletta,
+.latvany-valto { touch-action: manipulation; }
+
 .modvalto {
   position: absolute;
   top: var(--space-3);
@@ -198,6 +204,9 @@ body.nincs-gorgetes { overflow: hidden; }
 }
 
 .terkep__sug {
+  /* Tájékoztató szöveg: az érintés menjen át rajta a térképre. Eddig
+     elfogta, és a sáv alatti területre nem lehetett pontot tenni. */
+  pointer-events: none;
   position: absolute;
   left: 50%;
   bottom: var(--space-8);

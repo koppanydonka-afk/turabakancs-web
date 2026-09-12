@@ -128,6 +128,11 @@
 html, body { height: 100%; }
 body {
   margin: 0;
+  /* Kikapcsolja a böngésző dupla koppintásos nagyítását, a csippentést
+     viszont meghagyja (az kell a szöveg nagyításához). Enélkül a térkép
+     mellé koppintva az egész oldal beleugrik, és utána jobbra-balra
+     csúszkál. */
+  touch-action: manipulation;
   background: var(--bg);
   color: var(--ink);
   font-family: var(--font-body);

@@ -210,7 +210,7 @@ export default function TervezoPage() {
               ? `Érintsd oda, ahová a(z) „${tipusSzerint(ujTipus).nev}” jelölés kerüljön.`
               : pontok.length > 60
                 ? 'Kész útvonal. Érints a térképre új pontért, vagy nyisd meg a szerkesztést.'
-                : 'Érintsd a térképet a pontokért. A pontok húzhatók; koppints rájuk a törléshez.'}
+                : 'Érintsd a térképet a pontokért. A pontok húzhatók; kétszer rájuk koppintva törlődnek.'}
           </p>
         </div>
 

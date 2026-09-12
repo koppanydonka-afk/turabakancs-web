@@ -257,6 +257,24 @@ megosztás — ugyanúgy működik a beírt útvonalra is.
 > Az autós idő a légvonalból becsül, folytonos sebességgörbével — szándékosan
 > durva, és az oldalon ki is van írva.
 
+## Érintés és nagyítás
+
+A `body` **`touch-action: manipulation`** értéket kap. Ez kikapcsolja a
+böngésző dupla koppintásos nagyítását, a csippentéses nagyítást viszont
+meghagyja — az kell ahhoz, hogy a szöveget nagyítani lehessen.
+
+Enélkül a térkép melletti felületre koppintva az egész oldal beleugrott, és
+utána jobbra-balra csúszkált.
+
+- A térkép fölött lebegő vezérlők (`.modvalto`, `.paletta`, `.latvany-valto`)
+  is `manipulation`-t kapnak, hogy ne indítsanak böngészőgesztust.
+- A súgósáv (`.terkep__sug`) **`pointer-events: none`** — csak tájékoztat,
+  ezért az érintés átmegy rajta a térképre. Korábban elfogta, és a sáv alatti
+  területre nem lehetett pontot tenni.
+
+**Pontot két kattintás töröl**: az első megnyitja a buborékot, a második
+törli. Egy kattintással túl könnyű lenne elvéteni.
+
 ## Telefonon
 
 A tervező mobilon másképp működik, mert ott a térkép és a vezérlők egymás elől
