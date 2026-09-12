@@ -72,6 +72,19 @@ function oldalak() {
           .join('')}</ul>`,
     },
     {
+      ut: '/impresszum',
+      cim: 'Impresszum — Túrabakancs',
+      leiras:
+        'Ki üzemelteti a Túrabakancsot, és mire jó. Ingyenes, nem kereskedelmi eszköz; a terepen a saját döntésed a mérvadó.',
+      tartalom: `
+        <h1>Ki csinálja, és mire jó.</h1>
+        <p>A Túrabakancs ingyenes, nem kereskedelmi oldal. Nem árul semmit, nem közvetít,
+           nem gyűjt adatot.</p>
+        <h2>Felelősség</h2>
+        <p>A távolság, az emelkedő és a menetidő számított becslés, nem garancia. A terepen
+           a jelzett turistautak, a hivatalos térképek és a saját döntésed a mérvadó.</p>`,
+    },
+    {
       ut: '/rolad',
       cim: 'Mit tudunk rólad — Túrabakancs',
       leiras:
@@ -200,7 +213,7 @@ for (const oldal of lista) {
 /* A sitemap ugyanebből a listából készül, mint az oldalak — így nem tud
    szétcsúszni a kettő, ha új cím kerül be. */
 const ma = new Date().toISOString().slice(0, 10);
-const sulyok = { '/': '1.0', '/tervezo': '0.9', '/utvonalak': '0.8', '/rolad': '0.3' };
+const sulyok = { '/': '1.0', '/tervezo': '0.9', '/utvonalak': '0.8', '/rolad': '0.3', '/impresszum': '0.3' };
 const sitemap =
   '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
   lista
