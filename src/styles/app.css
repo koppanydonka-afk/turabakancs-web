@@ -115,7 +115,13 @@ body.nincs-gorgetes { overflow: hidden; }
 
 /* ---------- Törzs ---------- */
 .fo { display: block; }
-.fo--tervezo { height: calc(100dvh - var(--fejlec)); }
+/* A dvh-t nem minden böngésző ismeri. Tartalék nélkül az egész deklaráció
+   eldobódik, a magasság 'auto' lesz, és a térkép nulla magasra zsugorodik —
+   az oldal használhatatlannak tűnik. Ezért minden dvh elé vh is kell. */
+.fo--tervezo {
+  height: calc(100vh - var(--fejlec));
+  height: calc(100dvh - var(--fejlec));
+}
 
 /* ---------- Tervező ---------- */
 .tervezo, .tervezo__racs { height: 100%; }
@@ -584,9 +590,8 @@ input::placeholder { color: var(--muted); }
 @media (max-width: 900px) {
   .fejlec { gap: var(--space-2); }
 
-  .tervezo__racs { grid-template-columns: 1fr; grid-template-rows: 56dvh auto; height: auto; }
-  .fo--tervezo { height: auto; }
-  .panel { box-shadow: inset 0 1px 0 var(--line); }
+  /* A tervező telefonos elrendezését lentebb, egy helyen állítjuk be
+     (felhúzható lap) — ide szándékosan nem kerül belőle semmi. */
   .nezet { grid-template-columns: 1fr; }
   .nezet__terkep { height: 52vh; }
   .paletta { grid-template-columns: repeat(4, 34px); }
@@ -1158,7 +1163,10 @@ input::placeholder { color: var(--muted); }
    Így nem kell elgörgetni a térképtől ahhoz, hogy lásd a számokat.
    ========================================================== */
 @media (max-width: 900px) {
-  .fo--tervezo { height: calc(100dvh - var(--fejlec)); }
+  .fo--tervezo {
+    height: calc(100vh - var(--fejlec));
+    height: calc(100dvh - var(--fejlec));
+  }
   .tervezo__racs { grid-template-columns: 1fr; grid-template-rows: 1fr; height: 100%; }
   .tervezo__terkep-doboz { grid-row: 1; height: 100%; }
 
@@ -1168,6 +1176,7 @@ input::placeholder { color: var(--muted); }
     right: 0;
     bottom: 0;
     z-index: 1100;
+    max-height: 86vh;
     max-height: 86dvh;
     padding: 0;
     gap: 0;
@@ -1211,6 +1220,7 @@ input::placeholder { color: var(--muted); }
     gap: var(--space-6);
     padding: 0 var(--space-4) var(--space-8);
     overflow-y: auto;
+    max-height: calc(86vh - 62px);
     max-height: calc(86dvh - 62px);
     overscroll-behavior: contain;
   }
