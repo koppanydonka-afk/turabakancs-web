@@ -78,7 +78,7 @@ function oldalak() {
       leiras:
         'Mire jó a Túrabakancs és mire nem. Nincs fiók, nincs süti, nincs mérőkód; a terepen a saját döntésed a mérvadó.',
       tartalom: `
-        <h1>Mire jó, és mire nem.</h1>
+        <h1>Impresszum és adatkezelés</h1>
         <p>A Túrabakancs ingyenes, nem kereskedelmi oldal. Nem árul semmit, nem közvetít,
            nem gyűjt adatot.</p>
         <h2>Felelősség</h2>

@@ -554,6 +554,8 @@ input::placeholder { color: var(--muted); }
 .oldal--szoveg { max-width: 720px; }
 .oldal__fej { display: flex; flex-direction: column; gap: var(--space-3); }
 .kalap {
+  /* Lehet <p> és lehet <h1> is — a címsorok kijelzőbetűjét nem örökli. */
+  font-family: inherit;
   font-size: var(--text-xs);
   text-transform: uppercase;
   letter-spacing: .1em;

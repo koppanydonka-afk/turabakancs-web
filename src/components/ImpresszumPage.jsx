@@ -17,8 +17,10 @@ export default function ImpresszumPage() {
   return (
     <section className="oldal oldal--szoveg">
       <header className="oldal__fej">
-        <p className="kalap">Impresszum</p>
-        <h1 className="oldal__cim">Mire jó, és mire nem.</h1>
+        {/* Nincs nagy címsor: ez nem kirakat, hanem tudnivaló. A kalap
+            viszont h1 maradt — egy oldalnak legyen egy címe, különben a
+            képolvasó és a kereső is elveszti a fonalat. */}
+        <h1 className="kalap">Impresszum és adatkezelés</h1>
         <p className="oldal__bevezeto">
           A Túrabakancs ingyenes, nem kereskedelmi oldal. Nem árul semmit, nem közvetít,
           nem gyűjt adatot — egy eszköz, amit bárki használhat.
