@@ -208,6 +208,30 @@ valódi kérdés, nem az, hogy A-ból B-be.
 > volt, és emiatt egy hosszabb útra rövidebb időt adott — a görbe most mindig
 > növekvő. Ez szándékosan durva becslés, és az oldalon ki is van írva.
 
+## Mozgás
+
+Az animációk rövidek és halkak: a céljuk, hogy kövessed a szemeddel, mi
+változott. Oldalváltás-áttűnés, görgetéses feltűnés, a vonal megrajzolása a
+nézetoldalakon, töltésjelzők, gombnyomás-visszajelzés.
+
+Két dolog, amit nem szabad elrontani:
+
+1. **A rejtett kezdőállapot a `.mozgas` osztályhoz van kötve**, amit a
+   JavaScript tesz a gyökérelemre (`main.jsx`). Ha a JS nem fut le, a tartalom
+   egyszerűen látszik — enélkül láthatatlan maradna.
+2. **A `src/mozgas.js` biztonsági hálója**: másfél másodperc után mindent
+   megmutat, akkor is, ha a figyelő nem lépett működésbe. Ne vedd ki.
+
+A `prefers-reduced-motion` beállításnál az egész fejezet kikapcsol, és a
+feltűnő elemek is láthatók maradnak.
+
+## Szöveg
+
+Az oldal korábban **tizennégy helyen** mondta el, hogy nem gyűjt adatot. Ez
+prédikálásnak hatott. Most három helyen szerepel: a `/rolad` oldalon (ez a
+dolga), az impresszumban, és egy soros lábjegyzetben. **Ha új funkciót írsz,
+ne tedd hozzá újra** — aki kíváncsi rá, megtalálja.
+
 ## Telefonon
 
 A tervező mobilon másképp működik, mert ott a térkép és a vezérlők egymás elől

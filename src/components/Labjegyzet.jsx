@@ -11,12 +11,8 @@ export default function Labjegyzet({ tomor = false }) {
         </p>
       )}
       <p className="apro">
-        A Túrabakancs nem kér fiókot, nem küld hírlevelet, és nem figyel. Amit rajzolsz,
-        az a böngésződben marad. <a href="/rolad">Mit tudunk rólad?</a>
-      </p>
-      <p className="apro">
-        A távolság, az emelkedő és a menetidő számított becslés. A terepen a jelzett
-        turistautak és a saját döntésed a mérvadó. <a href="/impresszum">Impresszum</a>
+        A távolság és a menetidő becslés — a terepen a jelzett turistautak a mérvadók.{' '}
+        <a href="/impresszum">Impresszum</a> · <a href="/rolad">Adatkezelés</a>
       </p>
     </footer>
   );

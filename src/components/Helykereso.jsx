@@ -80,10 +80,6 @@ export default function Helykereso({ onTalalat }) {
         </ul>
       )}
 
-      <p className="apro">
-        A keresés a beírt helynevet az OpenStreetMap nyilvános keresőjének küldi el.
-        Rajta kívül semmi nem hagyja el a böngésződet.
-      </p>
     </div>
   );
 }

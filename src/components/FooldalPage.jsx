@@ -27,8 +27,8 @@ export default function FooldalPage() {
           <Vedjegy magassag={54} />
         </div>
         <p className="hos__lead">
-          Rajzolj útvonalat a térképre, tegyél ki jelöléseket, és oszd meg egy linkkel.
-          Fiók nincs, süti nincs, adatot nem gyűjtünk.
+          Térkép, amire rajzolhatsz. Kész túrák, amikből kiindulhatsz.
+          Menetidő, ami az emelkedővel is számol.
         </p>
         <div className="hos__gombok">
           <a className="gomb gomb--fo" href="/honnan-hova">Honnan hova?</a>
@@ -38,7 +38,7 @@ export default function FooldalPage() {
       </section>
 
       {nyugta && (
-        <section className="ma">
+        <section className="ma" data-feltun style={{ "--lepcso": 0 }}>
           <h2 className="ma__cim">Ma</h2>
           <div className="ma__adatok">
             <div className="ma__elem">
@@ -54,14 +54,11 @@ export default function FooldalPage() {
               <span>{maradek > 0 ? 'világos van még' : 'a nap már lement'}</span>
             </div>
           </div>
-          <p className="apro">
-            Budapestre számolva, a böngésződben — semmilyen szolgáltatás nem kell hozzá.
-            A tervező a te útvonalad kezdőpontjára számolja.
-          </p>
+          <p className="apro">Budapestre. A tervező a saját útvonalad kezdőpontjára számol.</p>
         </section>
       )}
 
-      <section className="szekcio">
+      <section className="szekcio" data-feltun>
         <header className="szekcio__fej">
           <h2 className="szekcio__cim">Mit jelent a festék a fán?</h2>
           <p className="szekcio__lead">
@@ -99,7 +96,7 @@ export default function FooldalPage() {
         </p>
       </section>
 
-      <section className="szekcio">
+      <section className="szekcio" data-feltun>
         <header className="szekcio__fej">
           <h2 className="szekcio__cim">Kezdd egy kész vonallal</h2>
           <p className="szekcio__lead">

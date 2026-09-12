@@ -62,7 +62,12 @@ export default function TuraLista({ terkep, onBetolt }) {
         térkép áll. Bármelyiket betöltheted és továbbrajzolhatod.
       </p>
 
-      <button className="gomb gomb--fo gomb--szeles" onClick={keres} disabled={fut}>
+      <button
+        className="gomb gomb--fo gomb--szeles"
+        onClick={keres}
+        disabled={fut}
+        aria-busy={fut}
+      >
         {fut ? 'Keresem…' : 'Utak keresése ezen a területen'}
       </button>
 
@@ -104,10 +109,7 @@ export default function TuraLista({ terkep, onBetolt }) {
         </>
       )}
 
-      <p className="apro">
-        Az adat az OpenStreetMapből jön, azt önkéntesek tartják karban. Ettől még a
-        terepen a festett jelzés a mérvadó.
-      </p>
+      <p className="apro">A terepen a festett jelzés a mérvadó.</p>
     </div>
   );
 }

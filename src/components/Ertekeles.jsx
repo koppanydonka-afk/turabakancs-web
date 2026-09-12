@@ -59,8 +59,7 @@ export default function Ertekeles({ ertekeles }) {
       </div>
 
       <p className="apro">
-        Ez a mi véleményünk, nem mások értékeléseinek átlaga. Máshonnan nem gyűjtünk
-        véleményeket — azok a szerzőiké.
+        A mi véleményünk, nem mások értékeléseinek átlaga.
       </p>
     </section>
   );

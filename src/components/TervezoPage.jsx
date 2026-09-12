@@ -150,7 +150,7 @@ export default function TervezoPage() {
     const cim = tervLinkje(`${window.location.origin}/tervezo`, { pontok, jelolesek });
     try {
       await navigator.clipboard.writeText(cim);
-      setUzenet('A link a vágólapon. Az útvonal magában a linkben van — szerverre semmi nem került.');
+      setUzenet('A link a vágólapon — az útvonal magában a címben van.');
     } catch {
       window.history.replaceState({}, '', tervLinkje('/tervezo', { pontok, jelolesek }));
       setUzenet('A böngésző címsorában ott a megosztható link, onnan másolható.');
@@ -162,7 +162,7 @@ export default function TervezoPage() {
     if (pontok.length < 2 && jelolesek.length === 0) return;
     const mentett = tervMentes({ id: aktivId, nev: nev.trim() || 'Névtelen terv', pontok, jelolesek });
     setAktivId(mentett.id);
-    setUzenet('Elmentve ebbe a böngészőbe. Másik gépen a megosztható linkkel éred el.');
+    setUzenet('Elmentve. Másik gépen a megosztható linkkel éred el.');
   };
 
   const sajatHelyzet = () => {
@@ -173,7 +173,7 @@ export default function TervezoPage() {
     navigator.geolocation.getCurrentPosition(
       (poz) => {
         terkep.current?.setView([poz.coords.latitude, poz.coords.longitude], 15);
-        setUzenet('A térkép odaugrott. A helyzeted nem hagyta el a böngésződet.');
+        setUzenet('A térkép odaugrott.');
       },
       () => setUzenet('Nem kaptam meg a helyzetedet — a térképet kézzel is odahúzhatod.'),
       { enableHighAccuracy: true, timeout: 8000 },
@@ -404,9 +404,7 @@ export default function TervezoPage() {
                       </button>
                     </div>
                   ))}
-                  <p className="apro">
-                    Ezek csak ebben a böngészőben vannak meg. Éles túra előtt töltsd le GPX-ben.
-                  </p>
+                  <p className="apro">Csak ezen a böngészőn. Túra előtt töltsd le GPX-ben.</p>
                 </div>
               )}
             </>

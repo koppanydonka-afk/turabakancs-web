@@ -604,9 +604,6 @@ input::placeholder { color: var(--muted); }
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  * { transition-duration: 1ms !important; animation-duration: 1ms !important; }
-}
 
 /* ---------- Fülek a panelen ---------- */
 .fulek {
@@ -1272,4 +1269,109 @@ input::placeholder { color: var(--muted); }
   .hh__also .mezo--kicsi { flex: 1 1 auto; }
   .hh__also .gomb { width: 100%; min-height: 46px; }
   .hh__terkep { height: 40vh; }
+}
+
+/* ==========================================================
+   MOZGÁS
+   Minden animáció rövid és halk: a célja, hogy kövessed a szemeddel,
+   mi változott — nem az, hogy látványos legyen. A mozgáscsökkentést
+   kérő beállításnál az egész fejezet kikapcsol (lásd a fájl végén).
+   ========================================================== */
+
+/* ---------- Oldalváltás ---------- */
+.oldalvaltas { animation: beuszik 320ms var(--ease-out) both; }
+
+@keyframes beuszik {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ---------- Feltűnés görgetéskor ----------
+   A rejtett kezdőállapot a .mozgas osztályhoz van kötve, amit a JavaScript
+   tesz a gyökérelemre. Ha a JS bármiért nem fut le, a tartalom egyszerűen
+   látszik — nem marad láthatatlanul. */
+.mozgas [data-feltun] {
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity 460ms var(--ease-out), transform 460ms var(--ease-out);
+  /* Lépcsőzés: a szomszédos elemek kicsit később indulnak. */
+  transition-delay: calc(var(--lepcso, 0) * 60ms);
+}
+.mozgas [data-feltun='kesz'] { opacity: 1; transform: none; }
+
+/* ---------- Eredmény megjelenése ---------- */
+.hh__eredmeny { animation: beuszik 380ms var(--ease-out) both; }
+.ajanlo__lista > *, .idojaras { animation: beuszik 300ms var(--ease-out) both; }
+
+/* ---------- Töltésjelző ---------- */
+.tolt {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: var(--text-sm);
+  color: var(--muted);
+}
+.tolt__pörgo {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  border: 2px solid var(--line);
+  border-top-color: var(--accent-ink);
+  animation: porog 720ms linear infinite;
+}
+@keyframes porog { to { transform: rotate(360deg); } }
+
+/* A dolgozó gomb is jelezzen, ne csak a felirata változzon. */
+.gomb[aria-busy='true'] { position: relative; color: transparent; }
+.gomb[aria-busy='true']::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  border: 2px solid color-mix(in srgb, currentColor 25%, transparent);
+  border-top-color: var(--on-accent);
+  animation: porog 720ms linear infinite;
+}
+
+/* ---------- Gombok visszajelzése ---------- */
+.gomb:active:not(:disabled),
+.pirula:active,
+.modvalto__gomb:active,
+.fulek__gomb:active { transform: scale(.97); }
+
+/* ---------- A vonal megrajzolása (csak nézetben) ---------- */
+.terkep[data-mod='nezet'] .ut-vonal,
+.terkep[data-mod='nezet'] .ut-talp {
+  stroke-dasharray: 6000;
+  stroke-dashoffset: 6000;
+  animation: vonalRajz 1100ms var(--ease-out) 120ms forwards;
+}
+@keyframes vonalRajz { to { stroke-dashoffset: 0; } }
+
+/* ---------- Kártyák és listaelemek ---------- */
+.kartya { animation: beuszik 340ms var(--ease-out) both; }
+.velemeny-lista > *, .turak__elem { animation: beuszik 280ms var(--ease-out) both; }
+
+/* ---------- Buborékok a térképen ---------- */
+.latvany-tipp.leaflet-tooltip,
+.pont-tipp.leaflet-popup { animation: beuszik 200ms var(--ease-out) both; }
+
+/* ==========================================================
+   Aki kevesebb mozgást kért, annak nincs mozgás.
+   Fontos: a feltűnő elemek kezdőállapota is látható legyen,
+   különben a tartalom egyszerűen eltűnne.
+   ========================================================== */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    scroll-behavior: auto !important;
+  }
+  .mozgas [data-feltun] { opacity: 1 !important; transform: none !important; }
+  .terkep[data-mod='nezet'] .ut-vonal,
+  .terkep[data-mod='nezet'] .ut-talp { stroke-dasharray: none; stroke-dashoffset: 0; }
 }

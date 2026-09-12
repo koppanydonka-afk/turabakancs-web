@@ -1,4 +1,5 @@
 import { useMeta, useRoute } from './router.js';
+import { useFeltunes } from './mozgas.js';
 import Fejlec from './components/Fejlec.jsx';
 import Labjegyzet from './components/Labjegyzet.jsx';
 import FooldalPage from './components/FooldalPage.jsx';
@@ -54,6 +55,7 @@ export default function App() {
   })();
 
   useMeta(meta);
+  useFeltunes(path);
 
   const oldal = () => {
     if (utvonalId) return <UtvonalPage id={utvonalId} />;
@@ -72,7 +74,10 @@ export default function App() {
     <>
       <Fejlec />
       <main className={`fo${tervezoNezet ? ' fo--tervezo' : ''}`} key={path}>
-        {oldal()}
+        {/* A burkolat adja az oldalváltás áttűnését; a key miatt minden
+            címváltásnál újra lejátszódik. A tervezőnél kimarad, mert ott
+            a térkép újrarajzolása amúgy is mozgás. */}
+        {tervezoNezet ? oldal() : <div className="oldalvaltas">{oldal()}</div>}
       </main>
       {!tervezoNezet && <Labjegyzet />}
     </>

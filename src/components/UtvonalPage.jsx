@@ -88,7 +88,9 @@ export default function UtvonalPage({ id }) {
         </aside>
       </div>
 
-      <Ertekeles ertekeles={ertekeles} />
+      <div data-feltun>
+        <Ertekeles ertekeles={ertekeles} />
+      </div>
 
       <p className="figyelmeztetes">
         <strong>Hozzávetőleges vonalvezetés, nem felmért turistaút.</strong> A terepen a

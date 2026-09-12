@@ -55,12 +55,16 @@ export default function Ajanlo({ pontok, jelolesek, tempo }) {
     <div className="ajanlo">
       {!magassag && (
         <div className="ajanlo__magassag">
-          <button className="gomb gomb--halk gomb--szeles" onClick={kerd} disabled={fut}>
+          <button
+            className="gomb gomb--halk gomb--szeles"
+            onClick={kerd}
+            disabled={fut}
+            aria-busy={fut}
+          >
             {fut ? 'Lekérem…' : 'Magassági adat lekérése'}
           </button>
           <p className="apro">
-            Enélkül csak a távot tudom. Az emelkedő az, ami eldönti, séta-e vagy túra.
-            A lekérdezés az Open-Meteo nyilvános szolgáltatásához megy.
+            Az emelkedő dönti el, hogy séta-e vagy túra.
           </p>
           {hiba && <p className="uzenet">{hiba}</p>}
         </div>
@@ -70,13 +74,15 @@ export default function Ajanlo({ pontok, jelolesek, tempo }) {
 
       {!ido && (
         <div className="ajanlo__magassag">
-          <button className="gomb gomb--halk gomb--szeles" onClick={idotKer} disabled={idoFut}>
+          <button
+            className="gomb gomb--halk gomb--szeles"
+            onClick={idotKer}
+            disabled={idoFut}
+            aria-busy={idoFut}
+          >
             {idoFut ? 'Lekérem…' : 'Időjárás a következő öt napra'}
           </button>
-          <p className="apro">
-            Csak az útvonalad kezdőpontját küldi el az Open-Meteónak — a teljes
-            nyomvonalat nem.
-          </p>
+          <p className="apro">A túra kezdőpontjára, öt napra előre.</p>
           {idoHiba && <p className="uzenet">{idoHiba}</p>}
         </div>
       )}
@@ -132,7 +138,7 @@ function Idojaras({ napok }) {
           </p>
         );
       })}
-      <p className="apro">Az előrejelzés az Open-Meteótól jön, a túra kezdőpontjára.</p>
+      <p className="apro">Forrás: Open-Meteo.</p>
     </div>
   );
 }

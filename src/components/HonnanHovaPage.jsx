@@ -98,8 +98,7 @@ export default function HonnanHovaPage() {
         <p className="kalap">Honnan hova</p>
         <h1 className="oldal__cim">Írd be a két helyet, a többit megmondom.</h1>
         <p className="oldal__bevezeto">
-          Nem kell rajzolni és nem kell a térképhez nyúlni: a táv, az emelkedő és a
-          menetidő beírásból is megvan.
+          Nem kell rajzolni: a táv, az emelkedő és a menetidő beírásból is megvan.
         </p>
       </header>
 
@@ -143,15 +142,13 @@ export default function HonnanHovaPage() {
             className="gomb gomb--fo"
             type="submit"
             disabled={allapot === 'szamol' || !honnan.trim() || !hova.trim()}
+            aria-busy={allapot === 'szamol'}
           >
             {allapot === 'szamol' ? 'Számolom…' : 'Kiszámolom'}
           </button>
         </div>
 
-        <p className="apro">
-          A helyneveket az OpenStreetMap keresője oldja fel, az útvonalat a gyalogos
-          útvonalkereső számolja. Csak gombnyomásra kérdeznek.
-        </p>
+
         {hiba && <p className="uzenet uzenet--hiba">{hiba}</p>}
       </form>
 
@@ -213,7 +210,7 @@ export default function HonnanHovaPage() {
       )}
 
       {kozeli && kozeli.length > 0 && (
-        <section className="szekcio">
+        <section className="szekcio" data-feltun>
           <header className="szekcio__fej">
             <h2 className="szekcio__cim">A legközelebbi túrák innen</h2>
             <p className="szekcio__lead">
