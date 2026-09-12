@@ -18,29 +18,6 @@ const KEZDO_ZOOM = 12;
 
 /* A buborék tartalma a saját adatfájlunkból jön, de a szerzőneveket a
    Commonsról vettük át — ezért itt is megszűrjük, mielőtt HTML-be tesszük. */
-/* Törlőbuborék egy ponthoz.
-
-   Eddig csak jobbgombbal lehetett pontot törölni — telefonon viszont nincs
-   jobbgomb, tehát mobilon egyáltalán nem lehetett. Ez a buborék koppintásra
-   nyílik, és mindkét eszközön működik. */
-function torloBuborek(cimke, onTorol) {
-  const doboz = document.createElement('div');
-  doboz.className = 'pont-buborek';
-
-  const nev = document.createElement('span');
-  nev.textContent = cimke;
-  doboz.appendChild(nev);
-
-  const gomb = document.createElement('button');
-  gomb.type = 'button';
-  gomb.className = 'pont-buborek__torol';
-  gomb.textContent = 'Törlés';
-  gomb.addEventListener('click', onTorol);
-  doboz.appendChild(gomb);
-
-  return doboz;
-}
-
 const htmlBiztos = (szoveg) =>
   String(szoveg ?? '')
     .replace(/&/g, '&amp;')
@@ -182,26 +159,10 @@ export default function Terkep({
         friss.current.onPontTorol?.(i);
       });
 
+      /* Egyetlen kattintás törli a pontot — ezt kérte a felhasználó.
+         A húzás nem vált ki kattintást, tehát az arrébb húzás nem töröl. */
       if (friss.current.mod) {
-        /* Ez a kezelő a bindPopup ELŐTT kerül fel, ezért előbb fut, mint a
-           Leaflet saját buboréknyitása. Így az első kattintás még csukott
-           buborékot lát (megnyílik), a második viszont nyitottat — akkor
-           törlünk. Egy kattintással törölni túl könnyű lenne elvéteni. */
-        jel.on('click', () => {
-          if (jel.isPopupOpen()) {
-            jel.closePopup();
-            friss.current.onPontTorol?.(i);
-          }
-        });
-
-        jel.bindPopup(
-          () =>
-            torloBuborek(elso ? 'Rajt' : utolso ? 'Cél' : `${i + 1}. pont`, () => {
-              jel.closePopup();
-              friss.current.onPontTorol?.(i);
-            }),
-          { closeButton: false, className: 'pont-tipp', offset: [0, -4] },
-        );
+        jel.on('click', () => friss.current.onPontTorol?.(i));
       }
     });
   }, [pontok]);
@@ -237,22 +198,7 @@ export default function Terkep({
       });
 
       if (friss.current.mod) {
-        /* Ugyanaz, mint az útvonalpontoknál: második kattintás = törlés. */
-        jel.on('click', () => {
-          if (jel.isPopupOpen()) {
-            jel.closePopup();
-            friss.current.onJelolesTorol?.(i);
-          }
-        });
-
-        jel.bindPopup(
-          () =>
-            torloBuborek(j.cimke || 'Jelölés', () => {
-              jel.closePopup();
-              friss.current.onJelolesTorol?.(i);
-            }),
-          { closeButton: false, className: 'pont-tipp', offset: [0, -34] },
-        );
+        jel.on('click', () => friss.current.onJelolesTorol?.(i));
       }
     });
   }, [jelolesek]);

@@ -207,10 +207,10 @@ export default function TervezoPage() {
 
           <p className="terkep__sug">
             {mod === 'jeloles'
-              ? `Érintsd oda, ahová a(z) „${tipusSzerint(ujTipus).nev}” jelölés kerüljön.`
+              ? `Érintsd oda, ahová a(z) „${tipusSzerint(ujTipus).nev}” jelölés kerüljön. A meglévőre koppintva törlöd.`
               : pontok.length > 60
                 ? 'Kész útvonal. Érints a térképre új pontért, vagy nyisd meg a szerkesztést.'
-                : 'Érintsd a térképet a pontokért. A pontok húzhatók; kétszer rájuk koppintva törlődnek.'}
+                : 'Érintsd a térképet a pontokért. A pontok húzhatók; rájuk koppintva törlődnek.'}
           </p>
         </div>
 

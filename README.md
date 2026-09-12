@@ -272,8 +272,13 @@ utána jobbra-balra csúszkált.
   ezért az érintés átmegy rajta a térképre. Korábban elfogta, és a sáv alatti
   területre nem lehetett pontot tenni.
 
-**Pontot két kattintás töröl**: az első megnyitja a buborékot, a második
-törli. Egy kattintással túl könnyű lenne elvéteni.
+**Pontot és jelölést egyetlen kattintás töröl.** Nincs rákérdezés — ezt a
+felhasználó kifejezetten így kérte. A húzás nem vált ki kattintást, tehát
+az arrébb húzás nem töröl.
+
+> Elvétett kattintásnál nincs visszavonás egy tetszőleges pontra; csak az
+> „Utolsó pont vissza” gomb van a szerkesztés fiókban. Ha ez később zavaró,
+> a rákérdezés visszatehető: `jel.bindPopup(...)` a `Terkep.jsx`-ben.
 
 ## Telefonon
 
