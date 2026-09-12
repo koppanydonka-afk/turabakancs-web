@@ -22,6 +22,11 @@ import { hossz, ido, kmSzoveg } from '../src/data/utvonalak.js';
 const ALAP = 'https://turabakancs.com';
 const DIST = path.resolve('dist');
 
+/* A Netlify a perjel nélküli címet 301-gyel átirányítja a perjelesre, tehát
+   a valódi cím az utóbbi. A canonical és a sitemap ezt kövesse, különben
+   minden hivatkozásunk egy fölösleges átirányításon megy át. */
+const teljesCim = (ut) => `${ALAP}${ut === '/' ? '/' : `${ut}/`}`;
+
 const biztos = (sz) =>
   String(sz ?? '')
     .replace(/&/g, '&amp;')
@@ -91,7 +96,7 @@ function oldalak() {
         '@type': 'Place',
         name: p.nev,
         description: p.jegyzet,
-        url: `${ALAP}/utvonalak/${p.id}`,
+        url: teljesCim(`/utvonalak/${p.id}`),
         geo: {
           '@type': 'GeoCoordinates',
           latitude: p.pontok[0][0],
@@ -158,13 +163,13 @@ function keszit(sablon, oldal) {
   meta('description', oldal.leiras, false);
   meta('og:title', oldal.cim);
   meta('og:description', oldal.leiras);
-  meta('og:url', ALAP + oldal.ut);
+  meta('og:url', teljesCim(oldal.ut));
   meta('twitter:title', oldal.cim, false);
   meta('twitter:description', oldal.leiras, false);
 
   html = html.replace(
     '</head>',
-    `    <link rel="canonical" href="${ALAP}${oldal.ut}" />\n` +
+    `    <link rel="canonical" href="${teljesCim(oldal.ut)}" />\n` +
       (oldal.jsonLd
         ? `    <script type="application/ld+json">${JSON.stringify(oldal.jsonLd)}</script>\n`
         : '') +
@@ -192,5 +197,21 @@ for (const oldal of lista) {
   await fs.writeFile(path.join(konyvtar, 'index.html'), keszit(sablon, oldal));
 }
 
-console.log(`Előrenderelve: ${lista.length} cím`);
-for (const o of lista) console.log(`  ${o.ut}`);
+/* A sitemap ugyanebből a listából készül, mint az oldalak — így nem tud
+   szétcsúszni a kettő, ha új cím kerül be. */
+const ma = new Date().toISOString().slice(0, 10);
+const sulyok = { '/': '1.0', '/tervezo': '0.9', '/utvonalak': '0.8', '/rolad': '0.3' };
+const sitemap =
+  '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
+  lista
+    .map(
+      (o) =>
+        `  <url>\n    <loc>${teljesCim(o.ut)}</loc>\n    <lastmod>${ma}</lastmod>\n` +
+        `    <priority>${sulyok[o.ut] ?? '0.7'}</priority>\n  </url>`,
+    )
+    .join('\n') +
+  '\n</urlset>\n';
+await fs.writeFile(path.join(DIST, 'sitemap.xml'), sitemap);
+
+console.log(`Előrenderelve: ${lista.length} cím, sitemap frissítve`);
+for (const o of lista) console.log(`  ${teljesCim(o.ut)}`);
