@@ -70,7 +70,7 @@ forgalmi API-ért kulccsal és számlázási fiókkal. Egyik sem fér bele. Ráa
 | Cím | Mi van rajta |
 | --- | --- |
 | `/` | Főoldal: mai napkelte/napnyugta, jelzésrendszer, három példa, véleményfal |
-| `/tervezo` | A tervező: beírás vagy rajzolás, három füllel |
+| `/tervezo` | A tervező: beírás vagy rajzolás |
 | `/utvonalak` | A hat példa |
 | `/utvonalak/:id` | Egy példa térképpel |
 | `/rolad` | Mit tudunk rólad (a lábjegyzetből érhető el, nem menüpont) |
@@ -189,6 +189,27 @@ település között futnak át, a keresztesek két másik jelzést kötnek öss
 Magasságot szándékosan nem írunk ki érdekességként: a domborzatmodell pár méterrel
 eltér a hivatalos értékektől (Kékestetőre 1022 m-t ad az 1014 helyett), tehát tényként
 nem közölhető.
+
+## A panel sorrendje
+
+Szándékos, és ne forgasd fel: **előbb a kérdés, aztán a válasz, végül az
+eszközök.**
+
+1. **Honnan / Hova** — ez a belépő
+2. **Adatok** — hossz, menetidő, emelkedő, nehézség; alatta a magassági
+   metszet és a tanácsok
+3. **Szerkesztés és mentés** — összecsukva
+4. **Kész útvonalak**, **Mentett terveid** — összecsukva
+
+Korábban három fül volt (`Terv` / `Ajánló` / `Útvonalak`); azok egy
+kattintás mögé rejtették a lényeget. A `<details>` fiókok ugyanezt
+megoldják, de látszik, mi van bennük.
+
+**A magassági adat magától töltődik**, másfél másodperccel azután, hogy a
+vonal nem változik tovább. Így rajzolás közben nem megy ki kérés minden
+kattintásra, viszont nem kell gombot nyomni érte.
+
+Kikerült a „Hol vagyok?” gomb: ugyanazt csinálta, mint az „Innen indulok”.
 
 ## Két út ugyanahhoz: beírás vagy rajzolás
 

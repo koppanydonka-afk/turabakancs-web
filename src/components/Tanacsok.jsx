@@ -1,26 +1,25 @@
 import { useState } from 'react';
 import { ajanlasok } from '../data/ajanlo.js';
-import { magassagot } from '../data/magassag.js';
 import { elorejelzes, figyelmeztetes, kodSzerint } from '../data/idojaras.js';
 
-/* Ajánló fül: mit érdemes tudni a megrajzolt útról.
+/* Tanácsok és időjárás.
 
-   Minden tanács a saját vonaladból számol. A magassági adat az egyetlen,
-   amihez le kell kérdezni valamit — ezért külön gombra, nem magától. */
+   A magassági adatot a szülő tölti be (magától, kis késleltetéssel), ezért
+   ez a komponens már csak megjelenít. Így eggyel kevesebb gombot kell
+   megnyomni ahhoz, hogy a lényeg látszódjon. */
 
-export default function Ajanlo({ pontok, jelolesek, tempo }) {
-  const [magassag, setMagassag] = useState(null);
+export default function Tanacsok({ pontok, jelolesek, tempo, magassag }) {
+  const [ido, setIdo] = useState(null);
   const [fut, setFut] = useState(false);
   const [hiba, setHiba] = useState(null);
-  const [ido, setIdo] = useState(null);
-  const [idoFut, setIdoFut] = useState(false);
-  const [idoHiba, setIdoHiba] = useState(null);
 
-  const kerd = async () => {
+  if (pontok.length < 2) return null;
+
+  const idotKer = async () => {
     setFut(true);
     setHiba(null);
     try {
-      setMagassag(await magassagot(pontok));
+      setIdo(await elorejelzes(pontok[0]));
     } catch (e) {
       setHiba(e.message);
     } finally {
@@ -28,66 +27,11 @@ export default function Ajanlo({ pontok, jelolesek, tempo }) {
     }
   };
 
-  const idotKer = async () => {
-    setIdoFut(true);
-    setIdoHiba(null);
-    try {
-      setIdo(await elorejelzes(pontok[0]));
-    } catch (e) {
-      setIdoHiba(e.message);
-    } finally {
-      setIdoFut(false);
-    }
-  };
-
-  if (pontok.length < 2) {
-    return (
-      <p className="apro">
-        Rajzolj legalább két pontot, és megmondom, mire számíts: menetidőt,
-        nehézséget, és hogy beéred-e sötétedés előtt.
-      </p>
-    );
-  }
-
   const lista = ajanlasok({ pontok, jelolesek, tempo, magassag });
 
   return (
-    <div className="ajanlo">
-      {!magassag && (
-        <div className="ajanlo__magassag">
-          <button
-            className="gomb gomb--halk gomb--szeles"
-            onClick={kerd}
-            disabled={fut}
-            aria-busy={fut}
-          >
-            {fut ? 'Lekérem…' : 'Magassági adat lekérése'}
-          </button>
-          <p className="apro">
-            Az emelkedő dönti el, hogy séta-e vagy túra.
-          </p>
-          {hiba && <p className="uzenet">{hiba}</p>}
-        </div>
-      )}
-
+    <div className="tanacsok">
       {magassag && <Profil magassag={magassag} />}
-
-      {!ido && (
-        <div className="ajanlo__magassag">
-          <button
-            className="gomb gomb--halk gomb--szeles"
-            onClick={idotKer}
-            disabled={idoFut}
-            aria-busy={idoFut}
-          >
-            {idoFut ? 'Lekérem…' : 'Időjárás a következő öt napra'}
-          </button>
-          <p className="apro">A túra kezdőpontjára, öt napra előre.</p>
-          {idoHiba && <p className="uzenet">{idoHiba}</p>}
-        </div>
-      )}
-
-      {ido && <Idojaras napok={ido} />}
 
       <ul className="ajanlo__lista">
         {lista.map((a) => (
@@ -97,6 +41,17 @@ export default function Ajanlo({ pontok, jelolesek, tempo }) {
           </li>
         ))}
       </ul>
+
+      {ido ? (
+        <Idojaras napok={ido} />
+      ) : (
+        <>
+          <button className="gomb gomb--halk gomb--szeles" onClick={idotKer} disabled={fut} aria-busy={fut}>
+            {fut ? 'Lekérem…' : 'Milyen idő lesz?'}
+          </button>
+          {hiba && <p className="uzenet">{hiba}</p>}
+        </>
+      )}
     </div>
   );
 }
@@ -108,16 +63,13 @@ function Idojaras({ napok }) {
 
   return (
     <div className="idojaras">
-      <h3 className="lista__cim">Időjárás</h3>
       <div className="idojaras__napok">
         {napok.map((n, i) => {
           const d = new Date(`${n.nap}T12:00:00`);
           const fig = figyelmeztetes(n);
           return (
             <div className={`ido-nap${fig ? ` ido-nap--${fig.szint}` : ''}`} key={n.nap}>
-              <p className="ido-nap__nap">
-                {i === 0 ? 'ma' : i === 1 ? 'holnap' : nevek[d.getDay()]}
-              </p>
+              <p className="ido-nap__nap">{i === 0 ? 'ma' : i === 1 ? 'holnap' : nevek[d.getDay()]}</p>
               <p className="ido-nap__fok">
                 <strong>{n.max}°</strong>
                 <span>{n.min}°</span>
@@ -128,9 +80,9 @@ function Idojaras({ napok }) {
           );
         })}
       </div>
-      {napok.map((n, i) => {
+      {napok.slice(0, 3).map((n, i) => {
         const fig = figyelmeztetes(n);
-        if (!fig || i > 2) return null;
+        if (!fig) return null;
         return (
           <p className={`tanacs tanacs--${fig.szint}`} key={`f-${n.nap}`}>
             <span className="tanacs__cim">{i === 0 ? 'Ma' : i === 1 ? 'Holnap' : 'Két nap múlva'}</span>
@@ -138,13 +90,11 @@ function Idojaras({ napok }) {
           </p>
         );
       })}
-      <p className="apro">Forrás: Open-Meteo.</p>
     </div>
   );
 }
 
-/* Magassági metszet. Egyszerű területdiagram — nem elemzésre való, arra,
-   hogy egy pillantásra lásd, hol megy fel. */
+/* Magassági metszet — egy pillantásra látod, hol megy fel. */
 function Profil({ magassag }) {
   const { magassagok, min, max, fel, le } = magassag;
   const also = Math.min(...magassagok);

@@ -2,38 +2,38 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import Terkep from './Terkep.jsx';
 import HonnanHova from './HonnanHova.jsx';
 import KozeliTurak from './KozeliTurak.jsx';
-import JelolesLista from './JelolesLista.jsx';
-import Ajanlo from './Ajanlo.jsx';
 import TuraLista from './TuraLista.jsx';
+import JelolesLista from './JelolesLista.jsx';
+import Tanacsok from './Tanacsok.jsx';
 import Labjegyzet from './Labjegyzet.jsx';
 import { JELOLES_TIPUSOK, tipusSzerint } from '../data/jelolesek.js';
 import {
   TEMPOK,
   dekodol,
   hossz,
-  ido,
   jeloleseketDekodol,
   kmSzoveg,
   kodol,
   tervLinkje,
 } from '../data/utvonalak.js';
+import { menetido, nehezseg } from '../data/ajanlo.js';
+import { magassagot } from '../data/magassag.js';
 import { gpxLetoltes } from '../data/gpx.js';
 import { osvenyreHuz, ritkit as utatRitkit } from '../data/utvonalkereso.js';
-import { tervMentes, tervTorles, useTervek } from '../data/tarolo.js';
 import { kozeliTurak } from '../data/kozeli.js';
+import { peldaUtvonalak } from '../data/peldak.js';
+import { tervMentes, tervTorles, useTervek } from '../data/tarolo.js';
 import { useRoute } from '../router.js';
 
-/* A tervező. Ez a kezdőlap is: az eszköz maga a tartalom.
+/* A tervező.
 
-   A panel három fülre oszlik — Terv, Ajánló, Útvonalak —, mert a
-   rajzolás, a tanácsok és a böngészés három külön dolog, és egymás alá
-   pakolva egyik sem látszana. */
+   A panel sorrendje szándékos: előbb a kérdés (honnan hova), utána a
+   válasz (adatok, tanácsok), és csak legvégül az eszközök. Ami nem
+   mindenkinek kell — jelölések, mentések, közeli túrák, jelzett utak —,
+   az összecsukva várakozik.
 
-const FULEK = [
-  { id: 'terv', nev: 'Terv' },
-  { id: 'ajanlo', nev: 'Ajánló' },
-  { id: 'turak', nev: 'Útvonalak' },
-];
+   Korábban három fül volt; azok csak elrejtették a lényeget egy kattintás
+   mögé. */
 
 export default function TervezoPage() {
   const { params } = useRoute();
@@ -49,22 +49,19 @@ export default function TervezoPage() {
   const [uzenet, setUzenet] = useState(null);
   const [illeszt, setIlleszt] = useState(0);
   const [aktivId, setAktivId] = useState(null);
-  const [ful, setFul] = useState('terv');
-  const [latvanyok, setLatvanyok] = useState(true);
-  const [huzas, setHuzas] = useState(false);
-  const [huzasElott, setHuzasElott] = useState(null);
-  /* Telefonon a panel alulról felhúzható lap; asztali gépen ez nem számít. */
   const [lapNyitva, setLapNyitva] = useState(false);
   const [kozeli, setKozeli] = useState(null);
+  const [huzas, setHuzas] = useState(false);
+  const [huzasElott, setHuzasElott] = useState(null);
+  const [magassag, setMagassag] = useState(null);
 
   const tervek = useTervek();
   const km = useMemo(() => hossz(pontok), [pontok]);
   const utParam = params.get('ut');
   const jParam = params.get('j');
+  const vonalKulcs = useMemo(() => kodol(pontok), [pontok]);
 
-  /* Megosztott link akkor is töltsön be, ha az oldalon belül navigálunk rá.
-     Csak olvassuk a címsort, nem írjuk: rajzolás közben így nem indul
-     körkörös frissítés. */
+  /* Megosztott link akkor is töltsön be, ha az oldalon belül navigálunk rá. */
   useEffect(() => {
     const ujPontok = dekodol(utParam);
     const ujJelolesek = jeloleseketDekodol(jParam);
@@ -76,77 +73,54 @@ export default function TervezoPage() {
     setIlleszt((n) => n + 1);
   }, [utParam, jParam]);
 
+  /* A magassági adat magától töltődik — de csak akkor, ha a vonal másfél
+     másodpercig nem változott. Rajzolás közben így nem megy ki kérés
+     minden egyes kattintásra. */
+  useEffect(() => {
+    setMagassag(null);
+    if (pontok.length < 2) return undefined;
+    const ora = setTimeout(() => {
+      magassagot(pontok)
+        .then(setMagassag)
+        .catch(() => setMagassag(null));
+    }, 1500);
+    return () => clearTimeout(ora);
+  }, [vonalKulcs, pontok.length]);
+
   const betolt = (terv) => {
     setPontok(terv.pontok ?? []);
     setJelolesek(terv.jelolesek ?? []);
     setNev(terv.nev ?? '');
     setAktivId(terv.id ?? null);
     setUzenet(null);
+    setHuzasElott(null);
     setIlleszt((n) => n + 1);
   };
 
-  /* Jelzett turistaút betöltése. A nyers vonal több ezer pontból áll, azt
-     ritkítva vesszük át — ezt meg is mondjuk, mert a hossz így pár
-     százalékkal rövidebbnek látszik a valóságosnál. */
   const turatBetolt = ({ nev: utNev, pontok: ujPontok, eredetiPontok, eredetiHossz }) => {
-    setPontok(ujPontok);
-    setJelolesek([]);
-    setNev(utNev);
-    setAktivId(null);
-    setIlleszt((n) => n + 1);
-    setFul('terv');
+    betolt({ nev: utNev, pontok: ujPontok, jelolesek: [] });
     setUzenet(
       eredetiPontok > ujPontok.length
-        ? `Betöltve. A vonalat ${eredetiPontok} pontról ${ujPontok.length}-re ritkítottam, hogy szerkeszthető maradjon — a valódi hossz ${kmSzoveg(eredetiHossz)}.`
+        ? `Betöltve. A vonalat ritkítottam, hogy szerkeszthető maradjon — a valódi hossz ${kmSzoveg(eredetiHossz)}.`
         : 'Betöltve. Húzd arrébb a pontjait, vagy tegyél rá jelöléseket.',
     );
   };
 
-  /* Ösvényre húzás: a kattintott pontokat rátesszük a tényleges gyalogutakra.
-     Az előző állapotot megtartjuk, hogy egy gombbal vissza lehessen vonni —
-     a routolt vonal sokszor meglepően másfelé megy, mint amire számítottál. */
   const osvenyre = async () => {
     setHuzas(true);
     setUzenet(null);
     try {
-      /* A `pontok` itt még a húzás ELŐTTI állapot: a setPontok csak a
-         következő rajzolási körben érvényesül, ezért lehet vele összevetni. */
-      const elotteKm = hossz(pontok);
+      const elozo = pontok;
       const e = await osvenyreHuz(pontok);
-      setHuzasElott(pontok);
+      setHuzasElott(elozo);
       setPontok(utatRitkit(e.pontok));
       setIlleszt((n) => n + 1);
-      setUzenet(
-        `Rákerült a gyalogutakra: ${kmSzoveg(e.km)} a korábbi ${kmSzoveg(elotteKm)} helyett.` +
-          (e.km > elotteKm + 0.05 ? ' A valódi ösvény hosszabb, mint az egyenes.' : ''),
-      );
+      setUzenet('Rákerült a tényleges gyalogutakra.');
     } catch (err) {
       setUzenet(err.message);
     } finally {
       setHuzas(false);
     }
-  };
-
-  const huzastVisszavon = () => {
-    if (!huzasElott) return;
-    setPontok(huzasElott);
-    setHuzasElott(null);
-    setIlleszt((n) => n + 1);
-    setUzenet('Visszaálltak az eredeti pontjaid.');
-  };
-
-  const urese = () => {
-    setPontok([]);
-    setJelolesek([]);
-    setNev('');
-    setAktivId(null);
-    setUzenet(null);
-    setHuzasElott(null);
-  };
-
-  const vissza = () => {
-    if (mod === 'jeloles' && jelolesek.length) setJelolesek((j) => j.slice(0, -1));
-    else setPontok((p) => p.slice(0, -1));
   };
 
   const linkMasol = async () => {
@@ -156,7 +130,7 @@ export default function TervezoPage() {
       setUzenet('A link a vágólapon — az útvonal magában a címben van.');
     } catch {
       window.history.replaceState({}, '', tervLinkje('/tervezo', { pontok, jelolesek }));
-      setUzenet('A böngésző címsorában ott a megosztható link, onnan másolható.');
+      setUzenet('A böngésző címsorában ott a megosztható link.');
     }
   };
 
@@ -168,22 +142,10 @@ export default function TervezoPage() {
     setUzenet('Elmentve. Másik gépen a megosztható linkkel éred el.');
   };
 
-  const sajatHelyzet = () => {
-    if (!navigator.geolocation) {
-      setUzenet('Ez a böngésző nem tudja megmondani a helyzetedet.');
-      return;
-    }
-    navigator.geolocation.getCurrentPosition(
-      (poz) => {
-        terkep.current?.setView([poz.coords.latitude, poz.coords.longitude], 15);
-        setUzenet('A térkép odaugrott.');
-      },
-      () => setUzenet('Nem kaptam meg a helyzetedet — a térképet kézzel is odahúzhatod.'),
-      { enableHighAccuracy: true, timeout: 8000 },
-    );
-  };
-
   const ures = pontok.length === 0 && jelolesek.length === 0;
+  const vanUt = pontok.length >= 2;
+  const ido = vanUt ? menetido(km, tempo, magassag?.fel) : 0;
+  const nehez = vanUt ? nehezseg(km, magassag?.fel) : null;
 
   return (
     <section className="tervezo">
@@ -195,22 +157,22 @@ export default function TervezoPage() {
             mod={mod}
             ujTipus={ujTipus}
             illeszt={illeszt}
-            latvanyok={latvanyok}
+            latvanyok
             onKesz={(map) => {
               terkep.current = map;
               setTerkepKesz(true);
             }}
-            onPontHozzaad={(p) => setPontok((eddig) => [...eddig, p])}
-            onPontMozgat={(i, p) => setPontok((eddig) => eddig.map((elem, n) => (n === i ? p : elem)))}
-            onPontTorol={(i) => setPontok((eddig) => eddig.filter((_, n) => n !== i))}
-            onJelolesHozzaad={(j) => setJelolesek((eddig) => [...eddig, { ...j, cimke: '' }])}
+            onPontHozzaad={(p) => setPontok((e) => [...e, p])}
+            onPontMozgat={(i, p) => setPontok((e) => e.map((x, n) => (n === i ? p : x)))}
+            onPontTorol={(i) => setPontok((e) => e.filter((_, n) => n !== i))}
+            onJelolesHozzaad={(j) => setJelolesek((e) => [...e, { ...j, cimke: '' }])}
             onJelolesMozgat={(i, hely) =>
-              setJelolesek((eddig) => eddig.map((elem, n) => (n === i ? { ...elem, ...hely } : elem)))
+              setJelolesek((e) => e.map((x, n) => (n === i ? { ...x, ...hely } : x)))
             }
-            onJelolesTorol={(i) => setJelolesek((eddig) => eddig.filter((_, n) => n !== i))}
+            onJelolesTorol={(i) => setJelolesek((e) => e.filter((_, n) => n !== i))}
           />
 
-          <div className="modvalto" role="group" aria-label="Mit tesz a kattintás">
+          <div className="modvalto" role="group" aria-label="Mit tesz az érintés">
             <button
               className={`modvalto__gomb${mod === 'ut' ? ' modvalto__gomb--aktiv' : ''}`}
               onClick={() => setMod('ut')}
@@ -243,18 +205,6 @@ export default function TervezoPage() {
             </div>
           )}
 
-          <button
-            className={`latvany-valto${latvanyok ? ' latvany-valto--aktiv' : ''}`}
-            onClick={() => setLatvanyok((v) => !v)}
-            aria-pressed={latvanyok}
-            title={latvanyok ? 'Látványosságok elrejtése' : 'Látványosságok mutatása'}
-          >
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M12 3 3 9v2h18V9zM5 13v6H3v2h18v-2h-2v-6h-2v6h-3v-6h-2v6H7v-6z" />
-            </svg>
-            <span>Látnivalók</span>
-          </button>
-
           <p className="terkep__sug">
             {mod === 'ut'
               ? 'Érintsd a térképet a pontokért. A pontok húzhatók; koppints rájuk a törléshez.'
@@ -271,140 +221,172 @@ export default function TervezoPage() {
           >
             <span className="lapfogo__csik" aria-hidden="true" />
             <span className="lapfogo__szoveg">
-              {lapNyitva ? 'Térkép mutatása' : `${kmSzoveg(km)} · ${pontok.length} pont · részletek`}
+              {lapNyitva
+                ? 'Térkép mutatása'
+                : vanUt
+                  ? `${kmSzoveg(km)} · ${ido ? `${Math.floor(ido / 60)} ó ${String(ido % 60).padStart(2, '0')} p` : '—'} · részletek`
+                  : 'Honnan hova? · részletek'}
             </span>
           </button>
 
           <div className="panel__tartalom" id="tervezo-panel">
-          <HonnanHova
-            onUgras={(pont, { kozeli: kell } = {}) => {
-              terkep.current?.setView(pont, 13);
-              if (kell) setKozeli(kozeliTurak(pont));
-            }}
-            onUtvonal={({ pontok: ujPontok, km, nev, honnan }) => {
-              setHuzasElott(null);
-              setPontok(ujPontok);
-              setJelolesek([]);
-              setNev(nev);
-              setAktivId(null);
-              setIlleszt((n) => n + 1);
-              setKozeli(kozeliTurak(honnan));
-              /* Számot szándékosan nem írunk ide: a vonal ritkítása miatt pár
-                 tized kilométerrel eltérne attól, ami közvetlenül mellette,
-                 az értékrácsban látszik. */
-              setUzenet('Kész — a vonal a tényleges gyalogutakon fut. Húzd arrébb a pontjait, vagy tegyél rá jelöléseket.');
-            }}
-          />
+            {/* 1. A kérdés */}
+            <HonnanHova
+              onUgras={(pont, { kozeli: kell } = {}) => {
+                terkep.current?.setView(pont, 13);
+                if (kell) setKozeli(kozeliTurak(pont));
+              }}
+              onUtvonal={({ pontok: ujPontok, nev: ujNev, honnan }) => {
+                betolt({ nev: ujNev, pontok: ujPontok, jelolesek: [] });
+                setKozeli(kozeliTurak(honnan));
+                setUzenet('Kész — a vonal a tényleges gyalogutakon fut.');
+              }}
+            />
 
-          <nav className="fulek" role="tablist" aria-label="Panel nézetei">
-            {FULEK.map((f) => (
-              <button
-                key={f.id}
-                role="tab"
-                aria-selected={ful === f.id}
-                className={`fulek__gomb${ful === f.id ? ' fulek__gomb--aktiv' : ''}`}
-                onClick={() => setFul(f.id)}
-              >
-                {f.nev}
-              </button>
-            ))}
-          </nav>
+            {uzenet && <p className="uzenet">{uzenet}</p>}
 
-          {uzenet && <p className="uzenet">{uzenet}</p>}
+            {/* 2. A válasz */}
+            {vanUt && (
+              <div className="adatok">
+                <div className="ertekek">
+                  <div className="ertekek__elem">
+                    <strong>{kmSzoveg(km)}</strong>
+                    <span>hossz</span>
+                  </div>
+                  <div className="ertekek__elem ertekek__elem--kiemelt">
+                    <strong>
+                      {ido < 60 ? `${ido} perc` : `${Math.floor(ido / 60)} ó ${String(ido % 60).padStart(2, '0')} p`}
+                    </strong>
+                    <span>
+                      <select
+                        className="tempo"
+                        value={tempo}
+                        onChange={(e) => setTempo(e.target.value)}
+                        aria-label="Haladási tempó"
+                      >
+                        {TEMPOK.map((t) => (
+                          <option key={t.id} value={t.id}>{t.nev}</option>
+                        ))}
+                      </select>
+                    </span>
+                  </div>
+                  <div className="ertekek__elem">
+                    <strong>{magassag ? `↑ ${magassag.fel} m` : '…'}</strong>
+                    <span>emelkedő</span>
+                  </div>
+                  <div className="ertekek__elem">
+                    <strong>{nehez.szo}</strong>
+                    <span>nehézség</span>
+                  </div>
+                </div>
 
-          {ful === 'terv' && (
-            <>
-              <div className="ertekek">
-                <div className="ertekek__elem">
-                  <strong>{kmSzoveg(km)}</strong>
-                  <span>Hossz</span>
-                </div>
-                <div className="ertekek__elem">
-                  <strong>{km > 0 ? ido(km, tempo) : '—'}</strong>
-                  <span>
-                    <select
-                      className="tempo"
-                      value={tempo}
-                      onChange={(e) => setTempo(e.target.value)}
-                      aria-label="Haladási tempó"
-                    >
-                      {TEMPOK.map((t) => (
-                        <option key={t.id} value={t.id}>
-                          {t.nev} · {t.kmh.toLocaleString('hu-HU')} km/h
-                        </option>
-                      ))}
-                    </select>
-                  </span>
-                </div>
-                <div className="ertekek__elem">
-                  <strong>{pontok.length}</strong>
-                  <span>Pont</span>
-                </div>
-                <div className="ertekek__elem">
-                  <strong>{jelolesek.length}</strong>
-                  <span>Jelölés</span>
-                </div>
-              </div>
-              <p className="apro">
-                Ez a becslés sík terepre szól. Az emelkedővel együtt számolt menetidőt
-                az <strong>Ajánló</strong> fülön találod.
-              </p>
+                <Tanacsok pontok={pontok} jelolesek={jelolesek} tempo={tempo} magassag={magassag} />
 
-              <div className="gombsor">
-                <button className="gomb gomb--halk" onClick={vissza} disabled={ures}>Vissza</button>
-                <button className="gomb gomb--halk" onClick={urese} disabled={ures}>Üres lap</button>
-                <button className="gomb gomb--halk" onClick={sajatHelyzet}>Hol vagyok?</button>
-                {huzasElott ? (
-                  <button className="gomb gomb--halk" onClick={huzastVisszavon}>
-                    Húzás visszavonása
-                  </button>
-                ) : (
+                <div className="gombsor">
+                  <button className="gomb gomb--fo" onClick={linkMasol}>Megosztható link</button>
                   <button
                     className="gomb gomb--halk"
-                    onClick={osvenyre}
-                    disabled={pontok.length < 2 || huzas}
-                    title="A pontjaidat ráteszi a tényleges gyalogutakra"
+                    onClick={() => gpxLetoltes({ nev: nev.trim() || 'Túrabakancs', pontok, jelolesek })}
                   >
-                    {huzas ? 'Húzom…' : 'Ösvényre húzás'}
+                    GPX
                   </button>
-                )}
-                <button className="gomb gomb--fo" onClick={linkMasol} disabled={ures}>Megosztható link</button>
-                <button
-                  className="gomb gomb--halk"
-                  onClick={() => gpxLetoltes({ nev: nev.trim() || 'Túrabakancs', pontok, jelolesek })}
-                  disabled={ures}
-                >
-                  GPX letöltése
-                </button>
+                </div>
               </div>
+            )}
 
-              <form className="mentes" onSubmit={ment}>
-                <label className="mezo">
-                  <span>A terv neve</span>
-                  <input
-                    type="text"
-                    value={nev}
-                    onChange={(e) => setNev(e.target.value)}
-                    placeholder="Például: vasárnapi kör"
+            {/* 3. Az eszközök — csak ha van min dolgozni */}
+            {!ures && (
+              <details className="fiok">
+                <summary>Szerkesztés és mentés</summary>
+                <div className="fiok__tartalom">
+                  <div className="gombsor">
+                    <button className="gomb gomb--halk" onClick={() => setPontok((p) => p.slice(0, -1))}>
+                      Utolsó pont vissza
+                    </button>
+                    {huzasElott ? (
+                      <button
+                        className="gomb gomb--halk"
+                        onClick={() => {
+                          setPontok(huzasElott);
+                          setHuzasElott(null);
+                          setIlleszt((n) => n + 1);
+                          setUzenet('Visszaálltak az eredeti pontjaid.');
+                        }}
+                      >
+                        Húzás visszavonása
+                      </button>
+                    ) : (
+                      <button
+                        className="gomb gomb--halk"
+                        onClick={osvenyre}
+                        disabled={!vanUt || huzas}
+                        aria-busy={huzas}
+                        title="A pontjaidat ráteszi a tényleges gyalogutakra"
+                      >
+                        Ösvényre húzás
+                      </button>
+                    )}
+                    <button
+                      className="gomb gomb--halk"
+                      onClick={() => {
+                        setPontok([]);
+                        setJelolesek([]);
+                        setNev('');
+                        setAktivId(null);
+                        setUzenet(null);
+                        setHuzasElott(null);
+                      }}
+                    >
+                      Üres lap
+                    </button>
+                  </div>
+
+                  <form className="mentes" onSubmit={ment}>
+                    <label className="mezo">
+                      <span>A terv neve</span>
+                      <input
+                        type="text"
+                        value={nev}
+                        onChange={(e) => setNev(e.target.value)}
+                        placeholder="Például: vasárnapi kör"
+                      />
+                    </label>
+                    <button className="gomb gomb--halk" type="submit">
+                      {aktivId ? 'Mentés frissítése' : 'Mentés a böngészőbe'}
+                    </button>
+                  </form>
+
+                  <JelolesLista
+                    jelolesek={jelolesek}
+                    onCimke={(i, cimke) =>
+                      setJelolesek((e) => e.map((j, n) => (n === i ? { ...j, cimke } : j)))
+                    }
+                    onTorol={(i) => setJelolesek((e) => e.filter((_, n) => n !== i))}
+                    onOdaugrik={(j) => terkep.current?.setView([j.lat, j.lng], 16)}
                   />
-                </label>
-                <button className="gomb gomb--halk" type="submit" disabled={ures}>
-                  {aktivId ? 'Mentés frissítése' : 'Mentés a böngészőbe'}
-                </button>
-              </form>
+                </div>
+              </details>
+            )}
 
-              <JelolesLista
-                jelolesek={jelolesek}
-                onCimke={(i, cimke) =>
-                  setJelolesek((eddig) => eddig.map((j, n) => (n === i ? { ...j, cimke } : j)))
-                }
-                onTorol={(i) => setJelolesek((eddig) => eddig.filter((_, n) => n !== i))}
-                onOdaugrik={(j) => terkep.current?.setView([j.lat, j.lng], 16)}
-              />
+            {/* 4. Ami készen várakozik */}
+            <details className="fiok">
+              <summary>Kész útvonalak</summary>
+              <div className="fiok__tartalom">
+                <KozeliTurak
+                  lista={kozeli}
+                  onBetolt={(p) => betolt({ nev: p.nev, pontok: p.pontok, jelolesek: p.jelolesek })}
+                />
+                <TuraLista terkep={terkepKesz ? terkep.current : null} onBetolt={turatBetolt} />
+                <a className="gomb gomb--halk gomb--szeles" href="/utvonalak">
+                  Mind a {peldaUtvonalak.length} példa
+                </a>
+              </div>
+            </details>
 
-              {tervek.length > 0 && (
-                <div className="lista">
-                  <h2 className="lista__cim">Mentett terveid</h2>
+            {tervek.length > 0 && (
+              <details className="fiok">
+                <summary>Mentett terveid ({tervek.length})</summary>
+                <div className="fiok__tartalom">
                   {tervek.map((terv) => (
                     <div key={terv.id} className="lista__sor">
                       <button className="lista__nev" onClick={() => betolt(terv)}>
@@ -427,31 +409,10 @@ export default function TervezoPage() {
                   ))}
                   <p className="apro">Csak ezen a böngészőn. Túra előtt töltsd le GPX-ben.</p>
                 </div>
-              )}
-            </>
-          )}
+              </details>
+            )}
 
-          {ful === 'ajanlo' && <Ajanlo pontok={pontok} jelolesek={jelolesek} tempo={tempo} />}
-
-          {ful === 'turak' && (
-            <>
-              <KozeliTurak
-                lista={kozeli}
-                onBetolt={(p) => betolt({ nev: p.nev, pontok: p.pontok, jelolesek: p.jelolesek })}
-              />
-              <TuraLista terkep={terkepKesz ? terkep.current : null} onBetolt={turatBetolt} />
-              <div className="lista">
-                <h2 className="lista__cim">Vagy kezdd egy példával</h2>
-                <a className="gomb gomb--halk gomb--szeles" href="/utvonalak">
-                  Példák megnyitása
-                </a>
-              </div>
-            </>
-          )}
-
-          {/* A teljes magasságú tervezőoldal alatt nincs külön lábsáv,
-              ezért az adatkezelés apróbetűje a panel aljára kerül. */}
-          <Labjegyzet tomor />
+            <Labjegyzet tomor />
           </div>
         </aside>
       </div>
