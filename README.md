@@ -38,6 +38,7 @@ npm run build    # dist/ mappába épít
 | `src/data/velemenyek.js` | **A vélemények tárolórétege — olvasd el a fájl tetejét** |
 | `src/data/erdekessegek.js` | A turistajelzés-rendszer, adatból ellenőrizve |
 | `src/data/ertekelesek.js` | **A „szerintünk” csillagok — ezek vázlatok, írd át** |
+| `src/data/szures.js` | Szűrés tájegység, hossz és nehézség szerint |
 | `src/data/latvanyossagok.js` | 15 látványosság: koordináta, kép, **szerző és licenc** |
 | `public/latvany/` | A letöltött képek (528 KB) |
 | `src/components/Ertekeles.jsx` | Az értékelődoboz az útvonal oldalán |
@@ -155,6 +156,27 @@ oda, honnan van.
 
 Egy dolgot mindig ellenőrizz: a Wikidata néha meglepő fotót társít egy helyhez.
 Nyisd meg a letöltött képet, mielőtt kiteszed.
+
+## Új példa útvonal felvétele — a bevált menet
+
+**Soha ne írj be koordinátát ellenőrzés nélkül.** A menet, ami működik:
+
+1. **Horgonypontok** a Nominatimból, névre keresve — és **ellenőrizd, hogy a
+   találat a megfelelő tájegység dobozán belül van.** Az „Istállós-kő” egyszer
+   egy jakabszállási utcára illeszkedett, amiből 203 km-es útvonal lett.
+2. **Ösvényre húzás** az OSRM gyalogos profiljával: a vonal a valódi
+   gyalogutakon fusson, ne két pont közé húzott egyenesen.
+3. **Emelkedő lemérése** az Open-Meteóval — **legfeljebb 100 koordináta**
+   egy kérésben, ennyit enged a szolgáltatás.
+4. **Józan ész**: stimmel-e a magasság a hely ismert magasságával? Oda
+   vezet-e az útvonal, ahova a neve ígéri? A „Baradla-barlang” horgonya
+   Jósvafőn van, nem Aggteleken — emiatt lett a nevéből „Aggtelek – Jósvafő”.
+5. Az eredményt írd be `emelkedo: { fel, le, min, max }` mezőként: ebből
+   számol a nehézség és a szűrő, API-hívás nélkül.
+
+**Ha a leírásban számot írsz, az a lemért szám legyen.** Amikor a régi
+egyenes vonalakat ösvényre húztuk, öt szöveg elavult (például „11 méter
+emelkedő”, ami valójában 61 lett) — mindet javítani kellett.
 
 ## Az érdekességek — hogyan készültek
 
