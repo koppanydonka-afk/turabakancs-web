@@ -55,22 +55,12 @@ function oldalak() {
       ut: '/tervezo',
       cim: 'Tervező — Túrabakancs',
       leiras:
-        'Rajzolj útvonalat a térképre, tegyél ki jelöléseket, oszd meg egy linkkel. Menetidő emelkedővel, időjárás, GPX.',
+        'Írd be, honnan hova mész, vagy rajzolj a térképre. Táv, emelkedő, menetidő, időjárás és GPX.',
       tartalom: `
         <h1>Útvonaltervező</h1>
-        <p>Kattints a térképre a pontokért. Megmutatja a hosszát, az emelkedőt és a
-           becsült menetidőt, és letöltheted GPX-ben.</p>`,
-    },
-    {
-      ut: '/honnan-hova',
-      cim: 'Honnan hova — Túrabakancs',
-      leiras:
-        'Írd be a két helyet, és megmondjuk a távot, az emelkedőt és a menetidőt. Rajzolni és a térképhez nyúlni sem kell.',
-      tartalom: `
-        <h1>Írd be a két helyet, a többit megmondom.</h1>
-        <p>Nem kell rajzolni és nem kell a térképhez nyúlni: a táv, az emelkedő és a
-           menetidő beírásból is megvan. Emellett feldobja a kiindulópontodhoz
-           legközelebbi kész túrákat.</p>`,
+        <p>Írd be, honnan hova szeretnél menni — vagy rajzolj a térképre. Megmutatja a
+           hosszát, az emelkedőt és a becsült menetidőt, és letöltheted GPX-ben.</p>
+        <p>A kiindulópontodhoz feldobja a legközelebbi kész túrákat is.</p>`,
     },
     {
       ut: '/utvonalak',
@@ -224,7 +214,7 @@ for (const oldal of lista) {
 /* A sitemap ugyanebből a listából készül, mint az oldalak — így nem tud
    szétcsúszni a kettő, ha új cím kerül be. */
 const ma = new Date().toISOString().slice(0, 10);
-const sulyok = { '/': '1.0', '/tervezo': '0.9', '/utvonalak': '0.8', '/honnan-hova': '0.9', '/rolad': '0.3', '/impresszum': '0.3' };
+const sulyok = { '/': '1.0', '/tervezo': '0.9', '/utvonalak': '0.8', '/rolad': '0.3', '/impresszum': '0.3' };
 const sitemap =
   '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
   lista

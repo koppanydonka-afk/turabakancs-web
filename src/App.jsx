@@ -1,10 +1,10 @@
-import { useMeta, useRoute } from './router.js';
+import { useEffect } from 'react';
+import { navigal, useMeta, useRoute } from './router.js';
 import { useFeltunes } from './mozgas.js';
 import Fejlec from './components/Fejlec.jsx';
 import Labjegyzet from './components/Labjegyzet.jsx';
 import FooldalPage from './components/FooldalPage.jsx';
 import TervezoPage from './components/TervezoPage.jsx';
-import HonnanHovaPage from './components/HonnanHovaPage.jsx';
 import UtvonalakPage from './components/UtvonalakPage.jsx';
 import UtvonalPage from './components/UtvonalPage.jsx';
 import RoladPage from './components/RoladPage.jsx';
@@ -13,6 +13,13 @@ import { peldaSzerint } from './data/peldak.js';
 
 export default function App() {
   const { path } = useRoute();
+
+  /* A „honnan hova” külön oldal megszűnt: ugyanazt csinálta, mint a tervező,
+     csak rajzolás helyett beírásból. Beolvadt a tervező paneljébe. A régi
+     címre érkezőket átirányítjuk, hogy a megosztott linkek ne törjenek el. */
+  useEffect(() => {
+    if (path === '/honnan-hova') navigal('/tervezo', { replace: true });
+  }, [path]);
   const utvonalId = path.match(/^\/utvonalak\/(.+)$/)?.[1];
   const pelda = utvonalId ? peldaSzerint(utvonalId) : null;
 
@@ -29,10 +36,6 @@ export default function App() {
       '/tervezo': [
         'Tervező — Túrabakancs',
         'Rajzolj útvonalat a térképre, tegyél ki jelöléseket, oszd meg egy linkkel.',
-      ],
-      '/honnan-hova': [
-        'Honnan hova — Túrabakancs',
-        'Írd be a két helyet, és megmondjuk a távot, az emelkedőt és a menetidőt. Térkép nélkül is.',
       ],
       '/utvonalak': [
         'Példa útvonalak — Túrabakancs',
@@ -63,7 +66,6 @@ export default function App() {
     if (path === '/rolad') return <RoladPage />;
     if (path === '/impresszum') return <ImpresszumPage />;
     if (path === '/tervezo') return <TervezoPage />;
-    if (path === '/honnan-hova') return <HonnanHovaPage />;
     return <FooldalPage />;
   };
 

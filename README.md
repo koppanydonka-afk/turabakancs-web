@@ -70,8 +70,7 @@ forgalmi API-ért kulccsal és számlázási fiókkal. Egyik sem fér bele. Ráa
 | Cím | Mi van rajta |
 | --- | --- |
 | `/` | Főoldal: mai napkelte/napnyugta, jelzésrendszer, három példa, véleményfal |
-| `/honnan-hova` | Két hely beírásából táv, emelkedő, menetidő + közeli túrák |
-| `/tervezo` | A térképes tervező a három füllel |
+| `/tervezo` | A tervező: beírás vagy rajzolás, három füllel |
 | `/utvonalak` | A hat példa |
 | `/utvonalak/:id` | Egy példa térképpel |
 | `/rolad` | Mit tudunk rólad (a lábjegyzetből érhető el, nem menüpont) |
@@ -191,46 +190,23 @@ Magasságot szándékosan nem írunk ki érdekességként: a domborzatmodell pá
 eltér a hivatalos értékektől (Kékestetőre 1022 m-t ad az 1014 helyett), tehát tényként
 nem közölhető.
 
-## „Honnan hova” — a térkép nélküli út
+## Két út ugyanahhoz: beírás vagy rajzolás
 
-A tervezőben rajzolni kell, ami egérrel jó, telefonon viszont körülményes.
-A `/honnan-hova` oldalon elég beírni két helyet:
+A tervező panelének tetején két mező áll:
 
-1. A helyneveket a Nominatim oldja fel (koordinátát is el lehet írni: `47.5, 19.0`).
-2. Az OSRM gyalogos profilja megadja a valódi ösvényen mért távot.
-3. Az Open-Meteo adja az emelkedőt, abból jön a Naismith-menetidő és a nehézség.
-4. A napnyugta-számítás megmondja, beéred-e sötétedés előtt.
+- **csak a „Honnan”** kitöltve → a térkép odaugrik, és az „Útvonalak” fülön
+  megjelennek a legközelebbi kész túrák,
+- **mindkettő** kitöltve → a két hely közé útvonalat számol a valódi
+  gyalogutakon (OSRM), és beteszi a tervezőbe.
 
-Alatta megjelennek a **kiindulóponthoz legközelebbi kész túrák** — gyakran ez a
-valódi kérdés, nem az, hogy A-ból B-be.
+Így minden, ami a tervezőben van — emelkedő, menetidő, időjárás, GPX,
+megosztás — ugyanúgy működik a beírt útvonalra is.
 
-> Az autós idő a légvonalból becsül, folytonos sebességgörbével. Korábban sávos
-> volt, és emiatt egy hosszabb útra rövidebb időt adott — a görbe most mindig
-> növekvő. Ez szándékosan durva becslés, és az oldalon ki is van írva.
+> Ez korábban **külön oldal volt** (`/honnan-hova`), de lényegében ugyanazt
+> csinálta, mint a tervező. Beolvadt; a régi cím 301-gyel átirányít.
 
-## Mozgás
-
-Az animációk rövidek és halkak: a céljuk, hogy kövessed a szemeddel, mi
-változott. Oldalváltás-áttűnés, görgetéses feltűnés, a vonal megrajzolása a
-nézetoldalakon, töltésjelzők, gombnyomás-visszajelzés.
-
-Két dolog, amit nem szabad elrontani:
-
-1. **A rejtett kezdőállapot a `.mozgas` osztályhoz van kötve**, amit a
-   JavaScript tesz a gyökérelemre (`main.jsx`). Ha a JS nem fut le, a tartalom
-   egyszerűen látszik — enélkül láthatatlan maradna.
-2. **A `src/mozgas.js` biztonsági hálója**: másfél másodperc után mindent
-   megmutat, akkor is, ha a figyelő nem lépett működésbe. Ne vedd ki.
-
-A `prefers-reduced-motion` beállításnál az egész fejezet kikapcsol, és a
-feltűnő elemek is láthatók maradnak.
-
-## Szöveg
-
-Az oldal korábban **tizennégy helyen** mondta el, hogy nem gyűjt adatot. Ez
-prédikálásnak hatott. Most három helyen szerepel: a `/rolad` oldalon (ez a
-dolga), az impresszumban, és egy soros lábjegyzetben. **Ha új funkciót írsz,
-ne tedd hozzá újra** — aki kíváncsi rá, megtalálja.
+> Az autós idő a légvonalból becsül, folytonos sebességgörbével — szándékosan
+> durva, és az oldalon ki is van írva.
 
 ## Telefonon
 

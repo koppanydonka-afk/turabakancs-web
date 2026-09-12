@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Terkep from './Terkep.jsx';
-import Helykereso from './Helykereso.jsx';
+import HonnanHova from './HonnanHova.jsx';
+import KozeliTurak from './KozeliTurak.jsx';
 import JelolesLista from './JelolesLista.jsx';
 import Ajanlo from './Ajanlo.jsx';
 import TuraLista from './TuraLista.jsx';
@@ -19,6 +20,7 @@ import {
 import { gpxLetoltes } from '../data/gpx.js';
 import { osvenyreHuz, ritkit as utatRitkit } from '../data/utvonalkereso.js';
 import { tervMentes, tervTorles, useTervek } from '../data/tarolo.js';
+import { kozeliTurak } from '../data/kozeli.js';
 import { useRoute } from '../router.js';
 
 /* A tervező. Ez a kezdőlap is: az eszköz maga a tartalom.
@@ -53,6 +55,7 @@ export default function TervezoPage() {
   const [huzasElott, setHuzasElott] = useState(null);
   /* Telefonon a panel alulról felhúzható lap; asztali gépen ez nem számít. */
   const [lapNyitva, setLapNyitva] = useState(false);
+  const [kozeli, setKozeli] = useState(null);
 
   const tervek = useTervek();
   const km = useMemo(() => hossz(pontok), [pontok]);
@@ -273,7 +276,25 @@ export default function TervezoPage() {
           </button>
 
           <div className="panel__tartalom" id="tervezo-panel">
-          <Helykereso onTalalat={(hely) => terkep.current?.setView([hely.lat, hely.lng], 14)} />
+          <HonnanHova
+            onUgras={(pont, { kozeli: kell } = {}) => {
+              terkep.current?.setView(pont, 13);
+              if (kell) setKozeli(kozeliTurak(pont));
+            }}
+            onUtvonal={({ pontok: ujPontok, km, nev, honnan }) => {
+              setHuzasElott(null);
+              setPontok(ujPontok);
+              setJelolesek([]);
+              setNev(nev);
+              setAktivId(null);
+              setIlleszt((n) => n + 1);
+              setKozeli(kozeliTurak(honnan));
+              /* Számot szándékosan nem írunk ide: a vonal ritkítása miatt pár
+                 tized kilométerrel eltérne attól, ami közvetlenül mellette,
+                 az értékrácsban látszik. */
+              setUzenet('Kész — a vonal a tényleges gyalogutakon fut. Húzd arrébb a pontjait, vagy tegyél rá jelöléseket.');
+            }}
+          />
 
           <nav className="fulek" role="tablist" aria-label="Panel nézetei">
             {FULEK.map((f) => (
@@ -414,6 +435,10 @@ export default function TervezoPage() {
 
           {ful === 'turak' && (
             <>
+              <KozeliTurak
+                lista={kozeli}
+                onBetolt={(p) => betolt({ nev: p.nev, pontok: p.pontok, jelolesek: p.jelolesek })}
+              />
               <TuraLista terkep={terkepKesz ? terkep.current : null} onBetolt={turatBetolt} />
               <div className="lista">
                 <h2 className="lista__cim">Vagy kezdd egy példával</h2>
