@@ -67,6 +67,9 @@ export default function HonnanHova({ onUgras, onUtvonal }) {
       const ut = await osvenyreHuz([a.pont, b.pont]);
       onUtvonal({
         pontok: ritkit(ut.pontok, 250),
+        /* A két beírt hely marad a horgony: a térképen ezt a kettőt lehet
+           arrébb húzni, és a vonal magától újraszámolódik. */
+        horgonyok: [a.pont, b.pont],
         km: ut.km,
         nev: `${a.nev.split(',')[0]} – ${b.nev.split(',')[0]}`,
         honnan: a.pont,

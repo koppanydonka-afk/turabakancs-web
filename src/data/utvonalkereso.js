@@ -5,9 +5,11 @@
    Ez a modul a megrajzolt pontokat ráteszi a tényleges gyalogutakra.
 
    A szolgáltatás a FOSSGIS közösségi OSRM-je, gyalogos profillal — kulcs és
-   számlázási fiók nélkül. Cserébe közös erőforrás, ezért CSAK gombnyomásra
-   kérdez, soha nem magától: rajzolás közben minden kattintás egy kérés
-   lenne, az pedig visszaélés. */
+   számlázási fiók nélkül. Cserébe közös erőforrás, ezért a hívó dolga, hogy
+   ne ágyúzza: a tervező másfél másodpercet vár az utolsó változás után, így
+   egy útvonalrajzolásból néhány kérés lesz, nem annyi, ahányat kattintottak.
+   A kérés mindig a kattintott pontokból indul, sosem az előző eredményből —
+   különben a vonal lépésről lépésre eltorzulna. */
 
 const VEGPONT = 'https://routing.openstreetmap.de/routed-foot/route/v1/foot';
 

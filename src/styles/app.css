@@ -141,7 +141,42 @@ body.nincs-gorgetes { overflow: hidden; }
    görgetésnek vagy nagyításnak — a térkép kezeli a gesztusokat. */
 .modvalto,
 .paletta,
-.latvany-valto { touch-action: manipulation; }
+.latvany-valto,
+.vissza-nyil { touch-action: manipulation; }
+
+/* Visszalépés a térkép bal alsó sarkában. A jobb felső a nagyítóé és a
+   látványosságoké, a bal felső a módváltóé, alul középen a súgó fut —
+   ez a sarok maradt szabadon. */
+.vissza-nyil {
+  position: absolute;
+  left: var(--space-3);
+  bottom: var(--space-3);
+  z-index: 1000;
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  backdrop-filter: blur(10px) saturate(180%);
+  box-shadow: var(--lap-keret), var(--lap-arnyek);
+  color: var(--ink-2);
+  cursor: pointer;
+  animation: halkanElo 200ms var(--ease);
+  transition: color var(--duration) var(--ease), transform var(--duration) var(--ease);
+}
+.vissza-nyil:hover { color: var(--ink); transform: translateY(-1px); }
+.vissza-nyil:active { transform: translateY(0); }
+.vissza-nyil svg {
+  width: 21px;
+  height: 21px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
 
 .modvalto {
   position: absolute;
@@ -1241,6 +1276,7 @@ input::placeholder { color: var(--muted); }
 
   /* A térkép lebegő vezérlői ne kerüljenek a lap alá. */
   .terkep__sug { bottom: calc(62px + var(--space-3)); }
+  .vissza-nyil { bottom: calc(62px + var(--space-3)); }
   .leaflet-control-attribution { margin-bottom: 62px !important; }
 
   /* Nagyobb érintőfelületek a gyakori gomboknál. */

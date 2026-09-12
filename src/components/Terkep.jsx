@@ -27,6 +27,10 @@ const htmlBiztos = (szoveg) =>
 
 export default function Terkep({
   pontok = [],
+  /* A felhasználó által kattintott pontok. Ha meg van adva, a jelölők
+     EZEKRE kerülnek — a `pontok` ilyenkor már a szolgáltatástól kapott,
+     sűrű vonal, amit nem értelmes pontonként fogdosni. */
+  horgonyok = null,
   jelolesek = [],
   latvanyok = false,
   mod = null,
@@ -118,8 +122,9 @@ export default function Terkep({
       L.polyline(pontok, { className: 'ut-vonal', weight: 4 }).addTo(csoport);
     }
 
-    /* Sűrű vonalnál (routolt útvonal, betöltött turistaút) csak a rajt és a
-       cél kap jelölőt.
+    /* Ha vannak horgonyok, azokra kerülnek a jelölők; különben magára a
+       vonalra. Sűrű vonalnál (betöltött turistaút, megosztott link) csak a
+       rajt és a cél kap jelölőt.
 
        Miért: a Leaflet minden jelölőt újrapozicionál a térkép minden
        mozdításakor. Kétszázötven húzható jelölő telefonon érezhetően
@@ -129,11 +134,12 @@ export default function Terkep({
 
        A kézzel rajzolt útvonalak (néhány tucat pont) változatlanul
        teljesen szerkeszthetők. */
-    const suru = pontok.length > 60;
+    const jelolendo = horgonyok ?? pontok;
+    const suru = !horgonyok && pontok.length > 60;
 
-    pontok.forEach(([lat, lng], i) => {
+    jelolendo.forEach(([lat, lng], i) => {
       const elso = i === 0;
-      const utolso = i === pontok.length - 1 && pontok.length > 1;
+      const utolso = i === jelolendo.length - 1 && jelolendo.length > 1;
       if (suru && !elso && !utolso) return;
       const meret = 16;
       const jel = L.marker([lat, lng], {
@@ -165,7 +171,7 @@ export default function Terkep({
         jel.on('click', () => friss.current.onPontTorol?.(i));
       }
     });
-  }, [pontok]);
+  }, [pontok, horgonyok]);
 
   /* ---- Jelölések újrarajzolása ---- */
   useEffect(() => {
