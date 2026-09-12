@@ -8,8 +8,8 @@
 
   # Összevont oldalak. Ugyanaz a két átirányítás, mint a _redirects fájlban:
   # ha a kettő szétcsúszik, a régi címek az egyik tárhelyen 404-re futnak.
-  RewriteRule ^honnan-hova/?$ /tervezo [R=301,L]
-  RewriteRule ^rolad/?$ /impresszum [R=301,L]
+  RewriteRule ^honnan-hova/?$ /tervezo/ [R=301,L]
+  RewriteRule ^rolad/?$ /impresszum/ [R=301,L]
 
 </IfModule>
 

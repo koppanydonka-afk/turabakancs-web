@@ -1,9 +1,11 @@
 # A „honnan hova” beolvadt a tervezőbe.
-/honnan-hova  /tervezo  301
+# A célcím perjellel végződik: a Cloudflare és a Netlify is a perjeles alakot
+# tekinti valódinak, tehát perjel nélkül még egy átirányítás jönne utána.
+/honnan-hova  /tervezo/  301
 
 # A „mit tudunk rólad” beolvadt az impresszumba. Az oldal élesben volt és
 # indexelve van, ezért nem elhagyni kell, hanem átirányítani.
-/rolad  /impresszum  301
+/rolad  /impresszum/  301
 
 # Itt korábban egy „/*  /index.html  200” sor állt (SPA-visszaesés).
 # A Cloudflare Pages ezt visszautasítja, és jogosan: ő maga irányítja át az

@@ -2,12 +2,12 @@
   "redirects": [
     {
       "source": "/honnan-hova",
-      "destination": "/tervezo",
+      "destination": "/tervezo/",
       "permanent": true
     },
     {
       "source": "/rolad",
-      "destination": "/impresszum",
+      "destination": "/impresszum/",
       "permanent": true
     }
   ]
