@@ -1,0 +1,32 @@
+# Apache-alapú tárhelyre (Rackhost és a legtöbb magyar szolgáltató).
+# Ha a szolgáltatód Caddyt vagy nginxet használ, ez a fájl nem hat —
+# lásd a szerver.md fájlt a megfelelő beállításért.
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # Minden nem létező útvonal az index.html-re megy: az oldal maga dönti el,
+  # mit mutat. Enélkül a /utvonalak/tihany-belso-to 404 lenne.
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule . /index.html [L]
+</IfModule>
+
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css application/javascript application/json image/svg+xml
+</IfModule>
+
+<IfModule mod_expires.c>
+  ExpiresActive On
+  # A neves (hash-elt) fájlok sosem változnak, ezért sokáig tárolhatók.
+  <FilesMatch "\.(js|css|woff2|jpg|png|svg)$">
+    ExpiresDefault "access plus 1 year"
+  </FilesMatch>
+  # Az index.html és a service worker viszont MINDIG friss kell legyen,
+  # különben a látogató hetekig a régi oldalt kapja.
+  <FilesMatch "^(index\.html|sw\.js|manifest\.json)$">
+    ExpiresDefault "access plus 0 seconds"
+    Header set Cache-Control "no-cache, must-revalidate"
+  </FilesMatch>
+</IfModule>

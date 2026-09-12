@@ -1,0 +1,154 @@
+/* ==========================================================
+   TÚRABAKANCS – design tokenek
+   A térkép a főszereplő, a felület körülötte legyen csendes:
+   meleg papíralap + mély erdőzöld, a nyomvonal pedig égő narancs,
+   hogy a térképcsempék zöldjén és szürkéjén is kiugorjon.
+   Minden szín mérve: a szövegszínek 4,5:1 fölött vannak.
+   ========================================================== */
+
+/* A szóvédjegy magas kontrasztú talpas betűje. Csak ehhez az egy felirathoz
+   kell, ezért egyetlen vágatot töltünk le. */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@800&display=swap');
+
+:root {
+  /* ---- Világos téma ---- */
+  --bg:          #F4F2ED;  /* oldal háttere – meleg papír */
+  --surface:     #FFFDF9;  /* kártyák, panelek */
+  --surface-2:   #E9E5DC;  /* mélyebb tónus */
+  --line:        #D6D0C4;  /* keretek, elválasztók */
+  --ink:         #1C2119;  /* fő szöveg – 14,7:1 */
+  --ink-2:       #3D463A;  /* másodlagos szöveg – 9,7:1 */
+  --muted:       #5C6455;  /* címkék, segédszöveg – 5,5:1 */
+
+  --accent:      #2F5D3A;  /* erdőzöld – gombok háttere */
+  --accent-ink:  #2F5D3A;  /* ugyanaz szövegként – 6,8:1 */
+  --accent-soft: #E1EADF;  /* halvány zöld háttér */
+  --on-accent:   #F7F5F0;  /* szöveg a zöld gombon – 7,0:1 */
+
+  --nyom:        #D94F1E;  /* a megrajzolt vonal színe */
+  --nyom-ink:    #A8380F;  /* ugyanez szövegként, sötétítve */
+
+  /* Tanácsok három szintje. Mind mérve a saját lágy hátterén is. */
+  --figyelem:      #8A5500;  /* 5,3:1 a lágy háttéren */
+  --figyelem-lagy: #F6EBD8;
+  --fontos:        #A8380F;  /* 5,3:1 a lágy háttéren */
+
+  /* Csillag. Grafikai elem: a 3:1 küszöböt mindhárom felületen hozza. */
+  --csillag:       #A06E06;  /* 4,4:1 felületen, 3,5:1 a mélyebb tónuson */
+  --csillag-ures:  #CFC9BA;
+  --fontos-lagy:   #F9E5DC;
+
+  --invert-bg:   #23291F;
+  --invert-ink:  #F4F2ED;
+  --invert-link: #9BD3A3;
+
+  /* ---- Tipográfia ---- */
+  --font-body: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Inter',
+               'Helvetica Neue', Arial, sans-serif;
+  --font-display: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter',
+                  'Helvetica Neue', Arial, sans-serif;
+  --font-mono: 'SF Mono', ui-monospace, Menlo, monospace;
+  --font-vedjegy: 'Playfair Display', 'Times New Roman', Georgia, serif;
+
+  /* A logó bakancsa. Grafikai elem, a 3:1 küszöböt bőven hozza mindkét témán. */
+  --logo-zold: #223D1E;   /* 10,7:1 */
+  --logo-talp: #9B6B15;   /*  4,2:1 */
+
+  --text-xs:   0.75rem;
+  --text-sm:   0.875rem;
+  --text-base: 1.0625rem;
+  --text-lg:   1.25rem;
+  --text-xl:   1.625rem;
+  --text-2xl:  2.25rem;
+  --text-3xl:  3rem;
+
+  --leading-tight: 1.08;
+  --leading-body:  1.47;
+  --tracking-body:    -0.02em;
+  --tracking-display: -0.03em;
+
+  /* ---- Térköz ---- */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+
+  /* ---- Sarkok, árnyék, mozgás ---- */
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-pill: 980px;
+
+  --fejlec: 60px;
+  --lap-keret: inset 0 0 0 1px var(--line);
+  --lap-arnyek: 0 1px 2px rgb(30 34 26 / .05), 0 6px 18px rgb(30 34 26 / .07);
+  --shadow-lift: 0 4px 24px rgb(30 34 26 / .14);
+
+  --ease: cubic-bezier(.28, .11, .32, 1);
+  --ease-out: cubic-bezier(.22, .61, .36, 1);
+  --duration: 200ms;
+}
+
+/* ---- Sötét téma ---- */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-tema="vilagos"]) {
+    --bg: #161914; --surface: #1E221C; --surface-2: #272B24; --line: #383D34;
+    --ink: #ECEFE7; --ink-2: #C4CABE; --muted: #8C9385;
+    --accent: #86C28E; --accent-ink: #86C28E; --accent-soft: #22301F; --on-accent: #0E1A10;
+    --nyom: #F0824B; --nyom-ink: #F0824B;
+    --logo-zold: #5FA05A; --logo-talp: #C99A3F;
+    --figyelem: #E0A83C; --figyelem-lagy: #2A2213;
+    --fontos: #F0824B; --fontos-lagy: #2C1B14;
+    --csillag: #E8B84B; --csillag-ures: #454A40;
+    --invert-bg: #E4E7DE; --invert-ink: #161914; --invert-link: #2F5D3A;
+    --lap-arnyek: 0 1px 2px rgb(0 0 0 / .3), 0 6px 18px rgb(0 0 0 / .24);
+    --shadow-lift: 0 4px 24px rgb(0 0 0 / .5);
+  }
+}
+:root[data-tema="sotet"] {
+  --bg: #161914; --surface: #1E221C; --surface-2: #272B24; --line: #383D34;
+  --ink: #ECEFE7; --ink-2: #C4CABE; --muted: #8C9385;
+  --accent: #86C28E; --accent-ink: #86C28E; --accent-soft: #22301F; --on-accent: #0E1A10;
+  --nyom: #F0824B; --nyom-ink: #F0824B;
+  --logo-zold: #5FA05A; --logo-talp: #C99A3F;
+  --figyelem: #E0A83C; --figyelem-lagy: #2A2213;
+  --fontos: #F0824B; --fontos-lagy: #2C1B14;
+  --csillag: #E8B84B; --csillag-ures: #454A40;
+  --invert-bg: #E4E7DE; --invert-ink: #161914; --invert-link: #2F5D3A;
+  --lap-arnyek: 0 1px 2px rgb(0 0 0 / .3), 0 6px 18px rgb(0 0 0 / .24);
+  --shadow-lift: 0 4px 24px rgb(0 0 0 / .5);
+}
+
+/* ---- Alapok ---- */
+*, *::before, *::after { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: var(--leading-body);
+  letter-spacing: var(--tracking-body);
+  -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-display);
+  text-wrap: balance;
+  margin: 0;
+}
+p { margin: 0; }
+a { color: var(--accent-ink); }
+:focus-visible {
+  outline: 2px solid var(--accent-ink);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
+}
+::selection { background: var(--accent-soft); color: var(--accent-ink); }
