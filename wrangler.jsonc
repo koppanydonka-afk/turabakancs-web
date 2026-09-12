@@ -1,0 +1,24 @@
+{
+  // A Cloudflare Worker konfigurációja.
+  //
+  // Azért van rá szükség, mert a „nem talált” kezelése Workersnél nem a
+  // vezérlőpulton állítható, csak innen. Alapértelmezésben a projekt
+  // „single page application” módban volt: minden nem létező címre az
+  // index.html-t adta vissza, 200-as státusszal. Ez soft 404 — a látogató
+  // nem érti, mit lát, a kereső pedig létező oldalként indexeli a hibás
+  // címeket.
+  "name": "turabakancs-web",
+  "compatibility_date": "2026-09-12",
+  "assets": {
+    "directory": "./dist/",
+
+    // Ami tényleg nincs meg, az a 404.html-t kapja, valódi 404-es
+    // státusszal. Ezt a fájlt a scripts/eloallit.js állítja elő.
+    "not_found_handling": "404-page",
+
+    // A mappa-indexek perjeles címen élnek (/tervezo/), a perjel nélküli
+    // alak odairányít. A canonicaljaink és a sitemap már eddig is ezt
+    // használta, tehát ez csak rögzíti a meglévő viselkedést.
+    "html_handling": "auto-trailing-slash"
+  }
+}
