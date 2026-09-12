@@ -1,5 +1,5 @@
-/* Lábjegyzet. Az adatkezelésre mutató link itt van, apró betűvel —
-   nem menüpontként, mert nem ott keresik. */
+/* Lábjegyzet. Az impresszum — benne a felelősséggel és az adatkezeléssel —
+   itt van, apró betűvel, nem menüpontként: nem ott keresik. */
 
 export default function Labjegyzet({ tomor = false }) {
   return (
@@ -12,7 +12,7 @@ export default function Labjegyzet({ tomor = false }) {
       )}
       <p className="apro">
         A távolság és a menetidő becslés — a terepen a jelzett turistautak a mérvadók.{' '}
-        <a href="/impresszum">Impresszum</a> · <a href="/rolad">Adatkezelés</a>
+        <a href="/impresszum">Impresszum és adatkezelés</a>
       </p>
     </footer>
   );

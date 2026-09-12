@@ -5,7 +5,7 @@ import { useRoute } from '../router.js';
 
 /* Fejléc: hamburger balra, szóvédjegy középen, sötét mód jobbra.
 
-   A „Mit tudunk rólad” szándékosan nincs a menüben — az oldal alján,
+   Az impresszum szándékosan nincs a menüben — az oldal alján,
    apró betűvel van a helye, ahogy az ilyesmit keresni szokás. */
 
 const MENU = [

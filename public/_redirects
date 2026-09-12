@@ -1,4 +1,8 @@
 # A „honnan hova” beolvadt a tervezőbe.
 /honnan-hova  /tervezo  301
 
+# A „mit tudunk rólad” beolvadt az impresszumba. Az oldal élesben volt és
+# indexelve van, ezért nem elhagyni kell, hanem átirányítani.
+/rolad  /impresszum  301
+
 /*  /index.html  200

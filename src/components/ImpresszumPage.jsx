@@ -1,17 +1,24 @@
-import { UZEMELTETO, vanElerhetoseg } from '../data/uzemelteto.js';
+import { LATVANYOSSAGOK } from '../data/latvanyossagok.js';
 
-/* Impresszum és felelősség.
+/* Impresszum, felelősség, adatkezelés és képjegyzék — egy oldalon.
 
-   Nem jogi sablon: sima mondatok arról, ki csinálja az oldalt, mire jó,
-   és mire nem. Egy ingyenes, nem kereskedelmi oldalnál ennyi a tisztesség
-   — és sokkal többet ér a bizalomnak, mint egy másolt jogi szöveg. */
+   Korábban két oldal volt: ez, és a „Mit tudunk rólad”. Ugyanazt mondták el
+   kétszer, más szavakkal, és a lábjegyzet két linkje ugyanoda vezetett.
+
+   Nem jogi sablon: sima mondatok arról, mire jó az oldal és mire nem. Egy
+   ingyenes, nem kereskedelmi oldalnál ennyi a tisztesség — és többet ér a
+   bizalomnak, mint egy másolt jogi szöveg.
+
+   A képjegyzék viszont nem udvariasság: a látványosságok fotói CC BY és
+   CC BY-SA alatt állnak, ahol a szerző és a licenc megjelölése a
+   felhasználás feltétele. Ez a lista teljesíti azt — ezért nem törölhető. */
 
 export default function ImpresszumPage() {
   return (
     <section className="oldal oldal--szoveg">
       <header className="oldal__fej">
         <p className="kalap">Impresszum</p>
-        <h1 className="oldal__cim">Ki csinálja, és mire jó.</h1>
+        <h1 className="oldal__cim">Mire jó, és mire nem.</h1>
         <p className="oldal__bevezeto">
           A Túrabakancs ingyenes, nem kereskedelmi oldal. Nem árul semmit, nem közvetít,
           nem gyűjt adatot — egy eszköz, amit bárki használhat.
@@ -19,25 +26,6 @@ export default function ImpresszumPage() {
       </header>
 
       <div className="szoveg">
-        <h2>Az üzemeltető</h2>
-        <p>
-          <strong>{UZEMELTETO.nev}</strong>
-          {UZEMELTETO.varos ? `, ${UZEMELTETO.varos}` : ''}
-          {vanElerhetoseg() ? (
-            <>
-              {' · '}
-              <a href={`mailto:${UZEMELTETO.email}`}>{UZEMELTETO.email}</a>
-            </>
-          ) : null}
-        </p>
-        {!vanElerhetoseg() && (
-          <p className="figyelmeztetes">
-            <strong>Itt még nincs elérhetőség.</strong> Ha szeretnéd, hogy a látogatók
-            írhassanak neked, vedd fel az e-mail-címet a <code>src/data/uzemelteto.js</code>{' '}
-            fájlban. Érdemes külön címet használni erre, ne a személyeset.
-          </p>
-        )}
-
         <h2>Felelősség — ezt olvasd el, ha túrázni indulsz</h2>
         <p>
           Az oldal útvonalakat, távolságokat, emelkedőket, menetidőt és napnyugtát mutat.
@@ -69,15 +57,47 @@ export default function ImpresszumPage() {
           A csillagos értékelések a mi véleményünk, nem mások pontszámainak átlaga.
           A térképadat az OpenStreetMapből jön, amit önkéntesek tartanak karban. A
           látványosságok fotói szabad licenc alatt állnak, a szerzőik nevével együtt —
-          a teljes jegyzék a <a href="/rolad">Mit tudunk rólad</a> oldalon van.
+          a teljes jegyzék lent, <a href="#kepek">A képek</a> alatt.
         </p>
 
         <h2>Adatkezelés</h2>
         <p>
           Az oldal nem kér fiókot, nem gyűjt személyes adatot, és nem használ sütiket.
-          Hogy pontosan mi történik (és mi nem), azt a{' '}
-          <a href="/rolad">Mit tudunk rólad</a> oldal írja le.
+          Amit rajzolsz, a böngésződben keletkezik, és ott is marad: a mentett terveid a
+          saját géped tárolójába kerülnek, a megosztható link pedig magába a címbe teszi
+          az útvonalat, nem egy adatbázisba.
         </p>
+        <p>
+          Ami mégis kimegy az internetre, az nem hozzánk megy. A térképcsempéket és a
+          helykeresés válaszát az OpenStreetMap nyilvános szolgáltatásai adják, a
+          magassági adatot az Open-Meteo, az útvonalak ösvényre húzását pedig a FOSSGIS
+          gyalogos útvonalkeresője. Ilyenkor — mint minden weboldal minden képénél —
+          látszik feléjük az IP-címed, a húzásnál és a magasságnál pedig a vonalad
+          koordinátái is. Ezt nem tudjuk megkerülni, ha térképet akarunk mutatni; de
+          legalább tudsz róla.
+        </p>
+
+        <h2 id="kepek">A képek</h2>
+        <p>
+          A térképen látható látványosságok fotói a Wikimedia Commonsról valók, és
+          szabad licenc alatt állnak — de a szabad nem azt jelenti, hogy gazdátlan:
+          mindegyiknek van szerzője, akit meg kell nevezni. Az alábbi lista ezt teszi.
+          A képeket letöltöttük a saját oldalunkra, hogy a böngésződ ne kérjen le
+          semmit idegen szerverről.
+        </p>
+        <ul className="kepjegyzek">
+          {LATVANYOSSAGOK.map((l) => (
+            <li key={l.id}>
+              <a href={l.forras} target="_blank" rel="noopener noreferrer">{l.nev}</a>
+              {' — '}{l.szerzo}{', '}
+              {l.licencUrl ? (
+                <a href={l.licencUrl} target="_blank" rel="noopener noreferrer">{l.licenc}</a>
+              ) : (
+                l.licenc
+              )}
+            </li>
+          ))}
+        </ul>
       </div>
     </section>
   );

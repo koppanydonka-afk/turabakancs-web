@@ -7,7 +7,7 @@
 
    LICENC — EZT NE VEDD KI: mind a 15 kép CC BY vagy CC BY-SA alatt áll,
    vagyis a szerző és a licenc megjelölése a felhasználás FELTÉTELE, nem
-   udvariasság. A név a térképi buborékban és a /rolad oldal képjegyzékében
+   udvariasság. A név a térképi buborékban és az /impresszum képjegyzékében
    is megjelenik. Ha új képet veszel fel, ugyanígy tedd: szerző, licenc,
    és hivatkozás az eredeti lapra.
 

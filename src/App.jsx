@@ -7,7 +7,6 @@ import FooldalPage from './components/FooldalPage.jsx';
 import TervezoPage from './components/TervezoPage.jsx';
 import UtvonalakPage from './components/UtvonalakPage.jsx';
 import UtvonalPage from './components/UtvonalPage.jsx';
-import RoladPage from './components/RoladPage.jsx';
 import ImpresszumPage from './components/ImpresszumPage.jsx';
 import { peldaSzerint } from './data/peldak.js';
 
@@ -42,12 +41,8 @@ export default function App() {
         'Nyolc kész vonal a térképen, amit megnyithatsz és továbbrajzolhatsz.',
       ],
       '/impresszum': [
-        'Impresszum — Túrabakancs',
-        'Ki üzemelteti az oldalt, és mire jó. Ingyenes, nem kereskedelmi eszköz.',
-      ],
-      '/rolad': [
-        'Mit tudunk rólad — Túrabakancs',
-        'Nincs fiók, nincs süti, nincs mérőkód. Amit rajzolsz, a böngésződben marad.',
+        'Impresszum és adatkezelés — Túrabakancs',
+        'Mire jó az oldal és mire nem. Nincs fiók, nincs süti, nincs mérőkód; amit rajzolsz, a böngésződben marad.',
       ],
     };
     const [title, description] = oldalak[path] ?? [
@@ -63,7 +58,6 @@ export default function App() {
   const oldal = () => {
     if (utvonalId) return <UtvonalPage id={utvonalId} />;
     if (path === '/utvonalak') return <UtvonalakPage />;
-    if (path === '/rolad') return <RoladPage />;
     if (path === '/impresszum') return <ImpresszumPage />;
     if (path === '/tervezo') return <TervezoPage />;
     return <FooldalPage />;

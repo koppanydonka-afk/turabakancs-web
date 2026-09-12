@@ -74,26 +74,18 @@ function oldalak() {
     },
     {
       ut: '/impresszum',
-      cim: 'Impresszum — Túrabakancs',
+      cim: 'Impresszum és adatkezelés — Túrabakancs',
       leiras:
-        'Ki üzemelteti a Túrabakancsot, és mire jó. Ingyenes, nem kereskedelmi eszköz; a terepen a saját döntésed a mérvadó.',
+        'Mire jó a Túrabakancs és mire nem. Nincs fiók, nincs süti, nincs mérőkód; a terepen a saját döntésed a mérvadó.',
       tartalom: `
-        <h1>Ki csinálja, és mire jó.</h1>
+        <h1>Mire jó, és mire nem.</h1>
         <p>A Túrabakancs ingyenes, nem kereskedelmi oldal. Nem árul semmit, nem közvetít,
            nem gyűjt adatot.</p>
         <h2>Felelősség</h2>
         <p>A távolság, az emelkedő és a menetidő számított becslés, nem garancia. A terepen
-           a jelzett turistautak, a hivatalos térképek és a saját döntésed a mérvadó.</p>`,
-    },
-    {
-      ut: '/rolad',
-      cim: 'Mit tudunk rólad — Túrabakancs',
-      leiras:
-        'Nincs fiók, nincs süti, nincs mérőkód. Amit rajzolsz, a böngésződben marad.',
-      tartalom: `
-        <h1>Mit tudunk rólad? Semmit.</h1>
-        <p>Nincs regisztráció, nincs bejelentkezés, nincs hírlevél, és nincs mérőkód
-           az oldalon.</p>`,
+           a jelzett turistautak, a hivatalos térképek és a saját döntésed a mérvadó.</p>
+        <h2>Adatkezelés</h2>
+        <p>Nincs fiók, nincs süti, nincs mérőkód. Amit rajzolsz, a böngésződben marad.</p>`,
     },
   ];
 
@@ -214,7 +206,7 @@ for (const oldal of lista) {
 /* A sitemap ugyanebből a listából készül, mint az oldalak — így nem tud
    szétcsúszni a kettő, ha új cím kerül be. */
 const ma = new Date().toISOString().slice(0, 10);
-const sulyok = { '/': '1.0', '/tervezo': '0.9', '/utvonalak': '0.8', '/rolad': '0.3', '/impresszum': '0.3' };
+const sulyok = { '/': '1.0', '/tervezo': '0.9', '/utvonalak': '0.8', '/impresszum': '0.3' };
 const sitemap =
   '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
   lista
