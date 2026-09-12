@@ -169,13 +169,15 @@ function keszit(sablon, oldal) {
   meta('description', oldal.leiras, false);
   meta('og:title', oldal.cim);
   meta('og:description', oldal.leiras);
-  meta('og:url', teljesCim(oldal.ut));
+  if (!oldal.nincsIndex) meta('og:url', teljesCim(oldal.ut));
   meta('twitter:title', oldal.cim, false);
   meta('twitter:description', oldal.leiras, false);
 
   html = html.replace(
     '</head>',
-    `    <link rel="canonical" href="${teljesCim(oldal.ut)}" />\n` +
+    (oldal.nincsIndex
+      ? '    <meta name="robots" content="noindex" />\n'
+      : `    <link rel="canonical" href="${teljesCim(oldal.ut)}" />\n`) +
       (oldal.jsonLd
         ? `    <script type="application/ld+json">${JSON.stringify(oldal.jsonLd)}</script>\n`
         : '') +
@@ -202,6 +204,33 @@ for (const oldal of lista) {
   await fs.mkdir(konyvtar, { recursive: true });
   await fs.writeFile(path.join(konyvtar, 'index.html'), keszit(sablon, oldal));
 }
+
+/* A 404-oldal külön áll: nincs sitemapben, nincs canonicalja, és noindex.
+
+   Korábban a „/*  /index.html  200” szabály fogta el az ismeretlen címeket,
+   és a kezdőlapot adta vissza 200-as státusszal. A Cloudflare Pages ezt a
+   szabályt nem engedi (önmagát hívná körbe), és amúgy sem volt jó: „soft
+   404” volt, amit a kereső létező oldalként indexel.
+
+   Ezt a fájlt a Cloudflare Pages és a Netlify is magától kiszolgálja minden
+   nem létező címre, valódi 404-es státusszal. */
+await fs.writeFile(
+  path.join(DIST, '404.html'),
+  keszit(sablon, {
+    ut: '/404',
+    cim: 'Nincs ilyen oldal — Túrabakancs',
+    leiras: 'Ez a cím nem létezik. A tervezőből vagy a kész útvonalakból indulhatsz tovább.',
+    nincsIndex: true,
+    tartalom: `
+      <h1>Nincs ilyen oldal</h1>
+      <p>Vagy elgépelted a címet, vagy olyan oldalra mutat, ami már nincs meg.</p>
+      <ul>
+        <li><a href="/">Kezdőlap</a></li>
+        <li><a href="/tervezo/">Útvonaltervező</a></li>
+        <li><a href="/utvonalak/">Kész útvonalak</a></li>
+      </ul>`,
+  }),
+);
 
 /* A sitemap ugyanebből a listából készül, mint az oldalak — így nem tud
    szétcsúszni a kettő, ha új cím kerül be. */

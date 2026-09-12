@@ -11,12 +11,12 @@
   RewriteRule ^honnan-hova/?$ /tervezo [R=301,L]
   RewriteRule ^rolad/?$ /impresszum [R=301,L]
 
-  # Minden nem létező útvonal az index.html-re megy: az oldal maga dönti el,
-  # mit mutat. Enélkül a /utvonalak/tihany-belso-to 404 lenne.
-  RewriteCond %{REQUEST_FILENAME} !-f
-  RewriteCond %{REQUEST_FILENAME} !-d
-  RewriteRule . /index.html [L]
 </IfModule>
+
+# Minden cím valódi fájlként előáll a build során, ezért nincs szükség
+# visszaesésre. Ami tényleg nincs meg, az a 404.html-t kapja — ugyanaz az
+# oldal, amit a Cloudflare Pages és a Netlify is kiszolgál.
+ErrorDocument 404 /404.html
 
 <IfModule mod_deflate.c>
   AddOutputFilterByType DEFLATE text/html text/css application/javascript application/json image/svg+xml

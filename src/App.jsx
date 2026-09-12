@@ -8,6 +8,7 @@ import TervezoPage from './components/TervezoPage.jsx';
 import UtvonalakPage from './components/UtvonalakPage.jsx';
 import UtvonalPage from './components/UtvonalPage.jsx';
 import ImpresszumPage from './components/ImpresszumPage.jsx';
+import NincsOldal from './components/NincsOldal.jsx';
 import { peldaSzerint } from './data/peldak.js';
 
 export default function App() {
@@ -16,8 +17,12 @@ export default function App() {
   /* A „honnan hova” külön oldal megszűnt: ugyanazt csinálta, mint a tervező,
      csak rajzolás helyett beírásból. Beolvadt a tervező paneljébe. A régi
      címre érkezőket átirányítjuk, hogy a megosztott linkek ne törjenek el. */
+  /* A két összevont oldal címe. A szerver is átirányítja őket (_redirects,
+     .htaccess, vercel.json), ez az oldalon belüli navigációra való. */
+  const ATIRANYIT = { '/honnan-hova': '/tervezo', '/rolad': '/impresszum' };
   useEffect(() => {
-    if (path === '/honnan-hova') navigal('/tervezo', { replace: true });
+    const cel = ATIRANYIT[path];
+    if (cel) navigal(cel, { replace: true });
   }, [path]);
   const utvonalId = path.match(/^\/utvonalak\/(.+)$/)?.[1];
   const pelda = utvonalId ? peldaSzerint(utvonalId) : null;
@@ -45,6 +50,9 @@ export default function App() {
         'Mire jó az oldal és mire nem. Nincs fiók, nincs süti, nincs mérőkód; amit rajzolsz, a böngésződben marad.',
       ],
     };
+    if (path !== '/' && !ATIRANYIT[path] && !oldalak[path]) {
+      return { title: 'Nincs ilyen oldal — Túrabakancs', description: 'Ez a cím nem létezik.' };
+    }
     const [title, description] = oldalak[path] ?? [
       'Túrabakancs — túraútvonalak, jelzések, vélemények',
       'Útvonaltervező térkép, a magyar turistajelzések magyarázata és név nélküli vélemények. Fiók nélkül, adatgyűjtés nélkül.',
@@ -60,7 +68,10 @@ export default function App() {
     if (path === '/utvonalak') return <UtvonalakPage />;
     if (path === '/impresszum') return <ImpresszumPage />;
     if (path === '/tervezo') return <TervezoPage />;
-    return <FooldalPage />;
+    if (path === '/') return <FooldalPage />;
+    /* Amíg a fenti useEffect átirányít, ne villanjon fel a 404. */
+    if (ATIRANYIT[path]) return null;
+    return <NincsOldal />;
   };
 
   /* A tervező a teljes magasságot kapja, a szöveges oldalak nem. */

@@ -5,4 +5,11 @@
 # indexelve van, ezért nem elhagyni kell, hanem átirányítani.
 /rolad  /impresszum  301
 
-/*  /index.html  200
+# Itt korábban egy „/*  /index.html  200” sor állt (SPA-visszaesés).
+# A Cloudflare Pages ezt visszautasítja, és jogosan: ő maga irányítja át az
+# /index.html-t a /-re, tehát a szabály önmagát hívná körbe.
+#
+# Nincs is rá szükség: mind a 22 cím valódi fájlként előáll a build során,
+# szóval nincs olyan útvonal, ami visszaesésre szorulna. Ami tényleg nem
+# létezik, az a 404.html-t kapja — valódi 404-es státusszal, nem a
+# kezdőlappal álcázva.

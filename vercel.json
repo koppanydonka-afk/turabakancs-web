@@ -1,7 +1,14 @@
 {
   "redirects": [
-    { "source": "/honnan-hova", "destination": "/tervezo", "permanent": true },
-    { "source": "/rolad", "destination": "/impresszum", "permanent": true }
-  ],
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+    {
+      "source": "/honnan-hova",
+      "destination": "/tervezo",
+      "permanent": true
+    },
+    {
+      "source": "/rolad",
+      "destination": "/impresszum",
+      "permanent": true
+    }
+  ]
 }
