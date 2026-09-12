@@ -1,4 +1,4 @@
-import Terkep from './Terkep.jsx';
+import Terkep from './TerkepKesobb.jsx';
 import { peldaSzerint } from '../data/peldak.js';
 import { TEMPOK, hossz, ido, kmSzoveg, tervLinkje } from '../data/utvonalak.js';
 import { tipusSzerint } from '../data/jelolesek.js';

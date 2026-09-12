@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import Terkep from './Terkep.jsx';
+import Terkep from './TerkepKesobb.jsx';
 import HonnanHova from './HonnanHova.jsx';
 import KozeliTurak from './KozeliTurak.jsx';
 import TuraLista from './TuraLista.jsx';
@@ -206,9 +206,11 @@ export default function TervezoPage() {
           )}
 
           <p className="terkep__sug">
-            {mod === 'ut'
-              ? 'Érintsd a térképet a pontokért. A pontok húzhatók; koppints rájuk a törléshez.'
-              : `Érintsd oda, ahová a(z) „${tipusSzerint(ujTipus).nev}” jelölés kerüljön.`}
+            {mod === 'jeloles'
+              ? `Érintsd oda, ahová a(z) „${tipusSzerint(ujTipus).nev}” jelölés kerüljön.`
+              : pontok.length > 60
+                ? 'Kész útvonal. Érints a térképre új pontért, vagy nyisd meg a szerkesztést.'
+                : 'Érintsd a térképet a pontokért. A pontok húzhatók; koppints rájuk a törléshez.'}
           </p>
         </div>
 

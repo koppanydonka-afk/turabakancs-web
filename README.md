@@ -190,6 +190,34 @@ Magasságot szándékosan nem írunk ki érdekességként: a domborzatmodell pá
 eltér a hivatalos értékektől (Kékestetőre 1022 m-t ad az 1014 helyett), tehát tényként
 nem közölhető.
 
+## Teljesítmény — amire figyelni kell
+
+Két dolog okozott érezhető akadozást telefonon, mindkettő mérve és javítva:
+
+**1. Túl sok térképi jelölő.** Egy routolt útvonal 250 pontból áll, és
+mindegyik külön húzható Leaflet-jelölő volt. A térkép minden mozdításakor
+mind a 266-ot újrapozicionálta.
+
+| | előtte | utána |
+| --- | --- | --- |
+| térképi jelölő | 266 | **17** |
+| DOM-elem | 761 | **263** |
+
+Hatvan pont fölött már csak a rajt és a cél kap jelölőt. A kézzel rajzolt
+útvonalak (néhány tucat pont) változatlanul teljesen szerkeszthetők — egy
+routolt vonal 137. pontját amúgy sem értelmes külön arrébb húzni.
+
+**2. A térkép könyvtára minden oldalra letöltődött.** Pedig a főoldalnak, a
+példák listájának és a szöveges oldalaknak nincs rá szükségük.
+
+| | előtte | utána |
+| --- | --- | --- |
+| főoldal letöltése | 148 KB | **97 KB** |
+
+A `TerkepKesobb.jsx` burkolat csak akkor tölti be a Leafletet, amikor tényleg
+megjelenik térkép. **Ha új helyen használsz térképet, ezt a burkolatot
+importáld**, ne a `Terkep.jsx`-et közvetlenül.
+
 ## A panel sorrendje
 
 Szándékos, és ne forgasd fel: **előbb a kérdés, aztán a válasz, végül az

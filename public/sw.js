@@ -8,7 +8,7 @@
    tömeges letöltése tilos, és jogos okból — közösségi, ingyenes szolgáltatás.
    Csak azt tartjuk meg, amit a böngésződ amúgy is lekért, amikor nézted. */
 
-const VERZIO = 'v3';
+const VERZIO = 'v4';
 const VAZ = `turabakancs-vaz-${VERZIO}`;
 const CSEMPE = `turabakancs-csempe-${VERZIO}`;
 const CSEMPE_MAX = 600;

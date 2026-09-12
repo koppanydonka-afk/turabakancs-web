@@ -1473,3 +1473,10 @@ input::placeholder { color: var(--muted); }
 
 /* A panel elemei ne zsugorodjanak (lásd a korábbi flex-csapdát). */
 .fiok__tartalom > *, .adatok > *, .tanacsok > * { flex: 0 0 auto; }
+
+/* A térkép helye, amíg a külön csomag betöltődik. */
+.terkep--tolt {
+  display: grid;
+  place-items: center;
+  background: var(--surface-2);
+}

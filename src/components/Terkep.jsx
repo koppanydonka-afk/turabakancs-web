@@ -141,16 +141,24 @@ export default function Terkep({
       L.polyline(pontok, { className: 'ut-vonal', weight: 4 }).addTo(csoport);
     }
 
-    /* Betöltött turistaútnál több száz pont van; teljes méretű karikákkal
-       azok eltakarnák magát a vonalat. A rajt és a cél marad nagy, a
-       köztes pontok apróra váltanak — húzhatók és törölhetők maradnak. */
+    /* Sűrű vonalnál (routolt útvonal, betöltött turistaút) csak a rajt és a
+       cél kap jelölőt.
+
+       Miért: a Leaflet minden jelölőt újrapozicionál a térkép minden
+       mozdításakor. Kétszázötven húzható jelölő telefonon érezhetően
+       akadozóvá teszi a pásztázást — mérve 266 jelölő és 761 DOM-elem.
+       Cserébe alig veszítünk: egy routolt vonal 137. pontját amúgy sem
+       értelmes külön arrébb húzni, azt a szolgáltatás rakta oda.
+
+       A kézzel rajzolt útvonalak (néhány tucat pont) változatlanul
+       teljesen szerkeszthetők. */
     const suru = pontok.length > 60;
 
     pontok.forEach(([lat, lng], i) => {
       const elso = i === 0;
       const utolso = i === pontok.length - 1 && pontok.length > 1;
-      const apro = suru && !elso && !utolso;
-      const meret = apro ? 8 : 16;
+      if (suru && !elso && !utolso) return;
+      const meret = 16;
       const jel = L.marker([lat, lng], {
         draggable: Boolean(friss.current.mod),
         keyboard: false,
@@ -158,7 +166,7 @@ export default function Terkep({
           className: '',
           html: `<span class="ut-pont${elso ? ' ut-pont--rajt' : ''}${
             utolso ? ' ut-pont--cel' : ''
-          }${apro ? ' ut-pont--apro' : ''}"></span>`,
+          }"></span>`,
           iconSize: [meret, meret],
           iconAnchor: [meret / 2, meret / 2],
         }),

@@ -1,0 +1,28 @@
+import { Suspense, lazy } from 'react';
+
+/* A térkép külön csomagban.
+
+   A Leaflet és a hozzá tartozó stílus a teljes kód jelentős része, de a
+   főoldalnak, a példák listájának és a szöveges oldalaknak semmi szükségük
+   rá. Ez a burkolat csak akkor tölti le, amikor tényleg megjelenik térkép.
+
+   Amíg tölt, a helye megmarad — nem ugrál az elrendezés. */
+
+const Terkep = lazy(() => import('./Terkep.jsx'));
+
+export default function TerkepKesobb(props) {
+  return (
+    <Suspense
+      fallback={
+        <div className="terkep terkep--tolt">
+          <span className="tolt">
+            <span className="tolt__pörgo" aria-hidden="true" />
+            Térkép betöltése…
+          </span>
+        </div>
+      }
+    >
+      <Terkep {...props} />
+    </Suspense>
+  );
+}
