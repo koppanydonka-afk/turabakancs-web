@@ -70,6 +70,7 @@ forgalmi API-ért kulccsal és számlázási fiókkal. Egyik sem fér bele. Ráa
 | Cím | Mi van rajta |
 | --- | --- |
 | `/` | Főoldal: mai napkelte/napnyugta, jelzésrendszer, három példa, véleményfal |
+| `/honnan-hova` | Két hely beírásából táv, emelkedő, menetidő + közeli túrák |
 | `/tervezo` | A térképes tervező a három füllel |
 | `/utvonalak` | A hat példa |
 | `/utvonalak/:id` | Egy példa térképpel |
@@ -189,6 +190,23 @@ település között futnak át, a keresztesek két másik jelzést kötnek öss
 Magasságot szándékosan nem írunk ki érdekességként: a domborzatmodell pár méterrel
 eltér a hivatalos értékektől (Kékestetőre 1022 m-t ad az 1014 helyett), tehát tényként
 nem közölhető.
+
+## „Honnan hova” — a térkép nélküli út
+
+A tervezőben rajzolni kell, ami egérrel jó, telefonon viszont körülményes.
+A `/honnan-hova` oldalon elég beírni két helyet:
+
+1. A helyneveket a Nominatim oldja fel (koordinátát is el lehet írni: `47.5, 19.0`).
+2. Az OSRM gyalogos profilja megadja a valódi ösvényen mért távot.
+3. Az Open-Meteo adja az emelkedőt, abból jön a Naismith-menetidő és a nehézség.
+4. A napnyugta-számítás megmondja, beéred-e sötétedés előtt.
+
+Alatta megjelennek a **kiindulóponthoz legközelebbi kész túrák** — gyakran ez a
+valódi kérdés, nem az, hogy A-ból B-be.
+
+> Az autós idő a légvonalból becsül, folytonos sebességgörbével. Korábban sávos
+> volt, és emiatt egy hosszabb útra rövidebb időt adott — a görbe most mindig
+> növekvő. Ez szándékosan durva becslés, és az oldalon ki is van írva.
 
 ## Telefonon
 

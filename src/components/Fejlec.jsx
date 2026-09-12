@@ -10,6 +10,7 @@ import { useRoute } from '../router.js';
 
 const MENU = [
   { cim: '/', nev: 'Főoldal', leiras: 'Jelzések, példák és vélemények' },
+  { cim: '/honnan-hova', nev: 'Honnan hova', leiras: 'Két hely beírásából táv, emelkedő, menetidő' },
   { cim: '/tervezo', nev: 'Tervező', leiras: 'Rajzolj útvonalat és tegyél ki jelöléseket' },
   { cim: '/utvonalak', nev: 'Példák', leiras: 'Nyolc kész vonal, amiből kiindulhatsz' },
 ];

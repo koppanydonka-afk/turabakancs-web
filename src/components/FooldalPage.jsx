@@ -31,7 +31,8 @@ export default function FooldalPage() {
           Fiók nincs, süti nincs, adatot nem gyűjtünk.
         </p>
         <div className="hos__gombok">
-          <a className="gomb gomb--fo" href="/tervezo">Nyiss egy térképet</a>
+          <a className="gomb gomb--fo" href="/honnan-hova">Honnan hova?</a>
+          <a className="gomb gomb--halk" href="/tervezo">Nyiss egy térképet</a>
           <a className="gomb gomb--halk" href="/utvonalak">Nézz példákat</a>
         </div>
       </section>

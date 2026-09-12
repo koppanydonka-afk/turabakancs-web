@@ -1233,3 +1233,43 @@ input::placeholder { color: var(--muted); }
   .gombsor .gomb { min-height: 44px; }
   .modvalto__gomb { min-height: 40px; }
 }
+
+/* ---------- „Honnan hova” ---------- */
+.hh {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-6);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--lap-keret), var(--lap-arnyek);
+}
+.hh__mezok { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
+.hh__mezok input { font-size: var(--text-lg); }
+.hh__also { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: flex-end; }
+.hh__also .mezo--kicsi { flex: 0 1 150px; }
+.hh__also .gomb { flex: 0 0 auto; }
+
+.hh__eredmeny { display: flex; flex-direction: column; gap: var(--space-4); }
+.hh__utvonal { font-size: var(--text-lg); color: var(--ink-2); }
+.hh__utvonal strong { color: var(--ink); }
+.hh__terkep {
+  height: 46vh;
+  min-height: 300px;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--lap-keret), var(--lap-arnyek);
+}
+.hh__terkep .terkep { border-radius: var(--radius-lg); }
+.ertekek__elem--kiemelt strong { color: var(--accent-ink); }
+.uzenet--hiba { background: var(--fontos-lagy); color: var(--fontos); }
+
+/* A „honnan hova” a telefonos használat miatt van: ott egy oszlop kell. */
+@media (max-width: 680px) {
+  .hh { padding: var(--space-4); }
+  .hh__mezok { grid-template-columns: 1fr; gap: var(--space-3); }
+  .hh__also { flex-direction: column; align-items: stretch; }
+  .hh__also .mezo--kicsi { flex: 1 1 auto; }
+  .hh__also .gomb { width: 100%; min-height: 46px; }
+  .hh__terkep { height: 40vh; }
+}
