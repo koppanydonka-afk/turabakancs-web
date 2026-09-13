@@ -7,6 +7,7 @@ import { helyiKep } from '../data/latvanyossagok.js';
 import { latvanyKepe } from '../data/kepek.js';
 import { nyelv, sz } from '../nyelv/index.js';
 import { useSotet } from '../data/tema.js';
+import { sotetreFest } from '../data/terkepStilus.js';
 import EszkozRudba from './EszkozRudba.jsx';
 import { KEZDO_KOZEP, KEZDO_ZOOM } from '../data/terkepAlap.js';
 
@@ -49,10 +50,13 @@ const htmlBiztos = (szoveg) =>
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
 
-const STILUS = {
-  vilagos: 'https://tiles.openfreemap.org/styles/liberty',
-  sotet: 'https://tiles.openfreemap.org/styles/dark',
-};
+/* EGY stíluslap, két bőrben.
+
+   Az OpenFreeMap kínál kész sötét változatot is, de az egy másik térkép:
+   feleannyi réteg, nincsenek háromdimenziós épületek, más úttípusok. Aki
+   sötét módra vált, nem másik térképet kért — ezért ugyanezt festjük át
+   (lásd terkepStilus.js). */
+const STILUS = 'https://tiles.openfreemap.org/styles/liberty';
 
 /* ---- Tartalék: raszteres csempe, ha a vektoros nem jön ----
 
@@ -103,9 +107,10 @@ async function stilustHoz(sotet) {
   const megszakit = new AbortController();
   const ora = setTimeout(() => megszakit.abort(), 8000);
   try {
-    const valasz = await fetch(sotet ? STILUS.sotet : STILUS.vilagos, { signal: megszakit.signal });
+    const valasz = await fetch(STILUS, { signal: megszakit.signal });
     if (!valasz.ok) throw new Error(String(valasz.status));
-    return { stilus: await valasz.json(), tartalek: false };
+    const stilus = await valasz.json();
+    return { stilus: sotet ? sotetreFest(stilus) : stilus, tartalek: false };
   } catch {
     return { stilus: raszterStilus(sotet), tartalek: true };
   } finally {
@@ -177,6 +182,11 @@ export default function Terkep({
      rajzoló hatások ebből tudják, hogy a saját forrásaikat újra fel kell
      tenni: a `setStyle` mindent letöröl, ami a miénk. */
   const [stilusJel, setStilusJel] = useState(0);
+  /* A térkép a stíluslap megérkezése UTÁN születik meg, tehát a többi
+     hatás első lefutásakor még nincs is. Ez a kapcsoló mondja meg nekik,
+     mikor van mihez nyúlniuk — nélküle a nézetoldalakon se jelölőtű, se
+     ráközelítés nem lenne. */
+  const [terkepKesz, setTerkepKesz] = useState(false);
 
   const sotet = useSotet();
   /* A stíluslap kérése eltarthat pár másodpercig. Ha közben témát
@@ -551,11 +561,13 @@ export default function Terkep({
       });
 
       terkep.current = m;
+      setTerkepKesz(true);
       return m;
     }
 
     return () => {
       eldobva = true;
+      setTerkepKesz(false);
       clearTimeout(orszem.current);
       cancelAnimationFrame(rajzKeret.current);
       utHorgonyok.current.forEach((j) => j.remove());
@@ -584,7 +596,7 @@ export default function Terkep({
   useEffect(() => {
     if (doboz.current) doboz.current.dataset.mod = mod ?? 'nezet';
     kurzor(mod ? 'crosshair' : '');
-  }, [mod]);
+  }, [mod, terkepKesz]);
 
   /* ---- Nyomvonal újrarajzolása ---- */
   useEffect(() => {
@@ -707,7 +719,7 @@ export default function Terkep({
       utHorgonyok.current.forEach((j) => j.remove());
       utHorgonyok.current = [];
     };
-  }, [pontok, horgonyok, mod]);
+  }, [pontok, horgonyok, mod, terkepKesz]);
 
   /* ---- Jelölések újrarajzolása ---- */
   useEffect(() => {
@@ -762,7 +774,7 @@ export default function Terkep({
       jelolesJelolok.current.forEach((j) => j.remove());
       jelolesJelolok.current = [];
     };
-  }, [jelolesek, mod]);
+  }, [jelolesek, mod, terkepKesz]);
 
   /* Itt épült fel korábban a tizenöt magyar látványosság, mindig
      bekapcsolva, letöltött képekkel. Réteg lett belőle (`latvany`), és
@@ -862,8 +874,11 @@ export default function Terkep({
       new LngLatBounds(osszes[0], osszes[0]),
     );
     m.fitBounds(hatar, { padding: 56, maxZoom: 16, duration: 0 });
+    /* `terkepKesz` azért kell, mert a kérés megelőzheti a térképet; a
+       `pontok` és a `jelolesek` szándékosan nincs itt — a ráközelítés
+       kérésre történik, nem minden módosításkor. */
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [illeszt]);
+  }, [illeszt, terkepKesz]);
 
   if (!retegGombok) return <div className="terkep" ref={doboz} />;
 
