@@ -1,3 +1,5 @@
+import { overpass } from './overpass.js';
+
 /* Ami az útvonal mentén van: víz, menedék, ellátás, megálló.
 
    Miért ez a modul: a tanácsadó eddig két dolgot kifogásolt — „nincs
@@ -12,8 +14,6 @@
 
    Az Overpass közös, ingyenes szolgáltatás: csak gombnyomásra kérdezünk,
    soha nem magától. */
-
-const VEGPONT = 'https://overpass-api.de/api/interpreter';
 
 export class SzolgaltatasHiba extends Error {}
 
@@ -34,23 +34,7 @@ const MEGALLOK = [
   { szuro: '["highway"="bus_stop"]', tipus: 'kozlekedes', nev: 'Buszmegálló' },
 ];
 
-async function kerdez(lekerdezes) {
-  let valasz;
-  try {
-    valasz = await fetch(VEGPONT, {
-      method: 'POST',
-      headers: { 'User-Agent': 'Turabakancs/0.1 (szolgaltatasok; turabakancs-terkep)' },
-      body: new URLSearchParams({ data: lekerdezes }),
-    });
-  } catch {
-    throw new SzolgaltatasHiba('Az OpenStreetMap keresője most nem érhető el.');
-  }
-  if (valasz.status === 429 || valasz.status === 504) {
-    throw new SzolgaltatasHiba('A kereső most túlterhelt. Próbáld pár másodperc múlva.');
-  }
-  if (!valasz.ok) throw new SzolgaltatasHiba('A keresés nem sikerült.');
-  return valasz.json();
-}
+const kerdez = (lekerdezes) => overpass(lekerdezes, { cimke: 'szolgaltatasok' });
 
 /* ---- Geometria ---- */
 
@@ -66,41 +50,7 @@ function tavolsag(a, b) {
   return 2 * FOLD_SUGAR_KM * Math.asin(Math.sqrt(h));
 }
 
-/* A lekérdezésbe nem fér bele kétszázötven koordináta, de nem is kell: az
-   `around` sugara elfedi a köztes szakaszt, ha a mintavétel elég sűrű.
-   Azért kötjük a sávszélességhez, hogy ritka pontoknál se maradjon lyuk. */
-function mintavetel(pontok, savMeter) {
-  const lepesKm = (savMeter / 1000) * 1.2;
-  const ki = [pontok[0]];
-  let utolso = pontok[0];
-  for (const p of pontok.slice(1, -1)) {
-    if (tavolsag(utolso, p) >= lepesKm) {
-      ki.push(p);
-      utolso = p;
-    }
-  }
-  ki.push(pontok[pontok.length - 1]);
-  return ki.slice(0, 120);
-}
-
-/* Hányadik kilométernél éred el. A legközelebbi nyomvonalpontig mért
-   menetirányú távolság — a pontok sűrűsége (~60 m) bőven elég ehhez. */
-function utMenten(pontok, hely) {
-  let osszeg = 0;
-  let legjobbKm = 0;
-  let legkisebb = Infinity;
-  for (let i = 0; i < pontok.length; i += 1) {
-    if (i > 0) osszeg += tavolsag(pontok[i - 1], pontok[i]);
-    const t = tavolsag(pontok[i], hely);
-    if (t < legkisebb) {
-      legkisebb = t;
-      legjobbKm = osszeg;
-    }
-  }
-  return { utKm: legjobbKm, eltavolodasM: Math.round(legkisebb * 1000) };
-}
-
-function feldolgoz(adat, keresett, pontok) {
+function feldolgoz(adat, keresett) {
   const szotar = new Map(keresett.map((k) => [k.szuro, k]));
   return (adat.elements ?? [])
     .map((e) => {
@@ -120,8 +70,6 @@ function feldolgoz(adat, keresett, pontok) {
       else if (t.railway === 'halt') fajta = szotar.get('["railway"="halt"]');
       else if (t.highway === 'bus_stop') fajta = szotar.get('["highway"="bus_stop"]');
       if (!fajta) return null;
-
-      const { utKm, eltavolodasM } = pontok ? utMenten(pontok, hely) : { utKm: 0, eltavolodasM: 0 };
 
       /* Ivhatóság CSAK víznél értelmes, és ott is óvatosan:
            igen  – ivásra szánták, vagy az OSM külön kimondja
@@ -147,12 +95,9 @@ function feldolgoz(adat, keresett, pontok) {
         szezonos: t.seasonal === 'yes',
         lat: hely[0],
         lng: hely[1],
-        utKm,
-        eltavolodasM,
       };
     })
     .filter(Boolean)
-    .sort((a, b) => a.utKm - b.utKm)
     /* Ugyanannak a dolognak néha két bejegyzése van az OSM-ben (külön csap
        és külön kút ugyanarra a kútra). Ami azonos fajta és ötven méteren
        belül van, azt egynek vesszük. */
@@ -163,71 +108,70 @@ function feldolgoz(adat, keresett, pontok) {
     );
 }
 
-/* ---- Az útvonal menti ellátás ---- */
+/* ---- Térképrétegek: ami a látható területen van ----
 
-/* Városon átmenő vonalnál százas nagyságrendű találat is lehet. Az
-   oldalsávban ez használhatatlan, és nem is segít: a huszonegyedik ivókút
-   nem mond többet, mint az első húsz. Ezért a vonalhoz legközelebbieket
-   tartjuk meg, de a teljes darabszámot is visszaadjuk, hogy a felület ne
-   hallgassa el, mennyit vágtunk le. */
-const LISTA_MAX = 20;
+   Külön a fenti útvonal menti keresést: ez nem a vonalad mellé néz, hanem
+   arra, amit épp látsz a térképen.
 
-export async function utMentiek(pontok, { savMeter = 500 } = {}) {
-  if (!Array.isArray(pontok) || pontok.length < 2) {
-    throw new SzolgaltatasHiba('Előbb rajzolj vagy tölts be egy útvonalat.');
-  }
-  const minta = mintavetel(pontok, savMeter);
-  const koordinatak = minta.map(([lat, lng]) => `${lat.toFixed(5)},${lng.toFixed(5)}`).join(',');
-  const agak = KERESETT.map(
-    (k) => `node(around:${savMeter},${koordinatak})${k.szuro};`,
-  ).join('');
+   Mért adat a tervezéshez (Overpass, 2026 szeptember):
 
+     Budapest belváros   393 ivóvíz,  863 megálló
+     Budai-hegység       143 ivóvíz,  485 megálló
+     Pilis               115 ivóvíz,   82 megálló
+
+   A projekt korábbi mérése szerint 266 hagyományos Leaflet-jelölő már
+   érezhetően akasztja a pásztázást telefonon. Ezért itt NEM jelölőt
+   rajzolunk, hanem vászonra rajzolt köröket (`circleMarker` + `L.canvas`),
+   amiből ezer is elfér akadás nélkül — és a darabszámot is korlátozzuk.
+
+   Nagyítási alsó határ is van: fél országnyi területre nincs értelme
+   lekérdezni, se a felhasználónak, se az Overpassnak. */
+
+/* A rétegek SAJÁT színt kapnak, nem a jelöléstípusokét.
+
+   A jelölőknél a forrás #0E7490, a megálló #0F766E — ezek fehér tűben, egymás
+   mellett jól elválnak, de hatpixeles pöttyként a térképen nem: a két szín
+   világosságkontrasztja egymáshoz képest 1,02:1, gyakorlatilag ugyanaz.
+
+   Helyette kék–borostyán pár, mérve:
+     víz     #075985  fehér kerethez 7,56:1
+     megálló #D97706  fehér kerethez 3,19:1
+     egymáshoz világosságban 2,37:1
+   A kék–sárga tengely a vörös-zöld színtévesztésnek is a legbiztosabb párja;
+   szimulálva 201 egységre esnek egymástól. A méret is eltér (6 és 5 képpont),
+   hogy ne csak a szín különböztesse meg őket. */
+export const RETEGEK = {
+  viz: {
+    nev: 'Ivóvíz, forrás',
+    tipus: 'forras',
+    szin: '#075985',
+    sugar: 6,
+    szurok: ['["amenity"="drinking_water"]', '["natural"="spring"]'],
+  },
+  kozlekedes: {
+    nev: 'Megálló, állomás',
+    tipus: 'kozlekedes',
+    szin: '#D97706',
+    sugar: 5,
+    szurok: ['["highway"="bus_stop"]', '["railway"="station"]', '["railway"="halt"]'],
+  },
+};
+
+export const MIN_ZOOM = 12;
+const TERULET_MAX = 400;
+
+export async function teruleten({ del, nyugat, eszak, kelet }, retegId) {
+  const reteg = RETEGEK[retegId];
+  if (!reteg) throw new SzolgaltatasHiba('Ismeretlen réteg.');
+
+  const doboz = `${del.toFixed(5)},${nyugat.toFixed(5)},${eszak.toFixed(5)},${kelet.toFixed(5)}`;
+  const agak = reteg.szurok.map((sz) => `node(${doboz})${sz};`).join('');
   const adat = await kerdez(`[out:json][timeout:40];(${agak});out tags center;`);
-  const osszes = feldolgoz(adat, KERESETT, pontok);
 
-  const szamlalo = {
-    ivhato: osszes.filter((x) => x.tipus === 'forras' && x.ivasra === true).length,
-    forras: osszes.filter((x) => x.tipus === 'forras' && x.ivasra !== true && x.ivasra !== false).length,
-    menedek: osszes.filter((x) => x.tipus === 'pihen').length,
-  };
-
-  /* A kivágás a vonaltól mért távolság szerint megy — ami mellette van, az
-     hasznosabb, mint ami félkilométeres kitérő. A megjelenítés viszont
-     útirány szerint marad, mert a túrázó úgy találkozik velük. */
-  const lista = [...osszes]
-    .sort((a, b) => a.eltavolodasM - b.eltavolodasM)
-    .slice(0, LISTA_MAX)
-    .sort((a, b) => a.utKm - b.utKm);
-
-  return { lista, osszesen: osszes.length, levagva: Math.max(0, osszes.length - lista.length), szamlalo };
-}
-
-/* ---- Megközelítés: megállók a rajt és a cél körül ---- */
-
-export async function megallok(hely, { savMeter = 1500 } = {}) {
-  if (!Array.isArray(hely) || hely.length !== 2) {
-    throw new SzolgaltatasHiba('Nincs hely, ami köré keresni lehetne.');
-  }
-  const koord = `${hely[0].toFixed(5)},${hely[1].toFixed(5)}`;
-  const agak = MEGALLOK.map((k) => `node(around:${savMeter},${koord})${k.szuro};`).join('');
-  const adat = await kerdez(`[out:json][timeout:30];(${agak});out tags center;`);
-
-  return feldolgoz(adat, MEGALLOK, null)
-    .map((m) => ({ ...m, tavolsagM: Math.round(tavolsag(hely, [m.lat, m.lng]) * 1000) }))
-    .sort((a, b) => a.tavolsagM - b.tavolsagM)
-    .slice(0, 8);
-}
-
-/* ---- Összefoglaló a tanácsadónak ---- */
-
-export function vizOsszegzes(lista) {
-  const vizek = lista.filter((x) => x.tipus === 'forras' && x.ivasra !== false);
-  const ivhato = vizek.filter((x) => x.ivasra === true);
+  const osszes = feldolgoz(adat, KERESETT.concat(MEGALLOK));
   return {
-    osszes: vizek.length,
-    ivhato: ivhato.length,
-    elso: ivhato[0] ?? vizek[0] ?? null,
-    /* Csak forrás van, igazolt ivóvíz nincs: ezt ki kell mondani. */
-    csakForras: vizek.length > 0 && ivhato.length === 0,
+    lista: osszes.slice(0, TERULET_MAX),
+    osszesen: osszes.length,
+    levagva: Math.max(0, osszes.length - TERULET_MAX),
   };
 }

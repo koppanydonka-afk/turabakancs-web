@@ -97,43 +97,71 @@ Volt egy név nélküli véleményfal is félkészen; kikerült. Nyilvános vél
 tárhelyet, moderálást és tárhelyszolgáltatói kötelezettséget (Ekertv.) igényel — ez
 külön döntés, nem programozási kérdés.
 
-## Mi van az útvonalon? — víz, menedék, megálló
+## Ivóvíz és megállók a térképen
 
-A tanácsadó sokáig két dolgot kifogásolt, és mindkettőt a felhasználóra tolta:
-*„nincs vízvételi hely jelölve"* és *„nincs jelölve, hogyan jutsz a rajthoz"*.
-Közben az Overpass, amit a jelzett utakhoz amúgy is hívunk, tudja a választ.
+A térkép jobb alsó sarkában két kapcsoló: **ivóvíz/forrás** és **megálló/állomás**.
+Bekapcsolva kirajzolja, ami a látható területen van.
 
-A tervező `Mi van az útvonalon?` fiókja megkérdezi — **csak nyitáskor, és csak
-egyszer**, mert az Overpass közös, ingyenes szolgáltatás.
+Volt ebből egy korábbi változat az oldalsávban, fiókként, az útvonal menti
+találatokkal és „hányadik kilométernél éred el" adattal. A felhasználó
+elvetette — a térkép a jó helye ennek, nem egy lista. A régi kód a
+git-előzményben megvan (`Ellatas.jsx`, `utMentiek`, `megallok`).
 
-| amit keres | OSM-címke |
-| --- | --- |
-| ivóvíz | `amenity=drinking_water` |
-| forrás | `natural=spring` |
-| esőbeálló | `amenity=shelter` |
-| menedék-, turistaház | `tourism=wilderness_hut`, `tourism=alpine_hut` |
-| megálló, állomás | `highway=bus_stop`, `railway=station`, `railway=halt` |
+### Miért vászon, és nem jelölő
 
-Minden találat megkapja, **hányadik kilométernél** éred el és **mennyire tér el**
-a vonaltól. Egy kattintással jelölésként bekerül a tervbe — onnantól a GPX-be és
-a megosztható linkbe is.
+Mért adat (Overpass, 2026 szeptember):
 
-### Amit itt nem szabad összemosni
+| terület | ivóvíz | megálló |
+| --- | --- | --- |
+| Budapest belváros | 393 | 863 |
+| Budai-hegység | 143 | 485 |
+| Pilis | 115 | 82 |
 
-A `natural=spring` egy forrás a térképen. Attól még lehet **kiszáradva vagy
-szennyezett** — csak az `amenity=drinking_water` az, amit ivásra szántak. A modul
-ezért külön mezőben tartja (`ivasra: true | false | null`), és ez a mező nem is
-létezik esőbeállónál vagy megállónál, hogy a felület véletlenül se tehessen rá
-„iható" címkét.
+A projekt korábbi mérése szerint **266 hagyományos Leaflet-jelölő már érezhetően
+akasztja a pásztázást telefonon**. Ezért ezek `circleMarker`-ek `L.canvas`
+felületen: nyolcszáz kör is egyetlen vászonelem, a DOM-jelölők száma változatlan
+marad. Élesben mérve: 1039 víz + 2339 megálló találat mellett a DOM 15 jelölőnél
+maradt.
 
-Ha az útvonalon csak forrás van és igazolt ivóvíz nincs, a fiók ezt külön
-kimondja. Egy nyári túrán ezen múlhat valami.
+Korlátok: rétegenként 400 kirajzolt pont, és 12-es nagyítás alatt nem kérdezünk.
 
-### Sikertelen lekérés ≠ nincs találat
+### Két szabály, amit a felület betart
 
-Ha a megállók lekérdezése elhasal, a felület **nem** azt írja, hogy nincs megálló
-— azt írja, hogy nem tudja. A kettő összemosása korábban oda vezetett, hogy
-Budapest közepén azt állítottuk: „ide alighanem autóval érdemes jönni".
+**Elavult adat nem látszhat frissnek.** Ha a nagyítás a küszöb alá megy, a
+korábbi találatokat töröljük, és a gomb kiírja, hogy nagyítani kell. Ha
+elpásztáznak a lekérdezett területről, megjelenik a „Keresés ezen a területen"
+gomb — magától nem kérdez újra, mert az Overpass közös erőforrás.
+
+**A forrás nem ivóvíz.** A `natural=spring` lehet kiszáradva vagy szennyezett;
+csak az `amenity=drinking_water` az, amit ivásra szántak. A buborék ezt
+kimondja: „iható", „NEM iható" vagy „nincs adat róla, hogy iható-e".
+
+### A rétegek színe
+
+A jelöléstípusok színei (forrás `#0E7490`, megálló `#0F766E`) fehér tűben jól
+elválnak, hatpixeles pöttyként viszont nem: egymáshoz mért világosságkontrasztjuk
+**1,02:1**. A rétegek ezért saját, mért színt kapnak:
+
+| réteg | szín | fehér kerethez | megjegyzés |
+| --- | --- | --- | --- |
+| ivóvíz | `#075985` | 7,56:1 | |
+| megálló | `#D97706` | 3,19:1 | |
+
+Egymáshoz világosságban 2,37:1. A kék–sárga tengely a vörös-zöld színtévesztésnek
+is a legbiztosabb párja. A méret is eltér (6 és 5 képpont), hogy ne csak a szín
+különböztesse meg őket.
+
+## Overpass: tartaléktükör
+
+A `src/data/overpass.js` közös a jelzett utaknak és az ellátás-rétegeknek. A fő
+példány (`overpass-api.de`) terhelés alatt rendszeresen 504-gyel vagy 429-cel
+válaszol; ilyenkor a `overpass.private.coffee` tükör következik. Húsz másodperc
+után megszakítjuk a kérést — enélkül egy elakadt kiszolgáló örökre pörgetné a
+gombot.
+
+A hibák megőrzik a `cause`-t (melyik példány mit felelt). Bare `catch {}`-szel
+minden hiba egyformán néz ki, és utólag nem lehet megmondani, a hálózat, az
+időkorlát vagy a kiszolgáló volt-e a baj.
 
 ## GPX betöltése
 

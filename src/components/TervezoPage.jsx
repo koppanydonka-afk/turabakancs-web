@@ -5,7 +5,6 @@ import KozeliTurak from './KozeliTurak.jsx';
 import TuraLista from './TuraLista.jsx';
 import JelolesLista from './JelolesLista.jsx';
 import Tanacsok from './Tanacsok.jsx';
-import Ellatas from './Ellatas.jsx';
 import Labjegyzet from './Labjegyzet.jsx';
 import { JELOLES_TIPUSOK, tipusSzerint } from '../data/jelolesek.js';
 import {
@@ -307,6 +306,7 @@ export default function TervezoPage() {
             ujTipus={ujTipus}
             illeszt={illeszt}
             latvanyok
+            retegGombok
             onKesz={(map) => {
               terkep.current = map;
               setTerkepKesz(true);
@@ -455,13 +455,6 @@ export default function TervezoPage() {
                 </div>
 
                 <Tanacsok pontok={pontok} jelolesek={jelolesek} tempo={tempo} magassag={magassag} />
-
-                <Ellatas
-                  key={vonalKulcs}
-                  pontok={pontok}
-                  onJelolesHozzaad={(j) => setJelolesek((e) => [...e, j])}
-                  onOdaugrik={(hely) => terkep.current?.setView(hely, 16)}
-                />
 
                 <div className="gombsor">
                   <button className="gomb gomb--fo" onClick={linkMasol}>Megosztható link</button>

@@ -142,6 +142,7 @@ body.nincs-gorgetes { overflow: hidden; }
 .modvalto,
 .paletta,
 .latvany-valto,
+.reteg-gomb,
 .vissza-nyil { touch-action: manipulation; }
 
 /* Visszalépés a térkép bal alsó sarkában. A jobb felső a nagyítóé és a
@@ -1279,6 +1280,7 @@ input::placeholder { color: var(--muted); }
   /* A térkép lebegő vezérlői ne kerüljenek a lap alá. */
   .terkep__sug { bottom: calc(62px + var(--space-3)); }
   .vissza-nyil { bottom: calc(62px + var(--space-3)); }
+  .reteg-sor { bottom: calc(62px + var(--space-3)); }
   .leaflet-control-attribution { margin-bottom: 62px !important; }
 
   /* Nagyobb érintőfelületek a gyakori gomboknál. */
@@ -1635,4 +1637,69 @@ input::placeholder { color: var(--muted); }
   clip-path: inset(50%);
   white-space: nowrap;
   border: 0;
+}
+
+
+/* ---------- Ellátás-rétegek gombjai (jobb alsó sarok) ----------
+   A bal alsó a visszalépő nyílé, a bal felső a módváltóé, a jobb felső a
+   nagyítóé — ez a sarok maradt. A forrásmegjelölés fölé kerül. */
+.reteg-sor {
+  position: absolute;
+  right: var(--space-3);
+  bottom: calc(var(--space-3) + 18px);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-2);
+}
+
+.reteg-gomb {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  border: 0;
+  border-radius: var(--radius-pill);
+  padding: var(--space-2) var(--space-3);
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  backdrop-filter: blur(10px) saturate(180%);
+  box-shadow: var(--lap-keret), var(--lap-arnyek);
+  color: var(--muted);
+  font: inherit;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  cursor: pointer;
+  transition: color var(--duration) var(--ease), background var(--duration) var(--ease);
+}
+.reteg-gomb:hover { color: var(--ink); }
+.reteg-gomb--aktiv { background: var(--tu-szin); color: #fff; }
+.reteg-gomb--ujra { background: var(--accent); color: var(--on-accent); }
+
+.reteg-gomb__jel { display: grid; place-items: center; }
+.reteg-gomb__jel svg {
+  width: 16px; height: 16px;
+  fill: none; stroke: currentColor; stroke-width: 2;
+  stroke-linecap: round; stroke-linejoin: round;
+}
+
+.reteg-jegyzet {
+  max-width: 210px;
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  backdrop-filter: blur(10px) saturate(180%);
+  box-shadow: var(--lap-keret), var(--lap-arnyek);
+  color: var(--muted);
+  font-size: var(--text-xs);
+  text-align: right;
+}
+
+/* Telefonon a feliratot elhagyjuk — a szín és az ikon elég, és a súgósáv
+   mellett nincs hely a szövegnek. */
+@media (max-width: 680px) {
+  .reteg-gomb__szo { display: none; }
+  .reteg-gomb { padding: var(--space-2); }
+  .reteg-gomb--ujra .reteg-gomb__szo { display: inline; }
+  .reteg-jegyzet { display: none; }
 }

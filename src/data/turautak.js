@@ -1,3 +1,5 @@
+import { overpass } from './overpass.js';
+
 /* Jelzett turistautak az OpenStreetMapből.
 
    „Népszerű útvonalat" nem tudunk mutatni: ahhoz azt kellene figyelnünk, ki
@@ -8,8 +10,6 @@
 
    Az adat az Overpass API-ból jön, kulcs nélkül. Csak gombnyomásra kérdez,
    mert az Overpass közös, ingyenes szolgáltatás — nem terheljük fölöslegesen. */
-
-const VEGPONT = 'https://overpass-api.de/api/interpreter';
 
 /* Az osmc:symbol alakja: háttér:alapszín:jel — ebből a középső és a jel
    számít nekünk, abból áll össze a magyar turistajelzés. */
@@ -35,25 +35,7 @@ export function jelzest(osmc) {
   };
 }
 
-async function kerdez(lekerdezes) {
-  /* Az Overpass elutasítja a névtelen hívót (406). A böngésző a saját
-     azonosítóját küldi, ezért ott ez a fejléc figyelmen kívül marad — a
-     kiszolgáló oldali teszteléshez viszont kell, hogy ugyanez a modul
-     Node alatt is fusson. */
-  const valasz = await fetch(VEGPONT, {
-    method: 'POST',
-    headers: { 'User-Agent': 'Turabakancs/0.1 (turautak; turabakancs-terkep)' },
-    body: new URLSearchParams({ data: lekerdezes }),
-  });
-  if (!valasz.ok) {
-    throw new Error(
-      valasz.status === 429
-        ? 'Az OpenStreetMap keresője most túlterhelt. Próbáld pár másodperc múlva.'
-        : 'Nem sikerült lekérni a turistautakat.',
-    );
-  }
-  return valasz.json();
-}
+const kerdez = (lekerdezes) => overpass(lekerdezes, { cimke: 'turautak' });
 
 /* A térképen épp látható terület jelzett útjai. */
 export async function kozeliUtak(hatarok) {
