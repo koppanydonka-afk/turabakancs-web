@@ -139,7 +139,9 @@ export default function FooldalPage() {
             );
           })}
         </div>
-        <a className="vissza-link" href="/utvonalak">Mind a nyolc példa →</a>
+        {/* Szám nélkül: a kézzel beírt darabszám elavul, és el is avult —
+            „nyolc” állt itt, miközben tizennyolc útvonal van. */}
+        <a className="vissza-link" href="/utvonalak">Az összes példa →</a>
       </section>
     </div>
   );
