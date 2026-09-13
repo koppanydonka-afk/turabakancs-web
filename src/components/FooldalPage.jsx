@@ -117,46 +117,48 @@ export default function FooldalPage() {
 
       {/* ---- Mit tud ----
 
-          Négy állítás, mindegyik ellenőrizhető az oldalon belül. A rétegek
-          ikonjai ugyanazok, amiket a tervezőben látsz — nem külön rajzolt
-          díszek, hanem maga a jelmagyarázat. */}
+          Négy hasábos kártyarács volt, de 272 képpontos kártyákon négy-öt
+          soros mondatokkal az egész egy szövegfal lett, és az egyenlő
+          magasságú kártyák alján ott maradt az üresség. Listában viszont
+          minden tétel a saját tartalmához igazodik, a sor teljes
+          szélességben fut, és a szöveg olvasható méretű lehet.
+
+          A sorszám nem dísz: négyet ígér a bevezető, és így meg is
+          számolható. */}
       <section className="szekcio" data-feltun>
         <header className="szekcio__fej">
           <h2 className="szekcio__cim">{sz('fooldal.mitTud')}</h2>
           <p className="szekcio__lead">{sz('fooldal.mitTudLead')}</p>
         </header>
-        <div className="tud-racs">
+        <ol className="tud-lista">
           {[1, 2, 3, 4].map((n) => (
-            <article className="tud" key={n}>
-              <h3 className="tud__cim">{sz(`fooldal.tud${n}Cim`)}</h3>
-              {/* A szöveg és az ikonok EGY rácssorban: így nem marad
-                  fenntartott üres sáv azon a három kártyán, ahol nincs ikon. */}
+            <li className="tud" key={n}>
+              <span className="tud__szam" aria-hidden="true">{`0${n}`}</span>
               <div className="tud__test">
-              {/* Két ízelítő ikon, a szöveg SORÁBAN. Külön sorban állva
-                  annyival megnövelték ezt a kártyát, hogy a másik három
-                  aljára negyven képpont üres sáv került; a bekezdés végén
-                  viszont nem visznek el semmi helyet. */}
-              <p className="tud__szoveg">
-                {sz(`fooldal.tud${n}`)}
-                {n === 3 && (
-                <ul className="tud__retegek">
-                  {['viz', 'latvany'].map((id) => (
-                    <li key={id} style={{ '--tu-szin': RETEGEK[id].gombSzin }} title={sz(RETEGEK[id].nevKulcs)}>
-                      <svg
-                        viewBox="0 0 24 24"
-                        aria-hidden="true"
-                        dangerouslySetInnerHTML={{ __html: tipusSzerint(RETEGEK[id].tipus).rajz }}
-                      />
-                      <span className="csak-olvasonak">{sz(RETEGEK[id].nevKulcs)}</span>
-                    </li>
-                  ))}
-                </ul>
-                )}
-              </p>
+                <h3 className="tud__cim">{sz(`fooldal.tud${n}Cim`)}</h3>
+                <p className="tud__szoveg">
+                  {sz(`fooldal.tud${n}`)}
+                  {/* Két ízelítő ikon a mondat végén, a szöveg sorában. A
+                      hét réteg teljes jelmagyarázata a tervezőben van. */}
+                  {n === 3 && (
+                    <ul className="tud__retegek">
+                      {['viz', 'latvany'].map((id) => (
+                        <li key={id} style={{ '--tu-szin': RETEGEK[id].gombSzin }} title={sz(RETEGEK[id].nevKulcs)}>
+                          <svg
+                            viewBox="0 0 24 24"
+                            aria-hidden="true"
+                            dangerouslySetInnerHTML={{ __html: tipusSzerint(RETEGEK[id].tipus).rajz }}
+                          />
+                          <span className="csak-olvasonak">{sz(RETEGEK[id].nevKulcs)}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </p>
               </div>
-            </article>
+            </li>
           ))}
-        </div>
+        </ol>
       </section>
 
       <section className="szekcio" data-feltun>

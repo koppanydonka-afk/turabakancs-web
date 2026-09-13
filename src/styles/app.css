@@ -993,68 +993,53 @@ input::placeholder { color: var(--muted); }
 .pelda-sav .gomb { align-self: flex-start; }
 
 @media (max-width: 760px) {
-  .pelda-sav { grid-template-columns: 1fr; gap: var(--space-5); }
+  .pelda-sav { grid-template-columns: 1fr; gap: var(--space-6); }
   /* Egymás alatt a rajz elvinné a fél telefonképernyőt. Az SVG belül
      igazodik, nem nyúlik meg. */
   .pelda-sav__rajz .ut-rajz { max-height: 230px; }
 }
 
-/* ---------- „Mit tud” ---------- */
-/* A négy kártya SORAI egymáshoz igazodnak, nem csak a magasságuk.
+/* ---------- „Mit tud” ----------
 
-   Enélkül szétcsúsztak: az egysoros cím („A tiéd marad") és a kétsoros
-   („A menetidő az emelkedővel számol") mellett a szöveg 21 képponttal
-   eltérő magasságban kezdődött, a rétegikonok pedig a harmadik kártya
-   közepén lógtak, míg a többiben alul üresség maradt.
+   Négy hasábos kártyarács volt itt. 272 képpontos kártyákon négy-öt soros
+   mondatokkal az egész szövegfal lett, és mivel az egyik kártyán volt egy
+   ikonsor, a másik három alján nyolcvan képpont üresség maradt. Az
+   igazítást háromszor próbáltam megoldani (subgrid, kevesebb ikon, ikonok
+   a szövegbe) — a baj viszont nem az igazítás volt, hanem az elrendezés.
 
-   A `subgrid` a megfelelő eszköz rá: a kártya nem saját rácsot nyit,
-   hanem beleül a külsőbe, így a cím, a szöveg és az ikonsor sora
-   mind a négy kártyán ugyanott van. Ahol nincs subgrid, ott a kártyák
-   a régi módon állnak — nem szép, de nem is törik el. */
-.tud-racs {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  /* KÉT sor, nem három. Az ikonoknak korábban külön igazított soruk volt,
-     de ikon csak az egyik kártyán van — a másik háromban ez nyolcvan
-     képpont üres sávot hagyott az alján. Most az ikonok a szöveg sorának
-     az aljára ülnek, és nincs fenntartott hely ott, ahol nincs mit
-     fenntartani. */
-  grid-template-rows: auto 1fr;
-  gap: var(--space-5);
-}
-.tud {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-  padding: var(--space-5);
+   Listában minden tétel a saját tartalmához igazodik, tehát nincs mit
+   igazítani. A sor teljes szélességben fut, így a mondat két-három sor,
+   nem öt, és a szöveg olvasható méretű lehet. */
+.tud-lista {
+  list-style: none;
+  margin: 0;
+  padding: var(--space-2) var(--space-6);
   border-radius: var(--radius-lg);
   background: var(--surface);
   box-shadow: var(--lap-keret), var(--lap-arnyek);
 }
-@supports (grid-template-rows: subgrid) {
-  .tud {
-    display: grid;
-    grid-row: span 2;
-    grid-template-rows: subgrid;
-  }
-  /* A szöveg és az ikonok együtt egy sorban: az ikonok alulra tolódnak. */
-  .tud__test { display: flex; flex-direction: column; gap: var(--space-3); }
-  .tud__retegek { margin-top: auto; }
+.tud {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--space-4);
+  padding: var(--space-4) 0;
 }
-/* Nem `--text-lg`: az négyoszlopos rácsban, 272 képpontos kártyán
-   túl nagy — a cím két-három sorra tört, és elnyomta a szöveget.
-   A példakártyák szélesebbek (három oszlop), ott a nagyobb méret jó. */
-.tud__cim { margin: 0; font-size: var(--text-base); line-height: 1.25; text-wrap: balance; }
-.tud__szoveg { margin: 0; font-size: var(--text-sm); color: var(--ink-2); }
+.tud + .tud { box-shadow: inset 0 1px 0 var(--line); }
 
-/* A hét rétegikon jelmagyarázatként — ugyanazok, amiket a tervezőben
-   látsz, ugyanazzal a színnel. */
-/* Hét oszlop, nem tördelés. Fix 34 képpontos csempékkel a hetedik ikon
-   külön sorba esett, és úgy nézett ki, mintha elromlott volna — így
-   viszont a csempe a kártya szélességéhez zsugorodik, és a sor egyben
-   marad minden méretnél. */
-/* Két ízelítő ikon a bekezdés végén, a szöveg sorában — így nem nő
-   tőlük a kártya, és nem marad üres sáv a másik három alján. */
+/* A sorszám nem dísz: a bevezető négyet ígér, és így meg is számolható. */
+.tud__szam {
+  font-size: var(--text-sm);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: .08em;
+  color: var(--accent-ink);
+  padding-top: 0.22em;
+}
+.tud__test { min-width: 0; }
+.tud__cim { margin: 0 0 var(--space-2); font-size: var(--text-lg); }
+.tud__szoveg { margin: 0; color: var(--ink-2); max-width: 72ch; }
+
+/* Két ízelítő ikon a mondat végén, a szöveg sorában. */
 .tud__retegek {
   list-style: none;
   margin: 0 0 0 0.35em;
@@ -1063,8 +1048,8 @@ input::placeholder { color: var(--muted); }
   gap: 5px;
   vertical-align: -0.36em;
 }
-.tud__retegek li { width: 23px; }
 .tud__retegek li {
+  width: 24px;
   aspect-ratio: 1;
   display: grid;
   place-items: center;
@@ -1080,6 +1065,14 @@ input::placeholder { color: var(--muted); }
   stroke-width: 2;
   stroke-linecap: round;
   stroke-linejoin: round;
+}
+
+@media (max-width: 600px) {
+  /* Telefonon a sorszám a cím fölé kerül: két hasáb szűk kijelzőn
+     összenyomná a szöveget. */
+  .tud-lista { padding: var(--space-2) var(--space-4); }
+  .tud { grid-template-columns: 1fr; gap: var(--space-2); }
+  .tud__szam { padding: 0; }
 }
 
 /* A példakártya tetején a vonal alakja.
