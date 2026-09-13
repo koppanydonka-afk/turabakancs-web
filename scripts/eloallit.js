@@ -79,8 +79,6 @@ function oldalak() {
         'Mire jó a Túrabakancs és mire nem. Nincs fiók, nincs süti, nincs mérőkód; a terepen a saját döntésed a mérvadó.',
       tartalom: `
         <h1>Impresszum és adatkezelés</h1>
-        <p>A Túrabakancs ingyenes, nem kereskedelmi oldal. Nem árul semmit, nem közvetít,
-           nem gyűjt adatot.</p>
         <h2>Felelősség</h2>
         <p>A távolság, az emelkedő és a menetidő számított becslés, nem garancia. A terepen
            a jelzett turistautak, a hivatalos térképek és a saját döntésed a mérvadó.</p>
