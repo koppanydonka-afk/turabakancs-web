@@ -90,10 +90,15 @@ export default function Terkep({
       zoomControl: false,
     });
     L.control.zoom({ position: 'topright' }).addTo(map);
+    /* A „Leaflet” előtag a könyvtár udvariassági megjelölése, nem licenc-
+       feltétel — azt elhagyjuk. A „© OpenStreetMap közreműködői” viszont
+       KÖTELEZŐ, azt sem rövidíteni, sem elhagyni nem szabad. A „Térkép:”
+       előtag a mi kiegészítésünk volt, az mehet. */
+    map.attributionControl.setPrefix(false);
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
       attribution:
-        'Térkép: © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> közreműködői',
+        '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> közreműködői',
     }).addTo(map);
 
     map.on('click', (event) => {

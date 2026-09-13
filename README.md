@@ -160,6 +160,34 @@ névnek és az állapotnak.
 A gombsor a felhúzható lap fölé kerül, ugyanarra a magasságra, mint a visszalépő
 nyíl. Vízszintesen nem ütközik a súgósávval: az középen ül, ezek a jobb szélen.
 
+## A térképre írt súgó
+
+Felugrik, öt másodperc után elhalványul. Állandóan kint hagyva eltakarja a
+térképet, és aki már tudja, mit kell csinálni, annak fölösleges.
+
+Nem vész el: valahányszor **más mondanivalója** lesz — módváltáskor, az első
+pont után, ösvényre húzás közben —, újra megjelenik. Az effektus a szövegre
+figyel, nem időzítőre.
+
+Csak az átlátszóság animálódik. A `transform` itt a középre igazítást végzi
+(`translateX(-50%)`), azt animálva elcsúszna a sáv.
+
+## A forrásmegjelölés mérete
+
+Kisebb lett, mert zavaró volt telefonon és gépen is. Három lépésben:
+
+- a **„Leaflet" előtag** elhagyva (`setPrefix(false)`) — az a könyvtár
+  udvariassági megjelölése, nem licencfeltétel;
+- a **„Térkép:" előtag** elhagyva — az a mi kiegészítésünk volt;
+- a betűméret **10 képpontra** csökkentve.
+
+Ami **marad, és nem is rövidíthető**: `© OpenStreetMap közreműködői`. Ez az
+OpenStreetMap licencének feltétele, nem díszítés. A „közreműködői" szó is
+része — a puszta „© OpenStreetMap" hiányos megjelölés lenne.
+
+Tíz képpont alá ezért nem megyünk: egy olvashatatlanná zsugorított
+forrásmegjelölés ugyanaz, mintha nem lenne ott.
+
 ## A halk gomb kerete
 
 A `.gomb--halk` háttere ugyanaz a `--surface-2`, mint a `.fiok`-é. Fiókon belül

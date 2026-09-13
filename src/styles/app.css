@@ -258,7 +258,11 @@ body.nincs-gorgetes { overflow: hidden; }
   color: var(--ink-2);
   font-size: var(--text-sm);
   text-align: center;
+  /* Csak az átlátszóság mozdul: a transform itt a középre igazítást végzi,
+     azt animálva elcsúszna a sáv. */
+  transition: opacity 400ms var(--ease);
 }
+.terkep__sug--rejtve { opacity: 0; }
 
 /* ---- A térképre rajzolt elemek ---- */
 .ut-talp { stroke: #FFFFFF; opacity: .85; stroke-linecap: round; stroke-linejoin: round; }
@@ -325,6 +329,12 @@ body.nincs-gorgetes { overflow: hidden; }
 .leaflet-control-attribution {
   background: color-mix(in srgb, var(--surface) 85%, transparent) !important;
   color: var(--muted);
+  /* Kisebb, mert zavaró volt — de nem tetszőlegesen kicsi: a forrás-
+     megjelölés licencfeltétel, olvashatónak kell maradnia. Tíz képpont
+     alá ezért nem megyünk. */
+  font-size: 10px !important;
+  line-height: 1.5;
+  padding: 1px 6px !important;
 }
 .leaflet-control-attribution a { color: var(--accent-ink); }
 

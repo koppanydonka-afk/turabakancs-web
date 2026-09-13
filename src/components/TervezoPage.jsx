@@ -289,6 +289,30 @@ export default function TervezoPage() {
     setUzenet('Elmentve. Másik gépen a megosztható linkkel éred el.');
   };
 
+  /* A térképre írt súgó felugrik, majd magától eltűnik — a felhasználó
+     kérte. Állandóan kint hagyva zavaró: eltakarja a térképet, és aki már
+     tudja, mit kell csinálni, annak fölösleges.
+
+     Újra megjelenik, valahányszor MÁS mondanivalója lesz: módváltáskor, az
+     első pont után, ösvényre húzás közben. Tehát nem vész el, csak nem ül
+     ott örökké. */
+  const sugSzoveg = huzas
+    ? 'Ráigazítom a vonalat a valódi gyalogutakra…'
+    : mod === 'jeloles'
+      ? `Érintsd oda, ahová a(z) „${tipusSzerint(ujTipus).nev}” jelölés kerüljön. A meglévőre koppintva törlöd.`
+      : horgonyok.length === 1
+        ? 'Jelöld be a második pontot — a vonal magától az ösvényre kerül.'
+        : horgonyok.length === 0 && pontok.length > 1
+          ? 'Kész útvonal. Érints a térképre, ha újat kezdenél.'
+          : 'Érintsd a térképet a pontokért. A pontok húzhatók; rájuk koppintva törlődnek.';
+
+  const [sugLathato, setSugLathato] = useState(true);
+  useEffect(() => {
+    setSugLathato(true);
+    const ora = setTimeout(() => setSugLathato(false), 5000);
+    return () => clearTimeout(ora);
+  }, [sugSzoveg]);
+
   const ures = pontok.length === 0 && jelolesek.length === 0;
   const vanUt = pontok.length >= 2;
   const ido = vanUt ? menetido(km, tempo, magassag?.fel) : 0;
@@ -373,17 +397,7 @@ export default function TervezoPage() {
             </div>
           )}
 
-          <p className="terkep__sug">
-            {huzas
-              ? 'Ráigazítom a vonalat a valódi gyalogutakra…'
-              : mod === 'jeloles'
-                ? `Érintsd oda, ahová a(z) „${tipusSzerint(ujTipus).nev}” jelölés kerüljön. A meglévőre koppintva törlöd.`
-                : horgonyok.length === 1
-                  ? 'Jelöld be a második pontot — a vonal magától az ösvényre kerül.'
-                  : horgonyok.length === 0 && pontok.length > 1
-                    ? 'Kész útvonal. Érints a térképre, ha újat kezdenél.'
-                    : 'Érintsd a térképet a pontokért. A pontok húzhatók; rájuk koppintva törlődnek.'}
-          </p>
+          <p className={`terkep__sug${sugLathato ? '' : ' terkep__sug--rejtve'}`}>{sugSzoveg}</p>
         </div>
 
         <aside className={`panel${lapNyitva ? ' panel--nyitva' : ''}`}>
