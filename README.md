@@ -193,6 +193,33 @@ Tailwind-paletták ugyanerre 45 és 62 egységet adtak; az első nekifutásom
 A bekapcsolt gomb ugyanúgy néz ki, ahogy a pöttyei a térképen — a rács így
 egyben jelmagyarázat.
 
+### A gombok színe más, mint a pöttyöké
+
+Ez nem ízlés kérdése, hanem mérés. A térképi színek világos háttérre (erdő,
+mező, út) vannak optimalizálva — a vezérlőgombok viszont a panel hátterén
+ülnek, ami sötét módban majdnem fekete:
+
+| térképi szín | a sötét vezérlőháttérhez |
+| --- | --- |
+| `#000066` | **1,09:1** — gyakorlatilag láthatatlan |
+| `#8C2E0E` | 1,93:1 |
+| `#991F99` | 2,31:1 |
+
+Ezért a gombok azonos **árnyalatú**, de világosabb változatot kapnak, ami
+mindkét témában olvasható:
+
+| csoport | gomb | sötéten | világoson |
+| --- | --- | --- | --- |
+| ellátás | `#6E6EF5` | 4,01:1 | 3,82:1 |
+| megközelítés | `#CC5A33` | 3,90:1 | 3,93:1 |
+| célpont | `#CC3DCC` | 3,93:1 | 3,90:1 |
+
+**Kikapcsolva** a gomb semleges (`--ink`: sötét módban majdnem fehér,
+világosban majdnem fekete) — így nem vész el a háttérben, és a rács nem
+tarkabarka. **Bekapcsolva** megkapja a saját színét, fénnyel: egy pillantásra
+látszik, melyik réteg fut. A tömör/üreges különbség megmarad, tehát a rács
+továbbra is jelmagyarázat.
+
 ### Teljesítmény
 
 A projekt korábbi mérése szerint **266 hagyományos Leaflet-jelölő már érezhetően

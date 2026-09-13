@@ -149,11 +149,31 @@ const SZINEK = {
   celpont: '#991F99',
 };
 
+/* A gombok színe MÁS, mint a térképi pöttyöké — és ez nem ízlés kérdése.
+
+   A térképi színek világos háttérre (erdő, mező, út) vannak optimalizálva.
+   A vezérlőgombok viszont a panel hátterén ülnek, ami sötét módban majdnem
+   fekete. Mérve, a sötét felülethez képest:
+
+     #000066  1,09:1   ← gyakorlatilag láthatatlan
+     #8C2E0E  1,93:1
+     #991F99  2,31:1
+
+   Ezért a gombok azonos ÁRNYALATÚ, de világosabb változatot kapnak, ami
+   mindkét témában olvasható (mérve 3,8–4,0:1 sötéten és világoson is).
+   A pöttyök színe változatlan marad: ott a térkép a háttér, nem a panel. */
+const GOMB_SZINEK = {
+  ellatas: '#6E6EF5',
+  megkozelites: '#CC5A33',
+  celpont: '#CC3DCC',
+};
+
 export const RETEGEK = {
   viz: {
     nev: 'Ivóvíz, forrás',
     tipus: 'forras',
     szin: SZINEK.ellatas,
+    gombSzin: GOMB_SZINEK.ellatas,
     tomor: true,
     sugar: 6,
     szurok: ['["amenity"="drinking_water"]', '["natural"="spring"]'],
@@ -162,6 +182,7 @@ export const RETEGEK = {
     nev: 'Menedék, esőbeálló',
     tipus: 'pihen',
     szin: SZINEK.ellatas,
+    gombSzin: GOMB_SZINEK.ellatas,
     tomor: false,
     sugar: 7,
     szurok: ['["amenity"="shelter"]', '["tourism"="wilderness_hut"]', '["tourism"="alpine_hut"]'],
@@ -170,6 +191,7 @@ export const RETEGEK = {
     nev: 'Megálló, állomás',
     tipus: 'kozlekedes',
     szin: SZINEK.megkozelites,
+    gombSzin: GOMB_SZINEK.megkozelites,
     tomor: true,
     sugar: 5,
     szurok: ['["highway"="bus_stop"]', '["railway"="station"]', '["railway"="halt"]'],
@@ -178,6 +200,7 @@ export const RETEGEK = {
     nev: 'Parkoló',
     tipus: 'parkolo',
     szin: SZINEK.megkozelites,
+    gombSzin: GOMB_SZINEK.megkozelites,
     tomor: false,
     sugar: 7,
     szurok: ['["amenity"="parking"]'],
@@ -188,6 +211,7 @@ export const RETEGEK = {
     nev: 'Kilátó',
     tipus: 'kilato',
     szin: SZINEK.celpont,
+    gombSzin: GOMB_SZINEK.celpont,
     tomor: true,
     sugar: 6,
     szurok: ['["tourism"="viewpoint"]', '["man_made"="tower"]["tower:type"="observation"]'],
@@ -196,11 +220,13 @@ export const RETEGEK = {
     nev: 'Büfé, kocsma',
     tipus: 'vendeglatas',
     szin: SZINEK.celpont,
+    gombSzin: GOMB_SZINEK.celpont,
     tomor: false,
     sugar: 7,
     szurok: ['["amenity"~"^(restaurant|cafe|pub|fast_food|bar)$"]'],
   },
 };
+
 
 export const MIN_ZOOM = 12;
 const TERULET_MAX = 400;

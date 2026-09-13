@@ -1628,6 +1628,9 @@ input::placeholder { color: var(--muted); }
   box-shadow: var(--lap-keret), var(--lap-arnyek);
 }
 
+/* Kikapcsolva semleges: a `--ink` sötét módban majdnem fehér, világosban
+   majdnem fekete. A rétegszínek a vezérlőháttéren elvesznének — a
+   sötétkék mérve 1,09:1. */
 .reteg-gomb {
   width: 36px;
   height: 36px;
@@ -1636,9 +1639,10 @@ input::placeholder { color: var(--muted); }
   border: 0;
   border-radius: var(--radius-sm);
   background: transparent;
-  color: var(--tu-szin);
+  color: var(--ink);
   cursor: pointer;
-  transition: background var(--duration) var(--ease), transform var(--duration) var(--ease);
+  transition: background var(--duration) var(--ease), color var(--duration) var(--ease),
+              box-shadow var(--duration) var(--ease), transform var(--duration) var(--ease);
 }
 .reteg-gomb:hover { background: var(--surface-2); transform: translateY(-1px); }
 .reteg-gomb svg {
@@ -1647,13 +1651,22 @@ input::placeholder { color: var(--muted); }
   stroke-linecap: round; stroke-linejoin: round;
 }
 
-/* Bekapcsolva a gomb ugyanúgy néz ki, ahogy a pöttyei a térképen: a tömör
-   réteg tömör gombot kap, az üreges keretet. Így a rács egyben jelmagyarázat. */
-.reteg-gomb--aktiv { background: var(--tu-szin); color: #fff; }
+/* Bekapcsolva színt ÉS fényt kap — így egy pillantásra látszik, melyik
+   réteg fut. A tömör/üreges különbség megmarad: a rács továbbra is
+   jelmagyarázat ahhoz, amit a térképen látsz. */
+.reteg-gomb--aktiv {
+  color: var(--tu-szin);
+  background: color-mix(in srgb, var(--tu-szin) 16%, transparent);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--tu-szin) 55%, transparent),
+    0 0 10px color-mix(in srgb, var(--tu-szin) 50%, transparent);
+}
+.reteg-gomb--aktiv svg { filter: drop-shadow(0 0 3px color-mix(in srgb, var(--tu-szin) 70%, transparent)); }
 .reteg-gomb--aktiv.reteg-gomb--ureges {
   background: transparent;
-  color: var(--tu-szin);
-  box-shadow: inset 0 0 0 3px var(--tu-szin);
+  box-shadow:
+    inset 0 0 0 2px var(--tu-szin),
+    0 0 10px color-mix(in srgb, var(--tu-szin) 50%, transparent);
 }
 
 .reteg-allapot {

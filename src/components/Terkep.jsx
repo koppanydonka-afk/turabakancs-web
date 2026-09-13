@@ -411,13 +411,13 @@ export default function Terkep({
 
   const gomb = (id) => {
     const be = retegek[id];
-    const { nev, szin, tomor } = RETEGEK[id];
+    const { nev, gombSzin, tomor } = RETEGEK[id];
     const szo = be ? allapotSzava(id) : null;
     return (
       <button
         key={id}
         className={`reteg-gomb${be ? ' reteg-gomb--aktiv' : ''}${tomor ? '' : ' reteg-gomb--ureges'}`}
-        style={{ '--tu-szin': szin }}
+        style={{ '--tu-szin': gombSzin }}
         aria-pressed={be}
         title={szo ? `${nev} — ${szo}` : nev}
         onClick={() => {
