@@ -8,10 +8,9 @@
   position: sticky;
   top: 0;
   z-index: 1200;
-  min-height: var(--fejlec);
+  height: var(--fejlec);
   display: grid;
-  /* Üres eszközsávnál a védjegy középen marad, ahogy eddig. */
-  grid-template-columns: auto 1fr auto auto;
+  grid-template-columns: auto 1fr auto;
   align-items: center;
   gap: var(--space-4);
   padding: 0 var(--space-4);
@@ -19,12 +18,6 @@
   backdrop-filter: blur(12px) saturate(180%);
   box-shadow: inset 0 -1px 0 var(--line);
 }
-
-/* Ha az oldal betett valamit az eszközsávba (a tervező igen), akkor az
-   kapja a rugalmas oszlopot, a védjegy pedig a hamburger mellé húzódik.
-   Középen ekkor a vezérlők ülnek — ez a „felső sáv”. */
-.fejlec:has(.fejlec__eszkozok > *) { grid-template-columns: auto auto 1fr auto; }
-.fejlec:has(.fejlec__eszkozok > *) .vedjegy { justify-self: start; }
 
 .vedjegy {
   justify-self: center;
@@ -34,34 +27,64 @@
   min-width: 0;
 }
 
-/* ---------- Az oldal saját vezérlői a fejlécben ----------
-   Csak ikonok: a sávban nincs hely feliratnak, és a hat rétegikon amúgy
-   is képként olvasható. A mondatok a címkékbe kerültek. */
-.fejlec__eszkozok {
+/* ---------- Eszközrúd a térkép bal szélén ----------
+
+   Minden vezérlő egy függőleges rúdban, csak ikonként: fent a rétegek
+   (mit mutasson a térkép), alattuk a lapok (kérdés, adatok, eszközök,
+   vissza). Feliratnak nincs helye, a mondatok a címkékbe kerültek.
+
+   Bal szélen, függőlegesen középen — ott, ahol a kéz úgyis van rajzolás
+   közben, és ahol a legkevesebb térképet takar. */
+.eszkoz-oszlop {
+  position: absolute;
+  left: var(--space-3);
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1000;
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: var(--space-4);
-  min-width: 0;
+  max-width: calc(100% - 2 * var(--space-3));
+  max-height: calc(100% - 2 * var(--space-3));
 }
-.fejlec__eszkozok:empty { display: none; }
+
+.eszkoz-rud {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px;
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
+  backdrop-filter: blur(10px) saturate(180%);
+  box-shadow: var(--lap-keret), var(--lap-arnyek);
+  /* Nem `100%`: a szülő magassága auto, és a százalékos max-height ilyenkor
+     egyszerűen elveszik. A térkép magasságából számolunk. */
+  max-height: calc(100vh - var(--fejlec) - 2 * var(--space-3));
+  max-height: calc(100dvh - var(--fejlec) - 2 * var(--space-3));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+  transition: border-radius var(--duration) var(--ease);
+}
+.eszkoz-rud::-webkit-scrollbar { display: none; }
+
+/* Nyitott tálcánál a rúd jobb oldala nem kerekedik: a kettő egy darabnak
+   látszik, a tálca a rúdból nő ki. */
+.eszkoz-oszlop:has(.eszkoz-talca) .eszkoz-rud {
+  border-radius: var(--radius-md) 0 0 var(--radius-md);
+}
 
 .eszkozsor {
   display: flex;
-  align-items: center;
+  flex-direction: column;
   gap: 2px;
-  min-width: 0;
 }
-/* A két csoport külön portálon érkezik (a rétegek a térképtől, a lapok a
-   tervezőtől), és hogy melyik ér oda előbb, az véletlen. A sorrendet ezért
-   itt szögezzük le: előbb az, amit a térkép mutat, utána a lapok.
-
-   Köztük halvány válaszfal: a rétegek kapcsolók, a lapok ablakot nyitnak. */
-.eszkozsor--retegek { order: 1; }
+/* Válaszfal a két csoport közt: a rétegek kapcsolók, a lapok tálcát
+   nyitnak. Vízszintes vonal, mert a rúd függőleges. */
 .eszkozsor--lapok {
-  order: 2;
-  padding-left: var(--space-4);
-  box-shadow: inset 1px 0 0 var(--line);
+  padding-top: var(--space-2);
+  margin-top: var(--space-1);
+  box-shadow: inset 0 1px 0 var(--line);
 }
 
 /* Nyitott lap ikonja: nem színes, mint egy bekapcsolt réteg, csak
@@ -71,42 +94,45 @@
   box-shadow: inset 0 0 0 1px var(--line);
 }
 
-/* ---------- Lenyíló lap a fejléc alatt ----------
-   Ami eddig a térképen lebegett (a kérdés, az útvonaladatok, az eszközök),
-   az most innen jön le. Egyszerre egy, és kívülre koppintva becsukódik.
+/* ---------- Kinyíló tálca a rúd mellett ----------
 
-   A fejléc `position: sticky`, tehát ő a lap viszonyítási pontja: a
-   `top: 100%` pontosan a sáv alja, akkor is, ha a sáv telefonon két
-   sorosra nő. */
-.fejlec-lap {
-  position: absolute;
-  top: calc(100% + var(--space-2));
-  left: 50%;
-  transform: translateX(-50%);
-  width: min(420px, calc(100vw - 2 * var(--space-3)));
-  max-height: calc(100vh - var(--fejlec) - 3 * var(--space-3));
+   A kérdés, az útvonaladatok és az eszközök tartalma. Nem külön ablakként
+   ugrik ki: a rúdhoz nőve nyílik, mint egy fiók. Ezért nincs hézag a
+   kettő közt, és ezért csak a külső három sarka kerek.
+
+   Egyszerre egy tálca van nyitva; Escape vagy kívülre koppintás zárja. */
+.eszkoz-talca {
+  flex: 0 1 auto;
+  align-self: center;
+  width: min(360px, calc(100vw - 2 * var(--space-3) - 60px));
+  max-height: calc(100vh - var(--fejlec) - 2 * var(--space-3));
+  max-height: calc(100dvh - var(--fejlec) - 2 * var(--space-3));
   overflow-y: auto;
   overscroll-behavior: contain;
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
   padding: var(--space-4);
-  border-radius: var(--radius-md);
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
   background: color-mix(in srgb, var(--surface) 96%, transparent);
   backdrop-filter: blur(12px) saturate(180%);
   box-shadow: var(--lap-keret), var(--lap-arnyek);
-  animation: lap-le 160ms var(--ease-out);
+  /* A rúd árnyéka és a tálcáé egymásra futna a találkozásnál — a bal
+     oldali szegélyt ezért a tálca nem rajzolja. */
+  clip-path: inset(-24px -24px -24px 0);
+  animation: talca-ki 160ms var(--ease-out);
+  transform-origin: left center;
 }
 /* Oszlopos flexben a gyerekek alapból zsugorodnak — az értékrács és a
    magassági profil ettől levágódna. Ez a csapda már negyedszer jön elő. */
-.fejlec-lap > * { flex: 0 0 auto; }
+.eszkoz-talca > * { flex: 0 0 auto; }
 
-@keyframes lap-le {
-  from { opacity: 0; transform: translate(-50%, -6px); }
-  to { opacity: 1; transform: translate(-50%, 0); }
+@keyframes talca-ki {
+  from { opacity: 0; transform: scaleX(.92); }
+  to { opacity: 1; transform: scaleX(1); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .fejlec-lap { animation: none; }
+  .eszkoz-talca { animation: none; }
 }
 
 
@@ -195,40 +221,7 @@ body.nincs-gorgetes { overflow: hidden; }
 }
 .tema-gomb:hover { background: var(--surface-2); }
 
-/* ---------- A sáv telefonon két sorban ----------
-   Tíz ikon, a védjegy, a fok és a sötét mód nem fér ki 375 képpontra. A
-   fejléc ezért két sorosra nő: fent a védjegy és a jobb oldali pár, alatta
-   a vezérlők. A magasságot a `--fejlec` viszi tovább a térképnek, hogy az
-   pont annyival legyen alacsonyabb. */
-@media (max-width: 680px) {
-  body:has(.fejlec__eszkozok > *) { --fejlec: 96px; }
 
-  .fejlec:has(.fejlec__eszkozok > *) {
-    grid-template-columns: auto 1fr auto;
-    grid-template-areas:
-      'ham vedjegy jobb'
-      'eszk eszk eszk';
-    row-gap: var(--space-1);
-    padding-top: var(--space-2);
-    padding-bottom: var(--space-2);
-  }
-  .fejlec:has(.fejlec__eszkozok > *) .hamburger { grid-area: ham; }
-  .fejlec:has(.fejlec__eszkozok > *) .vedjegy { grid-area: vedjegy; justify-self: center; }
-  .fejlec:has(.fejlec__eszkozok > *) .fejlec__jobb { grid-area: jobb; }
-  .fejlec:has(.fejlec__eszkozok > *) .fejlec__eszkozok { grid-area: eszk; }
-
-  /* Szűkebb ikonok és hézagok — így a tíz gomb kifér egy sorba. Ha mégsem
-     (több réteg, hosszabb sor), a sáv oldalra görgethető marad. */
-  .fejlec__eszkozok {
-    gap: var(--space-2);
-    overflow-x: auto;
-    scrollbar-width: none;
-  }
-  .fejlec__eszkozok::-webkit-scrollbar { display: none; }
-  .eszkozsor .reteg-gomb { width: 32px; height: 32px; }
-  .eszkozsor .reteg-gomb svg { width: 18px; height: 18px; }
-  .eszkozsor--lapok { padding-left: var(--space-2); }
-}
 .tema-gomb svg { width: 19px; height: 19px; }
 
 /* ---------- Hőmérséklet a fejlécben ----------

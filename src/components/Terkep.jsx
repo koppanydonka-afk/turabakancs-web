@@ -4,7 +4,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { tipusSzerint, tuHtml } from '../data/jelolesek.js';
 import { LATVANYOSSAGOK } from '../data/latvanyossagok.js';
-import FejlecEszkozok from './FejlecEszkozok.jsx';
+import EszkozRudba from './EszkozRudba.jsx';
 
 /* A térkép.
 
@@ -462,15 +462,15 @@ export default function Terkep({
     <>
       <div className="terkep" ref={doboz} />
 
-      {/* A rétegikonok a fejléc sávjába kerülnek — a térképen semmi nem
-          lebeg fölöttük. Az állapotuk (keresem, nagyíts rá, ennél több van
+      {/* A rétegikonok a térkép bal szélén futó eszközrúdba kerülnek.
+          Az állapotuk (keresem, nagyíts rá, ennél több van
           itt) magukra az ikonokra költözött: a keresés lüktet, a levágott
           réteg pontot kap, a mondat pedig a címkében van.
 
           A „keresés ezen a területen” megmaradt gombnak, mert az nem
           állapot, hanem teendő — csak ikonná fogyott. */}
-      <FejlecEszkozok>
-        <div className="eszkozsor eszkozsor--retegek" role="group" aria-label="Mit mutasson a térkép">
+      <EszkozRudba>
+        <div className="eszkozsor" role="group" aria-label="Mit mutasson a térkép">
           {Object.keys(RETEGEK).map(gomb)}
 
           {keresesKell && (
@@ -487,7 +487,7 @@ export default function Terkep({
             </button>
           )}
         </div>
-      </FejlecEszkozok>
+      </EszkozRudba>
     </>
   );
 }

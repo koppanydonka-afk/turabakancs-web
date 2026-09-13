@@ -6,7 +6,6 @@ import TuraLista from './TuraLista.jsx';
 import JelolesLista from './JelolesLista.jsx';
 import Tanacsok from './Tanacsok.jsx';
 import Labjegyzet from './Labjegyzet.jsx';
-import FejlecEszkozok from './FejlecEszkozok.jsx';
 
 import {
   TEMPOK,
@@ -120,7 +119,7 @@ export default function TervezoPage() {
     if (!nyitottLap) return undefined;
     const billentyu = (e) => e.key === 'Escape' && setNyitottLap(null);
     const kattintas = (e) => {
-      if (!e.target.closest('.fejlec-lap') && !e.target.closest('.fejlec__eszkozok')) {
+      if (!e.target.closest('.eszkoz-oszlop')) {
         setNyitottLap(null);
       }
     };
@@ -412,17 +411,22 @@ export default function TervezoPage() {
               és a „Szerkesztés és mentés” fiókban átnevezhetők, törölhetők.
               Új jelölést viszont már nem lehet kézzel kirakni. */}
 
-          {/* ---- Az oldal vezérlői a fejléc sávjában ----
+          {/* ---- Eszközrúd a térkép bal szélén ----
 
-              A térképen nem lebeg semmi többé: a kérdés, a válasz és az
-              eszközök egy-egy ikon mögül nyílnak le a fejléc alól. Csak
-              ikonok — a sávban nincs hely feliratnak, a mondatok a
-              címkékbe kerültek.
+              Minden vezérlő egy helyen, csak ikonként: fent a rétegek
+              (azokat a Terkep.jsx portálozza a rúdba), alattuk a lapok.
+              A rúd a bal szélen, függőlegesen középen áll — ott, ahol a
+              kéz úgyis van rajzolás közben.
 
-              A visszalépő nyíl is ide jött a bal alsó sarokból: ha már
-              minden vezérlő egy sorban ül, ennek sincs külön helye. */}
-          <FejlecEszkozok>
-            <div className="eszkozsor eszkozsor--lapok">
+              A lapok nem külön ablakként ugranak ki: a rúdhoz nőve
+              nyílnak, tálcaként. Ezért van a kettő egy sorban, hézag
+              nélkül, és ezért veszi le a rúd a jobb oldali lekerekítését,
+              amikor nyitva van. */}
+          <div className="eszkoz-oszlop">
+            <div className="eszkoz-rud">
+              <div id="terkep-eszkozok" />
+
+              <div className="eszkozsor eszkozsor--lapok">
               <button
                 className={`reteg-gomb${nyitottLap === 'hova' ? ' reteg-gomb--nyitva' : ''}`}
                 onClick={() => lapot('hova')}
@@ -477,10 +481,11 @@ export default function TervezoPage() {
                   </svg>
                 </button>
               )}
+              </div>
             </div>
 
             {nyitottLap && (
-              <div className="fejlec-lap" ref={lapDoboz} role="dialog" aria-label={LAP_NEVE[nyitottLap]}>
+              <div className="eszkoz-talca" ref={lapDoboz} role="dialog" aria-label={LAP_NEVE[nyitottLap]}>
 
                 {nyitottLap === 'hova' && (
                   <>
@@ -652,10 +657,10 @@ export default function TervezoPage() {
                 )}
               </div>
             )}
-          </FejlecEszkozok>
+          </div>
 
-          {/* A rajzolás visszajelzése: rövid üzenet a térkép tetején, a
-              fejléc alatt. Nem vezérlő, magától elmúlik. */}
+          {/* A rajzolás visszajelzése: rövid üzenet a térkép tetején.
+              Nem vezérlő, magától elmúlik. */}
           {uzenet && <p className="uzenet uzenet--lebego">{uzenet}</p>}
 
 

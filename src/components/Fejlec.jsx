@@ -4,8 +4,11 @@ import Vedjegy from './Vedjegy.jsx';
 import { temaValt, useTema } from '../data/tema.js';
 import { useRoute } from '../router.js';
 
-/* Fejléc: hamburger balra, szóvédjegy mellette, középen az oldal saját
-   vezérlői, jobbra a hőmérséklet és a sötét mód.
+/* Fejléc: hamburger balra, szóvédjegy középen, jobbra a hőmérséklet és a
+   sötét mód.
+
+   A tervező vezérlői egy ideig itt ültek, de a helyük a térkép bal szélén
+   van, ott, ahol a munka történik. A fejléc minden oldalon ugyanaz.
 
    Az impresszum szándékosan nincs a menüben — az oldal alján,
    apró betűvel van a helye, ahogy az ilyesmit keresni szokás. */
@@ -54,10 +57,6 @@ export default function Fejlec() {
         <a className="vedjegy" href="/" aria-label="Túrabakancs — kezdőlap">
           <Vedjegy magassag={26} />
         </a>
-
-        {/* Ide teszi az oldal a saját vezérlőit (a tervező a rétegikonokat,
-            a keresőt, az adatokat és az eszközöket). Máshol üresen marad. */}
-        <div className="fejlec__eszkozok" id="fejlec-eszkozok" />
 
         <div className="fejlec__jobb">
           {/* Hány fok van most — ennyi az időjárás, panel és részletek nélkül. */}
