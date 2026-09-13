@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "vite build && node scripts/eloallit.js",
     "preview": "vite preview",
-    "eles": "npm run build && npx --yes wrangler@latest dev"
+    "eles": "npm run build && npx --yes wrangler@latest dev",
+    "kiad": "npm run build && npx wrangler deploy"
   },
   "dependencies": {
     "leaflet": "^1.9.4",

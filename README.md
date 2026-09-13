@@ -474,14 +474,29 @@ el** — ne írj be koordinátát ellenőrzés nélkül.
 bejegyezve, de a DNS-t a Cloudflare kezeli (`art.ns.cloudflare.com`,
 `luciane.ns.cloudflare.com`).
 
-### Telepítés: pusholás
+### Telepítés
 
-Nincs kézi lépés, nincs zip, nincs FTP. Amit a `main` ágra pusholsz, azt a
-Cloudflare megépíti és kiteszi:
+```bash
+npm run kiad
+```
 
+Felépíti az oldalt, és a `wrangler`-rel kiteszi. **Ez a megbízható út.**
+
+A GitHub-összekötés is megvan, és a pusholásra le is fut a build — de
+kétszer is előfordult, hogy a build sikeresen feltöltötte a verziót, a
+Cloudflare viszont **nem állította forgalomba**: a Version History-ban ott
+állt az új verzió, miközben egy régebbi szolgálta ki a látogatókat. A
+vezérlőpulton 100%-ra állítva sem mozdult; a `wrangler deploy` oldotta meg,
+mert az egyszerre hoz létre verziót ÉS állítja forgalomba.
+
+Ezért ne a vezérlőpult „Success” feliratának higgy, hanem ennek:
+
+```bash
+curl -s https://turabakancs.com/ | grep -o 'assets/index-[A-Za-z0-9_-]*\.js'
 ```
-git push        →  npm ci  →  npm run build  →  dist/  →  él
-```
+
+Ha ez a név nem egyezik azzal, amit a helyi `npm run build` kiírt, akkor nem
+az van kint, amit hiszel.
 
 A build beállításai a Cloudflare vezérlőpultján: build parancs `npm run build`,
 kimeneti mappa `dist`. A Node verzióját a `.node-version` fájl rögzíti (22.16.0),
