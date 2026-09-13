@@ -1726,20 +1726,31 @@ input::placeholder { color: var(--muted); }
 .widgetek {
   position: absolute;
   top: var(--space-3);
-  right: var(--space-3);
   z-index: 1000;
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
   gap: var(--space-2);
-  width: min(320px, calc(100% - 2 * var(--space-3)));
-  /* A nagyítógombok helye a jobb felső sarokban — alattuk kezdünk. */
-  padding-top: 72px;
+  width: min(320px, calc(50% - 2 * var(--space-3)));
   max-height: calc(100% - 2 * var(--space-3));
   overflow-y: auto;
   overscroll-behavior: contain;
   /* Az üres területen a térkép fogadja az érintést, nem a konténer. */
   pointer-events: none;
+}
+
+/* Bal oszlop: a kérdés, az időjárás és az eszközök — a rétegrács alatt. */
+.widgetek--bal {
+  left: var(--space-3);
+  align-items: flex-start;
+  padding-top: 56px;
+}
+
+/* Jobb oszlop: a válasz. A nagyítógombok alatt kezdődik, és NEM csukható
+   össze — a menetidő és a nehézség az, amiért a tervező egyáltalán van. */
+.widgetek--jobb {
+  right: var(--space-3);
+  align-items: flex-end;
+  padding-top: 72px;
 }
 /* A flex-oszlop alapból ÖSSZENYOMJA a gyerekeit, ha nem férnek el — az
    időjárás-widget így nulla magasságú lett, tartalommal együtt. Ugyanez a
@@ -1830,4 +1841,49 @@ input::placeholder { color: var(--muted); }
     max-height: calc(100% - 140px);
   }
   .hh-widget, .adat-widget { padding: var(--space-3); }
+}
+
+
+/* ---------- Eszközök widget ----------
+   Ami eddig az alulról felhúzható lapon volt. A lap eltűnt: a térkép alján
+   egy sáv mindig ott ült, és elrontotta az élményt. */
+.eszkoz-widget {
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
+  backdrop-filter: blur(10px) saturate(180%);
+  box-shadow: var(--lap-keret), var(--lap-arnyek);
+  overflow: hidden;
+}
+.eszkoz-widget > summary {
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--ink-2);
+  cursor: pointer;
+  list-style: none;
+}
+.eszkoz-widget > summary::-webkit-details-marker { display: none; }
+.eszkoz-widget > summary::before { content: '▸ '; color: var(--muted); }
+.eszkoz-widget[open] > summary::before { content: '▾ '; }
+.eszkoz-widget__tartalom {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: 0 var(--space-4) var(--space-4);
+}
+.eszkoz-widget__tartalom > * { flex: 0 0 auto; }
+
+@media (max-width: 680px) {
+  /* Telefonon a két oszlop egymás alá kerül: a jobb a bal alá csúszik. */
+  .widgetek { width: calc(100% - 2 * var(--space-3)); }
+  .widgetek--bal { padding-top: 48px; max-height: 46%; }
+  .widgetek--jobb {
+    left: var(--space-3);
+    right: var(--space-3);
+    top: auto;
+    bottom: var(--space-3);
+    padding-top: 0;
+    align-items: stretch;
+    max-height: 46%;
+  }
 }

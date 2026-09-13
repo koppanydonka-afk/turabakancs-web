@@ -28,13 +28,14 @@ import { useRoute } from '../router.js';
 
 /* A tervező.
 
-   A panel sorrendje szándékos: előbb a kérdés (honnan hova), utána a
-   válasz (adatok, tanácsok), és csak legvégül az eszközök. Ami nem
-   mindenkinek kell — jelölések, mentések, közeli túrák, jelzett utak —,
-   az összecsukva várakozik.
+   Oldalsáv nincs: a térkép a teljes felület, a tartalom lebegő widgetekben
+   ül rajta.
 
-   Korábban három fül volt; azok csak elrejtették a lényeget egy kattintás
-   mögé. */
+     bal oszlop   a kérdés (honnan hova), az időjárás, és az eszközök
+     jobb oszlop  a válasz — táv, menetidő, emelkedő, nehézség, tanácsok
+
+   A jobb oszlop szándékosan nem csukható össze: a menetidő és a nehézség az,
+   amiért a tervező egyáltalán van. */
 
 /* Két dolgot tartunk külön:
 
@@ -68,7 +69,6 @@ export default function TervezoPage() {
   const [uzenet, setUzenet] = useState(null);
   const [illeszt, setIlleszt] = useState(0);
   const [aktivId, setAktivId] = useState(null);
-  const [lapNyitva, setLapNyitva] = useState(false);
   /* A honnan-hova widget összecsukható: telefonon a fele térképet eltakarná,
      és ha már megvan az útvonal, ritkán kell újra. */
   const [hhNyitva, setHhNyitva] = useState(true);
@@ -386,7 +386,7 @@ export default function TervezoPage() {
               válasz (táv, menetidő, tanácsok) a térképre került. A felhúzható
               lapon már csak az eszközök maradtak. */}
 
-          <div className="widgetek">
+          <div className="widgetek widgetek--bal">
             <div className={`hh-widget${hhNyitva ? '' : ' hh-widget--csukva'}`}>
               <button
                 className="hh-widget__fej"
@@ -414,6 +414,113 @@ export default function TervezoPage() {
 
             <IdoWidget hely={pontok.length > 0 ? pontok[0] : terkepKozep} />
 
+            {/* Az eszközök: ami eddig az alulról felhúzható lapon volt. */}
+            <details className="eszkoz-widget">
+              <summary>Mentés, kész útvonalak, GPX</summary>
+              <div className="eszkoz-widget__tartalom">
+
+            {/* 3. Az eszközök — csak ha van min dolgozni */}
+            {!ures && (
+            <details className="fiok">
+              <summary>Szerkesztés és mentés</summary>
+              <div className="fiok__tartalom">
+                <form className="mentes" onSubmit={ment}>
+                  <label className="mezo">
+                    <span>A terv neve</span>
+                    <input
+                      type="text"
+                      value={nev}
+                      onChange={(e) => setNev(e.target.value)}
+                      placeholder="Például: vasárnapi kör"
+                    />
+                  </label>
+                  <button className="gomb gomb--halk" type="submit">
+                    {aktivId ? 'Mentés frissítése' : 'Mentés a böngészőbe'}
+                  </button>
+                </form>
+
+                <JelolesLista
+                  jelolesek={jelolesek}
+                  onCimke={(i, cimke) => {
+                    megjegyez({ cimke: true });
+                    setJelolesek((e) => e.map((j, n) => (n === i ? { ...j, cimke } : j)));
+                  }}
+                  onTorol={(i) => {
+                    megjegyez();
+                    setJelolesek((e) => e.filter((_, n) => n !== i));
+                  }}
+                  onOdaugrik={(j) => terkep.current?.setView([j.lat, j.lng], 16)}
+                />
+              </div>
+            </details>
+            )}
+
+            {/* 4. Ami készen várakozik */}
+            <details className="fiok">
+            <summary>Kész útvonalak</summary>
+            <div className="fiok__tartalom">
+              <KozeliTurak
+                lista={kozeli}
+                onBetolt={(p) => betolt({ nev: p.nev, pontok: p.pontok, jelolesek: p.jelolesek })}
+              />
+              <TuraLista terkep={terkepKesz ? terkep.current : null} onBetolt={turatBetolt} />
+              <a className="gomb gomb--halk gomb--szeles" href="/utvonalak">
+                Mind a {peldaUtvonalak.length} példa
+              </a>
+
+              <label className="gomb gomb--halk gomb--szeles gomb--fajl">
+                GPX betöltése
+                <input
+                  type="file"
+                  accept=".gpx,application/gpx+xml,application/xml,text/xml"
+                  onChange={(e) => {
+                    gpxBetolt(e.target.files?.[0]);
+                    e.target.value = '';
+                  }}
+                />
+              </label>
+              <p className="apro">
+                Saját nyomvonal a telefonodról vagy egy ismerőstől. A fájl a böngésződben
+                marad, nem töltődik fel sehova.
+              </p>
+            </div>
+            </details>
+
+            {tervek.length > 0 && (
+            <details className="fiok">
+              <summary>Mentett terveid ({tervek.length})</summary>
+              <div className="fiok__tartalom">
+                {tervek.map((terv) => (
+                  <div key={terv.id} className="lista__sor">
+                    <button className="lista__nev" onClick={() => betolt(terv)}>
+                      {terv.nev}
+                      <span>
+                        {kmSzoveg(hossz(terv.pontok ?? []))} · {(terv.jelolesek ?? []).length} jelölés
+                      </span>
+                    </button>
+                    <button
+                      className="lista__torol"
+                      onClick={() => {
+                        tervTorles(terv.id);
+                        if (terv.id === aktivId) setAktivId(null);
+                      }}
+                      aria-label={`${terv.nev} törlése`}
+                    >
+                      Törlés
+                    </button>
+                  </div>
+                ))}
+                <p className="apro">Csak ezen a böngészőn. Túra előtt töltsd le GPX-ben.</p>
+              </div>
+            </details>
+            )}
+
+            <Labjegyzet tomor />
+              </div>
+            </details>
+          </div>
+
+          <div className="widgetek widgetek--jobb">
             {uzenet && <p className="uzenet">{uzenet}</p>}
 
             {/* 2. A válasz */}
@@ -469,122 +576,6 @@ export default function TervezoPage() {
           <p className={`terkep__sug${sugLathato ? '' : ' terkep__sug--rejtve'}`}>{sugSzoveg}</p>
         </div>
 
-        <aside className={`panel${lapNyitva ? ' panel--nyitva' : ''}`}>
-          <button
-            className="lapfogo"
-            onClick={() => setLapNyitva((v) => !v)}
-            aria-expanded={lapNyitva}
-            aria-controls="tervezo-panel"
-          >
-            <span className="lapfogo__csik" aria-hidden="true" />
-            {/* A táv és a menetidő már a térképen van, a lapon csak az
-                eszközök maradtak — a felirat ezt mondja. */}
-            <span className="lapfogo__szoveg">
-              {lapNyitva ? 'Térkép mutatása' : 'Mentés, kész útvonalak, GPX'}
-            </span>
-          </button>
-
-          <div className="panel__tartalom" id="tervezo-panel">
-
-            {/* 3. Az eszközök — csak ha van min dolgozni */}
-            {!ures && (
-              <details className="fiok">
-                <summary>Szerkesztés és mentés</summary>
-                <div className="fiok__tartalom">
-                  <form className="mentes" onSubmit={ment}>
-                    <label className="mezo">
-                      <span>A terv neve</span>
-                      <input
-                        type="text"
-                        value={nev}
-                        onChange={(e) => setNev(e.target.value)}
-                        placeholder="Például: vasárnapi kör"
-                      />
-                    </label>
-                    <button className="gomb gomb--halk" type="submit">
-                      {aktivId ? 'Mentés frissítése' : 'Mentés a böngészőbe'}
-                    </button>
-                  </form>
-
-                  <JelolesLista
-                    jelolesek={jelolesek}
-                    onCimke={(i, cimke) => {
-                      megjegyez({ cimke: true });
-                      setJelolesek((e) => e.map((j, n) => (n === i ? { ...j, cimke } : j)));
-                    }}
-                    onTorol={(i) => {
-                      megjegyez();
-                      setJelolesek((e) => e.filter((_, n) => n !== i));
-                    }}
-                    onOdaugrik={(j) => terkep.current?.setView([j.lat, j.lng], 16)}
-                  />
-                </div>
-              </details>
-            )}
-
-            {/* 4. Ami készen várakozik */}
-            <details className="fiok">
-              <summary>Kész útvonalak</summary>
-              <div className="fiok__tartalom">
-                <KozeliTurak
-                  lista={kozeli}
-                  onBetolt={(p) => betolt({ nev: p.nev, pontok: p.pontok, jelolesek: p.jelolesek })}
-                />
-                <TuraLista terkep={terkepKesz ? terkep.current : null} onBetolt={turatBetolt} />
-                <a className="gomb gomb--halk gomb--szeles" href="/utvonalak">
-                  Mind a {peldaUtvonalak.length} példa
-                </a>
-
-                <label className="gomb gomb--halk gomb--szeles gomb--fajl">
-                  GPX betöltése
-                  <input
-                    type="file"
-                    accept=".gpx,application/gpx+xml,application/xml,text/xml"
-                    onChange={(e) => {
-                      gpxBetolt(e.target.files?.[0]);
-                      e.target.value = '';
-                    }}
-                  />
-                </label>
-                <p className="apro">
-                  Saját nyomvonal a telefonodról vagy egy ismerőstől. A fájl a böngésződben
-                  marad, nem töltődik fel sehova.
-                </p>
-              </div>
-            </details>
-
-            {tervek.length > 0 && (
-              <details className="fiok">
-                <summary>Mentett terveid ({tervek.length})</summary>
-                <div className="fiok__tartalom">
-                  {tervek.map((terv) => (
-                    <div key={terv.id} className="lista__sor">
-                      <button className="lista__nev" onClick={() => betolt(terv)}>
-                        {terv.nev}
-                        <span>
-                          {kmSzoveg(hossz(terv.pontok ?? []))} · {(terv.jelolesek ?? []).length} jelölés
-                        </span>
-                      </button>
-                      <button
-                        className="lista__torol"
-                        onClick={() => {
-                          tervTorles(terv.id);
-                          if (terv.id === aktivId) setAktivId(null);
-                        }}
-                        aria-label={`${terv.nev} törlése`}
-                      >
-                        Törlés
-                      </button>
-                    </div>
-                  ))}
-                  <p className="apro">Csak ezen a böngészőn. Túra előtt töltsd le GPX-ben.</p>
-                </div>
-              </details>
-            )}
-
-            <Labjegyzet tomor />
-          </div>
-        </aside>
       </div>
     </section>
   );

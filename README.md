@@ -97,34 +97,39 @@ Volt egy név nélküli véleményfal is félkészen; kikerült. Nyilvános vél
 tárhelyet, moderálást és tárhelyszolgáltatói kötelezettséget (Ekertv.) igényel — ez
 külön döntés, nem programozási kérdés.
 
-## Az oldalsáv megszűnt
+## Az oldalsáv és az alsó sáv is megszűnt
 
-A tervező korábban kétoszlopos volt: térkép és mellette egy 380 képpontos
-oldalsáv. Most a térkép a teljes felület, a tartalom pedig két helyre került.
+A tervező kétoszlopos volt: térkép és mellette egy 380 képpontos oldalsáv.
+Aztán a tartalom egy része alulról felhúzható lapra került — de az a sáv
+mindig ott ült a térkép alján, és elrontotta az élményt. Most minden lebegő
+widget, két oszlopban.
 
-**Lebegő widgetek a térképen** (jobb felső oszlop, a nagyítógombok alatt):
+**Bal oszlop** (a rétegrács alatt):
 
-| widget | mikor | megjegyzés |
-| --- | --- | --- |
-| Honnan hova | mindig | összecsukható — telefonon 306 helyett 69 képpont |
-| Időjárás | mindig | **alapból betöltve**, nem gombnyomásra |
-| Útvonaladatok | ha van útvonal | táv, menetidő, emelkedő, nehézség, tanácsok |
+| widget | megjegyzés |
+| --- | --- |
+| Honnan hova | összecsukható — 282 helyett 69 képpont |
+| Időjárás | **alapból betöltve**, nem gombnyomásra |
+| Mentés, kész útvonalak, GPX | összecsukva indul; benne a mentett tervek és a lábjegyzet is |
 
-**A felhúzható lapon** maradt: mentés, kész útvonalak, GPX-betöltés, mentett
-tervek, lábjegyzet. Ez a megoldás telefonon már működött; most gépen is ez van,
-egyetlen elrendezés mindkettőre.
+**Jobb oszlop**: a válasz — táv, menetidő, emelkedő, nehézség, magassági
+szelvény, tanácsok. Ez **szándékosan nem csukható össze**: a menetidő és a
+nehézség az, amiért a tervező egyáltalán van.
+
+Telefonon a két oszlop egymás alá kerül, és mindhárom bal oldali widget
+összecsukva indul — így a térkép szabad marad.
 
 ### Az időjárás helye
 
 Betöltéskor a térkép közepe, utána az útvonal kezdőpontja. **Pásztázásra nem
 követ**: az Open-Meteo ingyenes, kulcs nélküli szolgáltatás, nem kérdezzük
-minden térképmozdulatra. A koordináta három tizedesre kerekítve a gyorsítótár
-kulcsa, tehát száz méteren belüli elmozdulás sem indít új kérést.
+minden térképmozdulatra. A koordináta három tizedesre kerekítve a kulcs, tehát
+száz méteren belüli elmozdulás sem indít új kérést.
 
 Másfél másodperc késleltetés is van benne. Rajzolás közben a kezdőpont többször
 változik egymás után — kattintáskor, majd amikor a vonal ösvényre kerül —, és
 három gyors kérésre az Open-Meteo hibát ad. Mérve: késleltetés nélkül a widget
-„nem érhető el” állapotba ment minden rajzolásnál.
+minden rajzolásnál „nem érhető el” állapotba ment.
 
 ### A flex-csapda, harmadszor
 
