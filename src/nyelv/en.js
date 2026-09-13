@@ -325,4 +325,19 @@ export default {
   'ut.nincsGyalogut2': 'I found no footpath between these points. It may cross water or trackless terrain.',
   'terv.egyenesMarad': '{ok} The line stays straight for now, so the distance and ascent are lower than in reality.',
   'adat.tengerszintUtan': 'above sea level',
+
+  /* ---- Főoldal: mit tud, kiemelt példa ---- */
+  'fooldal.peldaKalap': 'This is what you get',
+  'fooldal.peldaNyisd': 'Open it in the planner',
+  'fooldal.mitTud': 'What this map does',
+  'fooldal.mitTudLead': 'Four reasons to plan here rather than on a general-purpose map.',
+  'fooldal.tud1Cim': 'The line follows real footpaths',
+  'fooldal.tud1': 'Not a straight line between two points. Mark two places and the track snaps to the actual paths — which is why the distance and the ascent are true.',
+  'fooldal.tud2Cim': 'Walking time counts the climb',
+  'fooldal.tud2': 'Ten kilometres on the flat and ten in the hills are not the same time. The estimate adds for every hundred metres of climb, and shows the elevation profile too.',
+  'fooldal.tud3Cim': 'It shows what is nearby',
+  'fooldal.tud3': 'Seven layers from OpenStreetMap: drinking water, shelter, stops, parking, lookouts, food and drink, sights. In any country in the world, not just at home.',
+  'fooldal.tud4Cim': 'It stays yours',
+  'fooldal.tud4': 'What you draw is created in your browser. The shareable link carries the route itself, not a database id — and you can download it as GPX, for any watch or app.',
+  'adat.menetido': 'walking time',
 };

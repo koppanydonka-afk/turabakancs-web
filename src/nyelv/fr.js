@@ -325,4 +325,19 @@ export default {
   'ut.nincsGyalogut2': 'Je n’ai trouvé aucun sentier entre ces points. Le trajet passe peut-être par l’eau ou hors sentier.',
   'terv.egyenesMarad': '{ok} Le tracé reste droit pour l’instant, la distance et le dénivelé sont donc inférieurs à la réalité.',
   'adat.tengerszintUtan': 'd’altitude',
+
+  /* ---- Főoldal: mit tud, kiemelt példa ---- */
+  'fooldal.peldaKalap': 'Voilà ce que tu obtiens',
+  'fooldal.peldaNyisd': 'Ouvrir dans le planificateur',
+  'fooldal.mitTud': 'Ce que fait cette carte',
+  'fooldal.mitTudLead': 'Quatre raisons de planifier ici plutôt que sur une carte généraliste.',
+  'fooldal.tud1Cim': 'Le tracé suit de vrais sentiers',
+  'fooldal.tud1': 'Pas une ligne droite entre deux points. Marque deux lieux et le tracé se cale sur les sentiers réels — c’est pour ça que la distance et le dénivelé sont justes.',
+  'fooldal.tud2Cim': 'Le temps de marche compte la montée',
+  'fooldal.tud2': 'Dix kilomètres à plat et dix en montagne, ce n’est pas la même durée. L’estimation ajoute pour chaque centaine de mètres de dénivelé et affiche aussi le profil.',
+  'fooldal.tud3Cim': 'Il montre ce qu’il y a autour',
+  'fooldal.tud3': 'Sept couches issues d’OpenStreetMap : eau potable, abris, arrêts, parkings, belvédères, restauration, sites remarquables. Dans n’importe quel pays.',
+  'fooldal.tud4Cim': 'Ça reste à toi',
+  'fooldal.tud4': 'Ce que tu dessines naît dans ton navigateur. Le lien de partage porte l’itinéraire lui-même, pas un identifiant de base — et tu peux le télécharger en GPX, pour n’importe quelle montre ou appli.',
+  'adat.menetido': 'temps de marche',
 };

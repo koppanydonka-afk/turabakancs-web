@@ -325,4 +325,19 @@ export default {
   'ut.nincsGyalogut2': 'Între aceste puncte nu am găsit potecă. Poate trece peste apă sau teren fără drum.',
   'terv.egyenesMarad': '{ok} Linia rămâne deocamdată dreaptă, așa că distanța și urcarea sunt mai mici decât în realitate.',
   'adat.tengerszintUtan': 'deasupra nivelului mării',
+
+  /* ---- Főoldal: mit tud, kiemelt példa ---- */
+  'fooldal.peldaKalap': 'Așa arată ce primești',
+  'fooldal.peldaNyisd': 'Deschide în planificator',
+  'fooldal.mitTud': 'Ce poate harta asta',
+  'fooldal.mitTudLead': 'Patru motive să planifici aici, nu pe o hartă generală.',
+  'fooldal.tud1Cim': 'Linia urmează poteci reale',
+  'fooldal.tud1': 'Nu e o linie dreaptă între două puncte. Marchează două locuri și traseul se așază singur pe potecile reale — de aceea distanța și urcarea sunt corecte.',
+  'fooldal.tud2Cim': 'Timpul de mers ține cont de urcare',
+  'fooldal.tud2': 'Zece kilometri pe plat și zece pe munte nu înseamnă același timp. Estimarea adaugă pentru fiecare sută de metri de urcare și arată și profilul altimetric.',
+  'fooldal.tud3Cim': 'Îți arată ce e prin apropiere',
+  'fooldal.tud3': 'Șapte straturi din OpenStreetMap: apă potabilă, adăposturi, stații, parcări, belvedere, mâncare, obiective. În orice țară din lume.',
+  'fooldal.tud4Cim': 'Rămâne al tău',
+  'fooldal.tud4': 'Ce desenezi se creează în browserul tău. Linkul de partajat duce traseul însuși, nu un id din bază — și îl poți descărca în GPX, pentru orice ceas sau aplicație.',
+  'adat.menetido': 'timp de mers',
 };

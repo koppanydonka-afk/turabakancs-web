@@ -325,4 +325,19 @@ export default {
   'ut.nincsGyalogut2': 'Medzi týmito bodmi som nenašiel pešiu cestu. Možno vedie cez vodu alebo bezcestný terén.',
   'terv.egyenesMarad': '{ok} Línia zatiaľ zostáva rovná, preto sú vzdialenosť a stúpanie menšie než v skutočnosti.',
   'adat.tengerszintUtan': 'n. m.',
+
+  /* ---- Főoldal: mit tud, kiemelt példa ---- */
+  'fooldal.peldaKalap': 'Takto vyzerá, čo dostaneš',
+  'fooldal.peldaNyisd': 'Otvoriť v plánovači',
+  'fooldal.mitTud': 'Čo táto mapa vie',
+  'fooldal.mitTudLead': 'Štyri dôvody plánovať tu, a nie na všeobecnej mape.',
+  'fooldal.tud1Cim': 'Línia vedie po skutočných chodníkoch',
+  'fooldal.tud1': 'Nie priamka medzi dvoma bodmi. Označ dve miesta a trasa si sama sadne na skutočné chodníky — preto vzdialenosť a stúpanie sedia.',
+  'fooldal.tud2Cim': 'Čas chôdze ráta so stúpaním',
+  'fooldal.tud2': 'Desať kilometrov po rovine a desať v horách nie je ten istý čas. Odhad priráta za každých sto metrov stúpania a ukáže aj výškový profil.',
+  'fooldal.tud3Cim': 'Ukáže, čo je v okolí',
+  'fooldal.tud3': 'Sedem vrstiev z OpenStreetMap: pitná voda, prístrešky, zastávky, parkoviská, rozhľadne, jedlo a pitie, pamiatky. V ktorejkoľvek krajine sveta.',
+  'fooldal.tud4Cim': 'Zostáva to tvoje',
+  'fooldal.tud4': 'Čo nakreslíš, vzniká v tvojom prehliadači. Zdieľateľný odkaz nesie samotnú trasu, nie identifikátor z databázy — a stiahneš si ju aj v GPX, do akýchkoľvek hodiniek či aplikácie.',
+  'adat.menetido': 'čas chôdze',
 };

@@ -325,4 +325,19 @@ export default {
   'ut.nincsGyalogut2': 'No he encontrado sendero entre estos puntos. Puede que cruce agua o terreno sin caminos.',
   'terv.egyenesMarad': '{ok} La línea sigue recta por ahora, así que la distancia y el desnivel son menores que en la realidad.',
   'adat.tengerszintUtan': 'sobre el nivel del mar',
+
+  /* ---- Főoldal: mit tud, kiemelt példa ---- */
+  'fooldal.peldaKalap': 'Así es lo que obtienes',
+  'fooldal.peldaNyisd': 'Abrir en el planificador',
+  'fooldal.mitTud': 'Qué hace este mapa',
+  'fooldal.mitTudLead': 'Cuatro razones para planificar aquí y no en un mapa general.',
+  'fooldal.tud1Cim': 'La línea sigue senderos reales',
+  'fooldal.tud1': 'No es una línea recta entre dos puntos. Marca dos sitios y el trazado se ajusta solo a los senderos reales — por eso la distancia y el desnivel son ciertos.',
+  'fooldal.tud2Cim': 'El tiempo de marcha cuenta la subida',
+  'fooldal.tud2': 'Diez kilómetros en llano y diez en montaña no son el mismo tiempo. La estimación suma por cada cien metros de subida y muestra también el perfil.',
+  'fooldal.tud3Cim': 'Muestra qué hay cerca',
+  'fooldal.tud3': 'Siete capas de OpenStreetMap: agua potable, refugios, paradas, aparcamientos, miradores, comida, lugares de interés. En cualquier país del mundo.',
+  'fooldal.tud4Cim': 'Sigue siendo tuyo',
+  'fooldal.tud4': 'Lo que dibujas se crea en tu navegador. El enlace para compartir lleva la propia ruta, no un id de base de datos — y puedes descargarla en GPX, para cualquier reloj o app.',
+  'adat.menetido': 'tiempo de marcha',
 };

@@ -325,4 +325,19 @@ export default {
   'ut.nincsGyalogut2': 'Zwischen diesen Punkten habe ich keinen Fußweg gefunden. Vielleicht führt es über Wasser oder wegloses Gelände.',
   'terv.egyenesMarad': '{ok} Die Linie bleibt vorerst gerade, deshalb sind Entfernung und Anstieg geringer als in Wirklichkeit.',
   'adat.tengerszintUtan': 'über dem Meer',
+
+  /* ---- Főoldal: mit tud, kiemelt példa ---- */
+  'fooldal.peldaKalap': 'So sieht aus, was du bekommst',
+  'fooldal.peldaNyisd': 'Im Planer öffnen',
+  'fooldal.mitTud': 'Was diese Karte kann',
+  'fooldal.mitTudLead': 'Vier Gründe, hier zu planen statt auf einer Allzweckkarte.',
+  'fooldal.tud1Cim': 'Die Linie folgt echten Fußwegen',
+  'fooldal.tud1': 'Keine gerade Linie zwischen zwei Punkten. Markiere zwei Orte, und die Strecke legt sich von selbst auf die tatsächlichen Pfade — deshalb stimmen Entfernung und Anstieg.',
+  'fooldal.tud2Cim': 'Die Gehzeit rechnet den Anstieg mit',
+  'fooldal.tud2': 'Zehn Kilometer flach und zehn Kilometer im Gebirge sind nicht dieselbe Zeit. Die Schätzung rechnet je hundert Höhenmeter auf und zeigt auch das Höhenprofil.',
+  'fooldal.tud3Cim': 'Es zeigt, was in der Nähe ist',
+  'fooldal.tud3': 'Sieben Ebenen aus OpenStreetMap: Trinkwasser, Schutzhütten, Haltestellen, Parkplätze, Aussichtspunkte, Essen und Trinken, Sehenswürdigkeiten. In jedem Land der Welt.',
+  'fooldal.tud4Cim': 'Es bleibt deins',
+  'fooldal.tud4': 'Was du zeichnest, entsteht in deinem Browser. Der Teilen-Link trägt die Route selbst, keine Datenbank-ID — und als GPX kannst du sie herunterladen, für jede Uhr und jede App.',
+  'adat.menetido': 'Gehzeit',
 };

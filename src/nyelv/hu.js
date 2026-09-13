@@ -344,4 +344,19 @@ export default {
   'ut.nincsGyalogut2': 'Ezek közt a pontok közt nem találtam gyalogutat. Lehet, hogy vízen vagy úttalan területen visz át.',
   'terv.egyenesMarad': '{ok} A vonal addig egyenes marad, a táv és az emelkedő ezért kevesebb a valóságosnál.',
   'adat.tengerszintUtan': 'tengerszint felett',
+
+  /* ---- Főoldal: mit tud, kiemelt példa ---- */
+  'fooldal.peldaKalap': 'Így néz ki, amit kapsz',
+  'fooldal.peldaNyisd': 'Nyisd meg a tervezőben',
+  'fooldal.mitTud': 'Mit tud ez a térkép',
+  'fooldal.mitTudLead': 'Négy dolog, amiért érdemesebb itt tervezni, mint egy általános térképen.',
+  'fooldal.tud1Cim': 'A vonal a gyalogutakon fut',
+  'fooldal.tud1': 'Nem két pont közé húzott egyenes. Ha bejelölsz két helyet, a nyomvonal magától ráigazodik a tényleges ösvényekre — ezért igaz a táv és az emelkedő.',
+  'fooldal.tud2Cim': 'A menetidő az emelkedővel számol',
+  'fooldal.tud2': 'Tíz kilométer sík terepen és tíz kilométer hegyen nem ugyanannyi idő. A becslés minden száz méter emelkedőt hozzáad, és megmutatja a magassági profilt is.',
+  'fooldal.tud3Cim': 'Megmutatja, mi van a környéken',
+  'fooldal.tud3': 'Hét réteg az OpenStreetMapből: ivóvíz, menedék, megálló, parkoló, kilátó, vendéglátás, látványosság. A világ bármelyik országában, nem csak itthon.',
+  'fooldal.tud4Cim': 'A tiéd marad',
+  'fooldal.tud4': 'Amit rajzolsz, a böngésződben keletkezik. A megosztható link magát az útvonalat viszi, nem egy adatbázis-azonosítót — és GPX-ben is letöltheted, bármelyik órára vagy alkalmazásba.',
+  'adat.menetido': 'menetidő',
 };

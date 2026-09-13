@@ -1,10 +1,14 @@
 import Vedjegy from './Vedjegy.jsx';
 import Csillagok from './Csillagok.jsx';
+import UtvonalRajz from './UtvonalRajz.jsx';
 import { ertekelesSzerint } from '../data/ertekelesek.js';
 import { JELZESEK, SZINEK } from '../data/erdekessegek.js';
+import { RETEGEK } from '../data/szolgaltatasok.js';
+import { tipusSzerint } from '../data/jelolesek.js';
 import { peldaUtvonalak } from '../data/peldak.js';
 import { hossz, ido, kmSzoveg, tervLinkje } from '../data/utvonalak.js';
 import { napkelte, napnyugta, oraPerc, vilagosMeg } from '../data/naptar.js';
+import { menetido, nehezseg } from '../data/ajanlo.js';
 import { useMost } from '../ora.js';
 import { ut } from '../router.js';
 import { sz } from '../nyelv/index.js';
@@ -26,6 +30,12 @@ export default function FooldalPage() {
   const nyugta = napnyugta(most, ...BUDAPEST);
   const maradek = vilagosMeg(...BUDAPEST, most);
 
+  /* Az első példa a kirakat. Mért adat: a hossz a pontokból, az emelkedő a
+     domborzatmodellből — se becslés, se kézzel beírt szám. */
+  const kiemelt = peldaUtvonalak[0];
+  const kiemeltKm = kiemelt ? hossz(kiemelt.pontok) : 0;
+  const kiemeltIdo = kiemelt ? menetido(kiemeltKm, 'gyalog', kiemelt.emelkedo?.fel) : 0;
+
   return (
     <div className="fooldal">
       <section className="hos">
@@ -42,6 +52,47 @@ export default function FooldalPage() {
           <a className="gomb gomb--halk" href={ut('/utvonalak')}>{sz('fooldal.peldak')}</a>
         </div>
       </section>
+
+      {/* ---- Kiemelt példa ----
+
+          A főoldalon eddig egyetlen térkép sem volt, pedig ez egy térképes
+          eszköz. Ez a rajz a példa VALÓDI pontjaiból készül — ugyanabból az
+          adatból, amiből a tervező dolgozik —, tehát nem illusztráció,
+          hanem az, ami tényleg kijön belőle. Leaflet nélkül, pár száz
+          bájtból: a főoldalnak gyorsan kell betöltenie. */}
+      {kiemelt && (
+        <section className="pelda-sav" data-feltun>
+          <div className="pelda-sav__rajz">
+            <UtvonalRajz pontok={kiemelt.pontok} cimke={kiemelt.nev} />
+          </div>
+          <div className="pelda-sav__szoveg">
+            <p className="kalap">{sz('fooldal.peldaKalap')}</p>
+            <h2 className="pelda-sav__cim">{kiemelt.nev}</h2>
+            <p className="pelda-sav__hol">{kiemelt.hol}</p>
+            <div className="ertekek">
+              <div className="ertekek__elem">
+                <strong>{kmSzoveg(kiemeltKm)}</strong>
+                <span>{sz('adat.hossz')}</span>
+              </div>
+              <div className="ertekek__elem">
+                <strong>↑ {kiemelt.emelkedo.fel} m</strong>
+                <span>{sz('adat.emelkedo')}</span>
+              </div>
+              <div className="ertekek__elem ertekek__elem--kiemelt">
+                <strong>{perc(kiemeltIdo)}</strong>
+                <span>{sz('adat.menetido')}</span>
+              </div>
+              <div className="ertekek__elem">
+                <strong>{nehezseg(kiemeltKm, kiemelt.emelkedo.fel).szo}</strong>
+                <span>{sz('adat.nehezseg')}</span>
+              </div>
+            </div>
+            <a className="gomb gomb--fo" href={tervLinkje(ut('/tervezo'), kiemelt)}>
+              {sz('fooldal.peldaNyisd')}
+            </a>
+          </div>
+        </section>
+      )}
 
       {nyugta && (
         <section className="ma" data-feltun style={{ "--lepcso": 0 }}>
@@ -63,6 +114,40 @@ export default function FooldalPage() {
           <p className="apro">{sz('fooldal.napAlap')}</p>
         </section>
       )}
+
+      {/* ---- Mit tud ----
+
+          Négy állítás, mindegyik ellenőrizhető az oldalon belül. A rétegek
+          ikonjai ugyanazok, amiket a tervezőben látsz — nem külön rajzolt
+          díszek, hanem maga a jelmagyarázat. */}
+      <section className="szekcio" data-feltun>
+        <header className="szekcio__fej">
+          <h2 className="szekcio__cim">{sz('fooldal.mitTud')}</h2>
+          <p className="szekcio__lead">{sz('fooldal.mitTudLead')}</p>
+        </header>
+        <div className="tud-racs">
+          {[1, 2, 3, 4].map((n) => (
+            <article className="tud" key={n}>
+              <h3 className="tud__cim">{sz(`fooldal.tud${n}Cim`)}</h3>
+              <p className="tud__szoveg">{sz(`fooldal.tud${n}`)}</p>
+              {n === 3 && (
+                <ul className="tud__retegek">
+                  {Object.entries(RETEGEK).map(([id, r]) => (
+                    <li key={id} style={{ '--tu-szin': r.gombSzin }} title={sz(r.nevKulcs)}>
+                      <svg
+                        viewBox="0 0 24 24"
+                        aria-hidden="true"
+                        dangerouslySetInnerHTML={{ __html: tipusSzerint(r.tipus).rajz }}
+                      />
+                      <span className="csak-olvasonak">{sz(r.nevKulcs)}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </article>
+          ))}
+        </div>
+      </section>
 
       <section className="szekcio" data-feltun>
         <header className="szekcio__fej">
@@ -108,8 +193,13 @@ export default function FooldalPage() {
             const ertekeles = ertekelesSzerint(p.id);
             return (
               <article className="kartya" key={p.id}>
+                {/* A vonal alakja: ennyiből is látszik, hogy kör-e vagy
+                    átmenő, és hogy mennyire kanyarog. */}
+                <a className="kartya__rajz" href={ut(`/utvonalak/${p.id}`)} tabIndex={-1} aria-hidden="true">
+                  <UtvonalRajz pontok={p.pontok} />
+                </a>
                 <h3 className="kartya__cim">
-                  <a href={`/utvonalak/${p.id}`}>{p.nev}</a>
+                  <a href={ut(`/utvonalak/${p.id}`)}>{p.nev}</a>
                 </h3>
                 <p className="kartya__hol">{p.hol}</p>
                 {ertekeles && (
@@ -121,11 +211,11 @@ export default function FooldalPage() {
                 <p className="kartya__jegyzet">{ertekeles?.verdikt ?? p.jegyzet}</p>
                 <ul className="cimkek">
                   <li>{kmSzoveg(km)}</li>
-                  <li>{ido(km)} gyalog</li>
+                  <li>{ido(km)}</li>
                 </ul>
                 <div className="kartya__gombok">
-                  <a className="gomb gomb--halk" href={tervLinkje('/tervezo', p)}>
-                    Megnyitás a tervezőben
+                  <a className="gomb gomb--halk" href={tervLinkje(ut('/tervezo'), p)}>
+                    {sz('utvonal.megnyitas')}
                   </a>
                 </div>
               </article>

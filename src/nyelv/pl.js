@@ -325,4 +325,19 @@ export default {
   'ut.nincsGyalogut2': 'Między tymi punktami nie znalazłem ścieżki. Może prowadzi przez wodę albo bezdroża.',
   'terv.egyenesMarad': '{ok} Linia na razie zostaje prosta, więc odległość i podejście są mniejsze niż w rzeczywistości.',
   'adat.tengerszintUtan': 'n.p.m.',
+
+  /* ---- Főoldal: mit tud, kiemelt példa ---- */
+  'fooldal.peldaKalap': 'Tak wygląda to, co dostajesz',
+  'fooldal.peldaNyisd': 'Otwórz w planerze',
+  'fooldal.mitTud': 'Co potrafi ta mapa',
+  'fooldal.mitTudLead': 'Cztery powody, żeby planować tutaj, a nie na zwykłej mapie.',
+  'fooldal.tud1Cim': 'Linia biegnie prawdziwymi ścieżkami',
+  'fooldal.tud1': 'To nie linia prosta między dwoma punktami. Zaznacz dwa miejsca, a trasa sama trafi na prawdziwe ścieżki — dlatego odległość i podejście są prawdziwe.',
+  'fooldal.tud2Cim': 'Czas marszu liczy podejście',
+  'fooldal.tud2': 'Dziesięć kilometrów po płaskim i dziesięć w górach to nie ten sam czas. Szacunek dolicza za każde sto metrów podejścia i pokazuje też profil wysokościowy.',
+  'fooldal.tud3Cim': 'Pokazuje, co jest w okolicy',
+  'fooldal.tud3': 'Siedem warstw z OpenStreetMap: woda pitna, schronienia, przystanki, parkingi, punkty widokowe, jedzenie, atrakcje. W dowolnym kraju na świecie.',
+  'fooldal.tud4Cim': 'Zostaje twoje',
+  'fooldal.tud4': 'To, co rysujesz, powstaje w twojej przeglądarce. Link do udostępnienia niesie samą trasę, nie identyfikator z bazy — i pobierzesz ją w GPX, do dowolnego zegarka czy aplikacji.',
+  'adat.menetido': 'czas marszu',
 };
