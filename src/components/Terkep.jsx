@@ -4,6 +4,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { tipusSzerint, tuHtml } from '../data/jelolesek.js';
 import { LATVANYOSSAGOK } from '../data/latvanyossagok.js';
+import FejlecEszkozok from './FejlecEszkozok.jsx';
 
 /* A térkép.
 
@@ -413,13 +414,22 @@ export default function Terkep({
     const be = retegek[id];
     const { nev, gombSzin, tomor } = RETEGEK[id];
     const szo = be ? allapotSzava(id) : null;
+    const keres = be && retegAllapot[id]?.allapot === 'keres';
+    /* Ha a területen több van, mint amennyit lekértünk, azt tudni kell:
+       üres térképből nem szabad arra következtetni, hogy nincs is víz.
+       Felirat helyett egy pont az ikon sarkán, a mondat a címkében. */
+    const tobbVan = be && retegAllapot[id]?.levagva > 0;
+    const cimke = [nev, szo, tobbVan ? 'ennél több van itt — nagyíts rá' : null]
+      .filter(Boolean)
+      .join(' — ');
     return (
       <button
         key={id}
-        className={`reteg-gomb${be ? ' reteg-gomb--aktiv' : ''}${tomor ? '' : ' reteg-gomb--ureges'}`}
+        className={`reteg-gomb${be ? ' reteg-gomb--aktiv' : ''}${tomor ? '' : ' reteg-gomb--ureges'}`
+          + (keres ? ' reteg-gomb--keres' : '') + (tobbVan ? ' reteg-gomb--tobb' : '')}
         style={{ '--tu-szin': gombSzin }}
         aria-pressed={be}
-        title={szo ? `${nev} — ${szo}` : nev}
+        title={cimke}
         onClick={() => {
           const kovetkezo = !be;
           setRetegek((e) => ({ ...e, [id]: kovetkezo }));
@@ -430,7 +440,7 @@ export default function Terkep({
         }}
       >
         <svg viewBox="0 0 24 24" aria-hidden="true" dangerouslySetInnerHTML={{ __html: tipusSzerint(RETEGEK[id].tipus).rajz }} />
-        <span className="csak-olvasonak">{nev}</span>
+        <span className="csak-olvasonak">{cimke}</span>
       </button>
     );
   };
@@ -448,42 +458,36 @@ export default function Terkep({
     !eppKeres &&
     (ujraKell ||
       Object.entries(retegek).some(([id, be]) => be && retegAllapot[id]?.allapot !== 'kesz'));
-  const levagott = Object.entries(retegek)
-    .filter(([id, be]) => be && retegAllapot[id]?.levagva > 0)
-    .map(([id]) => id);
-
   return (
     <>
       <div className="terkep" ref={doboz} />
-      <div className="reteg-sor">
-        <div className="reteg-racs" role="group" aria-label="Mit mutasson a térkép">
+
+      {/* A rétegikonok a fejléc sávjába kerülnek — a térképen semmi nem
+          lebeg fölöttük. Az állapotuk (keresem, nagyíts rá, ennél több van
+          itt) magukra az ikonokra költözött: a keresés lüktet, a levágott
+          réteg pontot kap, a mondat pedig a címkében van.
+
+          A „keresés ezen a területen” megmaradt gombnak, mert az nem
+          állapot, hanem teendő — csak ikonná fogyott. */}
+      <FejlecEszkozok>
+        <div className="eszkozsor eszkozsor--retegek" role="group" aria-label="Mit mutasson a térkép">
           {Object.keys(RETEGEK).map(gomb)}
+
+          {keresesKell && (
+            <button
+              className="reteg-gomb reteg-gomb--ujra"
+              onClick={() => Object.entries(retegek).forEach(([id, be]) => be && retegetKer(id))}
+              title="Keresés ezen a területen"
+              aria-label="Keresés ezen a területen"
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M20 12a8 8 0 1 1-2.34-5.66" />
+                <path d="M20 4v4.5h-4.5" />
+              </svg>
+            </button>
+          )}
         </div>
-
-        {/* Az állapotok egy sorban, a rács alatt: csak a bekapcsolt rétegek. */}
-        {vanBekapcsolt && (
-          <p className="reteg-allapot">
-            {Object.keys(RETEGEK)
-              .filter((id) => retegek[id])
-              .map((id) => `${RETEGEK[id].nev}: ${allapotSzava(id) ?? '…'}`)
-              .join(' · ')}
-          </p>
-        )}
-
-        {keresesKell && (
-          <button
-            className="reteg-gomb reteg-gomb--ujra"
-            onClick={() => Object.entries(retegek).forEach(([id, be]) => be && retegetKer(id))}
-          >
-            Keresés ezen a területen
-          </button>
-        )}
-        {levagott.length > 0 && (
-          <p className="reteg-jegyzet">
-            Ennél több van a területen — nagyíts rá, hogy mind látszódjon.
-          </p>
-        )}
-      </div>
+      </FejlecEszkozok>
     </>
   );
 }

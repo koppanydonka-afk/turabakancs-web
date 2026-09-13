@@ -8,9 +8,10 @@
   position: sticky;
   top: 0;
   z-index: 1200;
-  height: var(--fejlec);
+  min-height: var(--fejlec);
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  /* Üres eszközsávnál a védjegy középen marad, ahogy eddig. */
+  grid-template-columns: auto 1fr auto auto;
   align-items: center;
   gap: var(--space-4);
   padding: 0 var(--space-4);
@@ -19,6 +20,12 @@
   box-shadow: inset 0 -1px 0 var(--line);
 }
 
+/* Ha az oldal betett valamit az eszközsávba (a tervező igen), akkor az
+   kapja a rugalmas oszlopot, a védjegy pedig a hamburger mellé húzódik.
+   Középen ekkor a vezérlők ülnek — ez a „felső sáv”. */
+.fejlec:has(.fejlec__eszkozok > *) { grid-template-columns: auto auto 1fr auto; }
+.fejlec:has(.fejlec__eszkozok > *) .vedjegy { justify-self: start; }
+
 .vedjegy {
   justify-self: center;
   display: inline-flex;
@@ -26,6 +33,82 @@
   text-decoration: none;
   min-width: 0;
 }
+
+/* ---------- Az oldal saját vezérlői a fejlécben ----------
+   Csak ikonok: a sávban nincs hely feliratnak, és a hat rétegikon amúgy
+   is képként olvasható. A mondatok a címkékbe kerültek. */
+.fejlec__eszkozok {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  min-width: 0;
+}
+.fejlec__eszkozok:empty { display: none; }
+
+.eszkozsor {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+}
+/* A két csoport külön portálon érkezik (a rétegek a térképtől, a lapok a
+   tervezőtől), és hogy melyik ér oda előbb, az véletlen. A sorrendet ezért
+   itt szögezzük le: előbb az, amit a térkép mutat, utána a lapok.
+
+   Köztük halvány válaszfal: a rétegek kapcsolók, a lapok ablakot nyitnak. */
+.eszkozsor--retegek { order: 1; }
+.eszkozsor--lapok {
+  order: 2;
+  padding-left: var(--space-4);
+  box-shadow: inset 1px 0 0 var(--line);
+}
+
+/* Nyitott lap ikonja: nem színes, mint egy bekapcsolt réteg, csak
+   benyomott — más dolgot jelent. */
+.reteg-gomb--nyitva {
+  background: var(--surface-2);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
+/* ---------- Lenyíló lap a fejléc alatt ----------
+   Ami eddig a térképen lebegett (a kérdés, az útvonaladatok, az eszközök),
+   az most innen jön le. Egyszerre egy, és kívülre koppintva becsukódik.
+
+   A fejléc `position: sticky`, tehát ő a lap viszonyítási pontja: a
+   `top: 100%` pontosan a sáv alja, akkor is, ha a sáv telefonon két
+   sorosra nő. */
+.fejlec-lap {
+  position: absolute;
+  top: calc(100% + var(--space-2));
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(420px, calc(100vw - 2 * var(--space-3)));
+  max-height: calc(100vh - var(--fejlec) - 3 * var(--space-3));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--surface) 96%, transparent);
+  backdrop-filter: blur(12px) saturate(180%);
+  box-shadow: var(--lap-keret), var(--lap-arnyek);
+  animation: lap-le 160ms var(--ease-out);
+}
+/* Oszlopos flexben a gyerekek alapból zsugorodnak — az értékrács és a
+   magassági profil ettől levágódna. Ez a csapda már negyedszer jön elő. */
+.fejlec-lap > * { flex: 0 0 auto; }
+
+@keyframes lap-le {
+  from { opacity: 0; transform: translate(-50%, -6px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fejlec-lap { animation: none; }
+}
+
 
 /* ---------- Hamburger ---------- */
 .hamburger {
@@ -111,6 +194,41 @@ body.nincs-gorgetes { overflow: hidden; }
   transition: background var(--duration) var(--ease);
 }
 .tema-gomb:hover { background: var(--surface-2); }
+
+/* ---------- A sáv telefonon két sorban ----------
+   Tíz ikon, a védjegy, a fok és a sötét mód nem fér ki 375 képpontra. A
+   fejléc ezért két sorosra nő: fent a védjegy és a jobb oldali pár, alatta
+   a vezérlők. A magasságot a `--fejlec` viszi tovább a térképnek, hogy az
+   pont annyival legyen alacsonyabb. */
+@media (max-width: 680px) {
+  body:has(.fejlec__eszkozok > *) { --fejlec: 96px; }
+
+  .fejlec:has(.fejlec__eszkozok > *) {
+    grid-template-columns: auto 1fr auto;
+    grid-template-areas:
+      'ham vedjegy jobb'
+      'eszk eszk eszk';
+    row-gap: var(--space-1);
+    padding-top: var(--space-2);
+    padding-bottom: var(--space-2);
+  }
+  .fejlec:has(.fejlec__eszkozok > *) .hamburger { grid-area: ham; }
+  .fejlec:has(.fejlec__eszkozok > *) .vedjegy { grid-area: vedjegy; justify-self: center; }
+  .fejlec:has(.fejlec__eszkozok > *) .fejlec__jobb { grid-area: jobb; }
+  .fejlec:has(.fejlec__eszkozok > *) .fejlec__eszkozok { grid-area: eszk; }
+
+  /* Szűkebb ikonok és hézagok — így a tíz gomb kifér egy sorba. Ha mégsem
+     (több réteg, hosszabb sor), a sáv oldalra görgethető marad. */
+  .fejlec__eszkozok {
+    gap: var(--space-2);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .fejlec__eszkozok::-webkit-scrollbar { display: none; }
+  .eszkozsor .reteg-gomb { width: 32px; height: 32px; }
+  .eszkozsor .reteg-gomb svg { width: 18px; height: 18px; }
+  .eszkozsor--lapok { padding-left: var(--space-2); }
+}
 .tema-gomb svg { width: 19px; height: 19px; }
 
 /* ---------- Hőmérséklet a fejlécben ----------
@@ -162,43 +280,9 @@ body.nincs-gorgetes { overflow: hidden; }
 
 /* A böngésző ne értelmezze őket görgetésnek vagy nagyításnak — a térkép
    kezeli a gesztusokat. */
-.reteg-gomb,
-.vissza-nyil,
-.hh-widget,
-.adat-widget { touch-action: manipulation; }
+.reteg-gomb { touch-action: manipulation; }
 
-/* Visszalépés a térkép bal alsó sarkában. A bal felső a rétegrácsé, a jobb
-   felső a nagyítóé és a widgeteké, alul középen a súgó fut. */
-.vissza-nyil {
-  position: absolute;
-  left: var(--space-3);
-  bottom: var(--space-3);
-  z-index: 1000;
-  width: 42px;
-  height: 42px;
-  display: grid;
-  place-items: center;
-  border: 0;
-  border-radius: 50%;
-  background: color-mix(in srgb, var(--surface) 92%, transparent);
-  backdrop-filter: blur(10px) saturate(180%);
-  box-shadow: var(--lap-keret), var(--lap-arnyek);
-  color: var(--ink-2);
-  cursor: pointer;
-  animation: halkanElo 200ms var(--ease);
-  transition: color var(--duration) var(--ease), transform var(--duration) var(--ease);
-}
-.vissza-nyil:hover { color: var(--ink); transform: translateY(-1px); }
-.vissza-nyil:active { transform: translateY(0); }
-.vissza-nyil svg {
-  width: 21px;
-  height: 21px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 2;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
+
 
 
 
@@ -518,6 +602,18 @@ input::placeholder { color: var(--muted); }
   background: var(--accent-soft);
   padding: var(--space-3) var(--space-4);
   border-radius: var(--radius-md);
+}
+/* ---------- A rajzolás visszajelzése ----------
+   Rövid mondat a térkép tetején. Nem vezérlő: magától elmúlik, ezért
+   maradhat a térképen. */
+.uzenet--lebego {
+  position: absolute;
+  top: var(--space-3);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  max-width: min(460px, calc(100% - 2 * var(--space-3)));
+  margin: 0;
 }
 
 /* ---------- Szöveges oldalak ---------- */
@@ -1558,37 +1654,12 @@ input::placeholder { color: var(--muted); }
 }
 
 
-/* ---------- Rétegkapcsolók (bal felső sarok) ----------
+/* ---------- Rétegkapcsolók ----------
 
-   Ide korábban a jelölőpaletta került, ugyanilyen ikonrácsként. A paletta
-   megszűnt, a hely a rétegeké lett: ami eddig kézzel kirakható tű volt, az
-   most keresés.
+   Hat ikon: mit mutasson a térkép. Korábban a térkép bal felső sarkában
+   lebegtek, egy saját dobozban, alattuk egy sor az állapotukkal. Most a
+   fejléc sávjában ülnek, az állapot pedig magukra az ikonokra került. */
 
-   A rács alatt egy sor mondja meg, mi az állapotuk — az ikon mellé nem fér
-   felirat, a „keresem…” és a „nagyíts rá” viszont utasítás, nem díszítés. */
-.reteg-sor {
-  position: absolute;
-  top: var(--space-3);
-  /* A honnan-hova widget (340) mellé, egy hézaggal. */
-  left: calc(var(--space-3) + 340px + var(--space-2));
-  z-index: 1000;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: var(--space-2);
-  max-width: calc(100% - 2 * var(--space-3) - 52px);
-}
-
-.reteg-racs {
-  display: grid;
-  grid-template-columns: repeat(6, 36px);
-  gap: 4px;
-  padding: 6px;
-  border-radius: var(--radius-md);
-  background: color-mix(in srgb, var(--surface) 92%, transparent);
-  backdrop-filter: blur(10px) saturate(180%);
-  box-shadow: var(--lap-keret), var(--lap-arnyek);
-}
 
 /* Kikapcsolva semleges: a `--ink` sötét módban majdnem fehér, világosban
    majdnem fekete. A rétegszínek a vezérlőháttéren elvesznének — a
@@ -1631,52 +1702,46 @@ input::placeholder { color: var(--muted); }
     0 0 10px color-mix(in srgb, var(--tu-szin) 50%, transparent);
 }
 
-.reteg-allapot {
-  margin: 0;
-  padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-pill);
-  background: color-mix(in srgb, var(--surface) 92%, transparent);
-  backdrop-filter: blur(10px) saturate(180%);
-  box-shadow: var(--lap-keret), var(--lap-arnyek);
-  color: var(--muted);
-  font-size: var(--text-xs);
-  font-variant-numeric: tabular-nums;
+/* Keresés közben az ikon lüktet — felirat helyett ennyi mondja meg, hogy
+   dolgozunk. Aki nem kéri a mozgást, annál nem mozog. */
+.reteg-gomb--keres { animation: reteg-lukteto 1.2s var(--ease) infinite; }
+@keyframes reteg-lukteto {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .45; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .reteg-gomb--keres { animation: none; opacity: .6; }
 }
 
+/* „Ennél több van itt” — pont az ikon sarkán. Nem díszítés: üres térképből
+   nem szabad arra jutni, hogy nincs is a környéken ivóvíz. */
+.reteg-gomb { position: relative; }
+.reteg-gomb--tobb::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--figyelem, #B45309);
+  box-shadow: 0 0 0 1.5px var(--surface);
+}
+
+
+
+/* „Keresés ezen a területen” — ez nem állapot, hanem teendő, ezért
+   maradt gomb. Kiemelt színnel hívja magára a figyelmet, de ugyanakkora,
+   mint a többi ikon: a sáv ritmusát nem töri meg. */
 .reteg-gomb--ujra {
-  width: auto;
-  height: auto;
-  padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-pill);
-  background: var(--accent);
-  color: var(--on-accent);
-  font: inherit;
-  font-size: var(--text-xs);
-  font-weight: 600;
-  box-shadow: var(--lap-keret), var(--lap-arnyek);
+  color: var(--accent-ink);
+  background: var(--accent-soft);
 }
-.reteg-gomb--ujra:hover { background: var(--accent); transform: none; }
+.reteg-gomb--ujra:hover { background: var(--accent-soft); }
 
-.reteg-jegyzet {
-  max-width: 240px;
-  margin: 0;
-  padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-md);
-  background: color-mix(in srgb, var(--surface) 92%, transparent);
-  backdrop-filter: blur(10px) saturate(180%);
-  box-shadow: var(--lap-keret), var(--lap-arnyek);
-  color: var(--muted);
-  font-size: var(--text-xs);
-}
 
-@media (max-width: 680px) {
-  /* Hat ikon 375 képpontos kijelzőn is kifér egy sorban, de szűkebben. */
-  .reteg-racs { grid-template-columns: repeat(6, 32px); gap: 3px; padding: 4px; }
-  .reteg-gomb { width: 32px; height: 32px; }
-  .reteg-gomb svg { width: 18px; height: 18px; }
-  .reteg-allapot { font-size: 11px; }
-  .reteg-jegyzet { max-width: 200px; font-size: 11px; }
-}
+
+
 
 /* Csak képernyőolvasónak: a képpel írt címhez kell a szöveges változat. */
 .csak-olvasonak {
@@ -1694,174 +1759,8 @@ input::placeholder { color: var(--muted); }
 
 
 
-/* ---------- Lebegő widgetek a térképen ----------
-
-   Az oldalsáv megszűnt: a kérdés és a válasz a térképre került. A bal felső
-   oszlopban ülnek; mellettük a rétegrács, a bal alsó a visszalépő nyílé. */
-/* Két oszlop a térkép tetején: balra a kérdés és az eszközök, jobbra a
-   válasz (táv, menetidő, tanácsok). Köztük, külön elemként, a rétegrács.
-
-   A sor a térkép teljes szélességét átéri, de csak keret: a széleit a
-   flexbox tartja a helyén, nem képpontra számolt eltolások. Jobbról a
-   nagyítógomboknak hagyunk helyet (34 képpont + hézag).
-
-   Telefonon a sor oszloppá fordul, és a jobb oszlop a bal ALÁ kerül —
-   így soha nem csúsznak egymásra, akármekkorára is nő a tartalom.
-
-   Az időjárás korábban itt volt a harmadik elem; átkerült a fejlécbe,
-   egyetlen számra fogyva. A térképen minden képpont a térképé. */
-.widgetek-sor {
-  position: absolute;
-  top: var(--space-3);
-  left: var(--space-3);
-  right: calc(var(--space-3) + 34px + var(--space-2));
-  z-index: 1000;
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--space-2);
-  max-height: calc(100% - 2 * var(--space-3));
-  /* Az üres területen a térkép fogadja az érintést, nem a konténer. */
-  pointer-events: none;
-}
-
-.widgetek {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: var(--space-2);
-  width: min(340px, 100%);
-  max-height: calc(100vh - var(--fejlec) - 2 * var(--space-3));
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  pointer-events: none;
-}
-
-/* A jobb oszlop a nagyítógombok mellé kerül. Üresen (amíg nincs útvonal)
-   nem foglal helyet. */
-.widgetek--jobb { align-items: flex-end; }
-.widgetek--jobb > * { width: min(340px, 100%); }
-/* A flex-oszlop alapból ÖSSZENYOMJA a gyerekeit, ha nem férnek el — az
-   időjárás-widget így nulla magasságú lett, tartalommal együtt. Ugyanez a
-   csapda volt a panelnél is; az oszlop görgethető, a benne lévők nem
-   zsugorodhatnak. */
-.widgetek > * { pointer-events: auto; width: 100%; flex: 0 0 auto; }
-
-.hh-widget,
-.adat-widget {
-  border-radius: var(--radius-md);
-  background: color-mix(in srgb, var(--surface) 94%, transparent);
-  backdrop-filter: blur(10px) saturate(180%);
-  box-shadow: var(--lap-keret), var(--lap-arnyek);
-}
-
-.hh-widget { padding: 0; overflow: hidden; }
-.hh-widget__fej {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  border: 0;
-  padding: var(--space-3) var(--space-4);
-  background: transparent;
-  color: var(--ink-2);
-  font: inherit;
-  font-size: var(--text-sm);
-  font-weight: 600;
-  cursor: pointer;
-}
-.hh-widget__nyil { font-size: var(--text-lg); line-height: 1; color: var(--muted); }
-.hh-widget > .hh-panel { padding: 0 var(--space-4) var(--space-4); }
-.hh-widget--csukva > .hh-panel { display: none; }
-.adat-widget { padding: var(--space-4); display: flex; flex-direction: column; gap: var(--space-4); }
-
-
-@media (max-width: 680px) {
-  /* Telefonon a nagyítógombok mellé nem fér el semmi, ezért a sor a
-     rétegrács ALÁ kezdődik. */
-  .widgetek-sor {
-    top: calc(var(--space-3) + 44px);
-    right: var(--space-3);
-    max-height: calc(100% - var(--space-3) - 44px - 60px);
-    overflow-y: auto;
-    overscroll-behavior: contain;
-  }
-  .widgetek { max-height: none; overflow: visible; }
-  .hh-widget { padding: var(--space-3); }
-}
-
-
-/* ---------- Eszközök widget ----------
-   Ami eddig az alulról felhúzható lapon volt. A lap eltűnt: a térkép alján
-   egy sáv mindig ott ült, és elrontotta az élményt. */
-.eszkoz-widget {
-  border-radius: var(--radius-md);
-  background: color-mix(in srgb, var(--surface) 94%, transparent);
-  backdrop-filter: blur(10px) saturate(180%);
-  box-shadow: var(--lap-keret), var(--lap-arnyek);
-  overflow: hidden;
-}
-.eszkoz-widget > summary {
-  padding: var(--space-3) var(--space-4);
-  font-size: var(--text-sm);
-  font-weight: 600;
-  color: var(--ink-2);
-  cursor: pointer;
-  list-style: none;
-}
-.eszkoz-widget > summary::-webkit-details-marker { display: none; }
-.eszkoz-widget > summary::before { content: '▸ '; color: var(--muted); }
-.eszkoz-widget[open] > summary::before { content: '▾ '; }
-.eszkoz-widget__tartalom {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-  padding: 0 var(--space-4) var(--space-4);
-}
-.eszkoz-widget__tartalom > * { flex: 0 0 auto; }
-
-@media (max-width: 680px) {
-  /* Telefonon a két oszlop egymás alá kerül: a válasz a kérdés alá. Nem
-     eltolással, hanem normál elrendezéssel — így a magasságuk bármekkora
-     lehet, sosem takarják egymást. */
-  .widgetek-sor { flex-direction: column; align-items: stretch; }
-  .widgetek { width: 100%; }
-  .widgetek--jobb { align-items: stretch; }
-  .widgetek--jobb > * { width: 100%; }
-}
-
-
-/* ---------- Az útvonaladatok lenyíló ablaka ---------- */
-.adat-widget { padding: 0; overflow: hidden; }
-.adat-widget > summary {
-  padding: var(--space-3) var(--space-4);
-  font-size: var(--text-sm);
-  font-weight: 600;
-  color: var(--ink-2);
-  cursor: pointer;
-  list-style: none;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-2);
-}
-.adat-widget > summary::-webkit-details-marker { display: none; }
-.adat-widget > summary::after { content: '▾'; color: var(--muted); }
-.adat-widget[open] > summary::after { content: '▴'; }
-.adat-widget__osszeg { font-variant-numeric: tabular-nums; }
-.adat-widget__tartalom {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-  padding: 0 var(--space-4) var(--space-4);
-}
-.adat-widget__tartalom > * { flex: 0 0 auto; }
-
-@media (max-width: 900px) {
-  /* Keskeny kijelzőn a kettő nem fér egy sorba. A rétegrács marad a felső
-     sorban — az kicsi —, a widgetoszlop pedig ALÁ kezdődik. Korábban
-     egymásra csúsztak: a rács eltűnt a honnan-hova widget mögött. */
-  .reteg-sor { left: var(--space-3); top: var(--space-3); }
-  /* A rács a bal felső sarokba ült be, ezért a bal oszlop alácsúszik. */
-  .widgetek--bal { padding-top: 52px; }
-}
+/* A tervező vezérlői korábban itt, a térkép fölött lebegtek: a
+   honnan-hova, az útvonaladatok és az eszközök egy-egy saját dobozban.
+   Mind a fejléc sávjába költöztek, egy-egy ikon mögé — a térképen nem
+   lebeg semmi. A dobozaik szabályai ezért kikerültek; a belsejük
+   (.hh-panel, .ertekek, .fiok, a tanácsok) ott maradt, ahol volt. */
