@@ -1,19 +1,41 @@
 import { useEffect, useRef, useState } from 'react';
-import { MIN_ZOOM, RETEGEK, teruleten } from '../data/szolgaltatasok.js';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
+import { LngLatBounds, Map as MapLibre, Marker, NavigationControl, Popup } from 'maplibre-gl';
+import 'maplibre-gl/dist/maplibre-gl.css';
+import { MIN_ZOOM, RETEGEK, tartalmazza, teruleten } from '../data/szolgaltatasok.js';
 import { tipusSzerint, tuHtml } from '../data/jelolesek.js';
 import { helyiKep } from '../data/latvanyossagok.js';
 import { latvanyKepe } from '../data/kepek.js';
-import { sz } from '../nyelv/index.js';
+import { nyelv, sz } from '../nyelv/index.js';
+import { useSotet } from '../data/tema.js';
 import EszkozRudba from './EszkozRudba.jsx';
 import { KEZDO_KOZEP, KEZDO_ZOOM } from '../data/terkepAlap.js';
 
 /* A térkép.
 
-   Leaflet + OpenStreetMap: nem kell hozzá API-kulcs és bankkártya sem,
-   szemben a Google Maps JavaScript API-jával. A csempékért cserébe kötelező
-   a forrásmegjelölés — a térkép sarkában ott is van.
+   MapLibre GL + OpenFreeMap vektorcsempék. Se API-kulcs, se bankkártya —
+   ugyanaz a feltétel, mint eddig; ami változott, az a csempe fajtája.
+
+   MIÉRT LETT VEKTOROS. A raszteres csempe kész kép: ami rá van égetve, azt
+   kapod. A vektoros csempe adat, a rajzolás a böngészőben történik, és ez
+   három dolgot old meg, amit képpel nem lehetett:
+
+   1. A feliratok a látogató nyelvén jelennek meg. A csempékben ott van a
+      `name:hu`, `name:sk`, `name:ro` … mind a kilencé, amin az oldal
+      beszél. Eddig a térkép mindenkinek helyi nyelven szólt.
+   2. A sötét mód igazi sötét térkép, nem a világos csempe letompítva.
+      Eddig szűrővel halványítottuk a képet — tisztességes hegymenet volt,
+      de látszott rajta.
+   3. Nagyítás közben nem mosódik el, és a feliratok a nagyítás minden
+      köztes állapotában élesek.
+
+   Cserébe a könyvtár nagyobb (kb. 200 kB a Leaflet 40-e helyett) és WebGL
+   kell hozzá. Ezért érkezik külön darabban (TerkepKesobb.jsx): akinek nem
+   kell térkép, az le sem tölti.
+
+   A KÖTELEZŐ FORRÁSMEGJELÖLÉS a csempeleírásból jön, és a MapLibre magától
+   kirakja: „OpenFreeMap © OpenMapTiles Data from OpenStreetMap”. Ezt sem
+   elhagyni, sem olvashatatlanra kicsinyíteni nem szabad — ez a licenc
+   feltétele, nem díszítés.
 
    Ugyanez a komponens szolgál szerkesztésre és puszta nézegetésre: ha nincs
    `mod`, akkor a kattintás nem csinál semmit. */
@@ -27,6 +49,22 @@ const htmlBiztos = (szoveg) =>
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
 
+const STILUS = {
+  vilagos: 'https://tiles.openfreemap.org/styles/liberty',
+  sotet: 'https://tiles.openfreemap.org/styles/dark',
+};
+
+const URES = { type: 'FeatureCollection', features: [] };
+
+/* A vonal színét a stíluslap tartja (világos és sötét módban más), a
+   MapLibre viszont kész értéket vár — itt olvassuk ki. */
+const szinValtozo = (nev, tartalek) => {
+  if (typeof window === 'undefined') return tartalek;
+  const ertek = getComputedStyle(document.documentElement).getPropertyValue(nev).trim();
+  return ertek || tartalek;
+};
+
+
 export default function Terkep({
   pontok = [],
   /* A felhasználó által kattintott pontok. Ha meg van adva, a jelölők
@@ -34,7 +72,7 @@ export default function Terkep({
      sűrű vonal, amit nem értelmes pontonként fogdosni. */
   horgonyok = null,
   jelolesek = [],
-  /* Ellátás-rétegek gombjai a térkép jobb alsó sarkában (ivóvíz, megálló).
+  /* Ellátás-rétegek gombjai a térkép bal szélén (ivóvíz, megálló).
      Csak a tervezőn kell — a példaoldalak nézetében nincs értelme. */
   retegGombok = false,
   mod = null,
@@ -50,10 +88,14 @@ export default function Terkep({
 }) {
   const doboz = useRef(null);
   const terkep = useRef(null);
-  const vonalReteg = useRef(null);
-  const jelolesReteg = useRef(null);
-  const ellatasReteg = useRef(null);
-  const vaszon = useRef(null);
+  const buborek = useRef(null);
+  /* Melyik ellátás-pont van épp a buborékban — enélkül minden egérmozdulat
+     újraírná a buborékot, és a kép is újra elindulna. */
+  const buborekKulcs = useRef(null);
+  const kepek = useRef(new Map());
+  const utHorgonyok = useRef([]);
+  const jelolesJelolok = useRef([]);
+  const rajzKeret = useRef(0);
   /* Melyik területre kérdeztünk le utoljára rétegenként — ebből tudjuk, hogy
      az elpásztázott térképhez kell-e új keresés. */
   const utolsoDoboz = useRef({});
@@ -62,6 +104,12 @@ export default function Terkep({
   const [retegAllapot, setRetegAllapot] = useState({});
   const [ujraKell, setUjraKell] = useState(false);
   const [zoomOk, setZoomOk] = useState(true);
+  /* Nő, valahányszor új stíluslap töltődött be (indulás, témaváltás). A
+     rajzoló hatások ebből tudják, hogy a saját forrásaikat újra fel kell
+     tenni: a `setStyle` mindent letöröl, ami a miénk. */
+  const [stilusJel, setStilusJel] = useState(0);
+
+  const sotet = useSotet();
 
   /* A térkép egyszer jön létre, a kattintáskezelő viszont mindig a friss
      propokat kell lássa — ezért ref-en át éri el őket. */
@@ -78,47 +126,252 @@ export default function Terkep({
     retegek,
   };
 
+  /* ---- Kurzor ----
+     A MapLibre a vásznon tartja a kurzort, ezért CSS-ből nem lehet
+     átírni: onnan kell, ahol ő is állítja. */
+  const alapKurzor = () => (friss.current.mod ? 'crosshair' : '');
+  const kurzor = (ertek) => {
+    const m = terkep.current;
+    if (m) m.getCanvas().style.cursor = ertek;
+  };
+
+  /* ---- Kép a látványosság buborékjába ----
+
+     A sorrend: előbb a tizenöt helyben tárolt magyar kép (az már itt van),
+     utána a Wikidata. Szerző nélküli képet nem teszünk ki, mert a
+     megjelölés a licenc feltétele — ilyenkor marad a puszta név. */
+  const kepetKer = (t, kesz) => {
+    const kulcs = `${t.lat},${t.lng}`;
+    if (kepek.current.has(kulcs)) {
+      const tarolt = kepek.current.get(kulcs);
+      if (tarolt) kesz(tarolt);
+      return;
+    }
+    const sajat = helyiKep(t.lat, t.lng);
+    if (sajat) {
+      kepek.current.set(kulcs, sajat);
+      kesz(sajat);
+      return;
+    }
+    if (!t.wikidata) {
+      kepek.current.set(kulcs, null);
+      return;
+    }
+    latvanyKepe(t.wikidata).then((adat) => {
+      kepek.current.set(kulcs, adat?.kep ? adat : null);
+      if (adat?.kep) kesz(adat);
+    });
+  };
+
+  const kepesBuborek = (t, adat) => `
+    <figure class="latvany-buborek">
+      <img src="${htmlBiztos(adat.kep)}" alt="${htmlBiztos(t.nev)}" loading="lazy" width="92" height="92" />
+      <figcaption>
+        <strong>${htmlBiztos(t.nev)}</strong>
+        <span>${htmlBiztos(t.fajta)}</span>
+        <small>${htmlBiztos(adat.szerzo)} · ${htmlBiztos(adat.licenc)}</small>
+      </figcaption>
+    </figure>`;
+
+  /* Ellátás-pont buborékja. Látványosságnál a képet ODAMUTATÁSKOR kérjük
+     el, nem előre: amíg nem érdekel, a böngésződ egyetlen képet sem tölt
+     le. Ha a hely benne van a tizenöt helyben tároltban, még kérdezni sem
+     kell. */
+  const pontBuborek = (jellemzo) => {
+    const m = terkep.current;
+    const p = buborek.current;
+    if (!m || !p) return;
+    const t = jellemzo.properties;
+    const kulcs = `${t.lat},${t.lng}`;
+    if (buborekKulcs.current === kulcs && p.isOpen()) return;
+    buborekKulcs.current = kulcs;
+
+    const latnivalo = t.tipus === 'latnivalo';
+    p.setLngLat(jellemzo.geometry.coordinates);
+    p.setHTML(`<strong>${htmlBiztos(t.nev)}</strong><br>${htmlBiztos(t.jeloles)}`);
+    p.addTo(m);
+    /* Az osztály CSAK a felrakás után fog: addig a buboréknak nincs is
+       doboza, amire rá lehetne tenni — az `addClassName` ilyenkor némán
+       nem csinál semmit. */
+    p.removeClassName(latnivalo ? 'pont-tipp' : 'latvany-tipp');
+    p.addClassName(latnivalo ? 'latvany-tipp' : 'pont-tipp');
+
+    if (latnivalo) {
+      kepetKer(t, (adat) => {
+        /* Mire a kép megjött, már máshol járhat az egér. */
+        if (buborekKulcs.current === kulcs && p.isOpen()) p.setHTML(kepesBuborek(t, adat));
+      });
+    }
+  };
+
+  const buborekotZar = () => {
+    buborekKulcs.current = null;
+    buborek.current?.remove();
+  };
+
+  /* Ujjnyi tűrés: a korongok 5–9 képpontosak, pontosan rájuk koppintani
+     telefonon nem reális. */
+  const pontTalalat = (m, kepernyoPont) => {
+    if (!m.getLayer('ellatas-kor')) return null;
+    const d = 8;
+    const talalt = m.queryRenderedFeatures(
+      [
+        [kepernyoPont.x - d, kepernyoPont.y - d],
+        [kepernyoPont.x + d, kepernyoPont.y + d],
+      ],
+      { layers: ['ellatas-kor'] },
+    );
+    return talalt[0] ?? null;
+  };
+
+  /* ---- A saját rétegeink felrakása ----
+
+     Nem csak induláskor kell: a `setStyle` (témaváltás) letörli az egész
+     stíluslapot, és vele mindent, amit mi tettünk rá. Ezért ez a függvény
+     minden `style.load` után lefut. */
+  const alapokFeltesz = (m) => {
+    const nyom = szinValtozo('--nyom', '#D94F1E');
+    const talp = szinValtozo('--nyom-talp', '#FFFFFF');
+
+    /* Az ellátás-pontok a vonal ALÁ kerülnek: a vonal a látogató munkája,
+       a pontok a környezet. */
+    m.addSource('ellatas', { type: 'geojson', data: URES });
+    m.addLayer({
+      id: 'ellatas-kor',
+      type: 'circle',
+      source: 'ellatas',
+      paint: {
+        /* Három szín, két változat. A tömör és az üreges kör nem szín,
+           hanem forma — színtévesztéssel is elválik, márpedig hat színt
+           megkülönböztethetően nem lehetett kiosztani. */
+        'circle-radius': ['get', 'sugar'],
+        'circle-color': ['get', 'toltes'],
+        'circle-stroke-color': ['get', 'keret'],
+        'circle-stroke-width': ['get', 'keretVastag'],
+      },
+    });
+    /* A látványosság a hetedik réteg, a hat szín-forma páros viszont
+       elfogyott. Ez ezért MÉRETBEN és formában válik el: nagyobb korong,
+       közepén világos maggal — színtévesztéssel is más. */
+    m.addLayer({
+      id: 'ellatas-mag',
+      type: 'circle',
+      source: 'ellatas',
+      filter: ['==', ['get', 'magos'], true],
+      paint: { 'circle-radius': ['get', 'magSugar'], 'circle-color': '#fff' },
+    });
+
+    /* `lineMetrics`: enélkül nincs `line-progress`, és nem lehet
+       megrajzoltatni a vonalat a nézetoldalakon. */
+    m.addSource('ut', { type: 'geojson', lineMetrics: true, data: URES });
+    /* Két vonal egymáson: alul vastag világos „talp”, hogy a sötét
+       erdőfoltokon is elváljon a térképtől. */
+    m.addLayer({
+      id: 'ut-talp',
+      type: 'line',
+      source: 'ut',
+      layout: { 'line-cap': 'round', 'line-join': 'round' },
+      paint: { 'line-color': talp, 'line-width': 9, 'line-opacity': 0.85 },
+    });
+    m.addLayer({
+      id: 'ut-vonal',
+      type: 'line',
+      source: 'ut',
+      layout: { 'line-cap': 'round', 'line-join': 'round' },
+      paint: { 'line-color': nyom, 'line-width': 4 },
+    });
+
+    feliratokNyelve(m);
+  };
+
+  /* A csempékben mind a kilenc nyelv neve benne van. A stíluslap alapból
+     latin betűs helyi nevet ír; itt átírjuk arra, amin az oldal beszél.
+     Ha egy helynek nincs neve az adott nyelven, marad a helyi. */
+  const feliratokNyelve = (m) => {
+    const kod = nyelv();
+    const kifejezes = ['coalesce', ['get', `name:${kod}`], ['get', 'name:latin'], ['get', 'name']];
+    m.getStyle().layers.forEach((r) => {
+      const felirat = r.type === 'symbol' ? r.layout?.['text-field'] : null;
+      if (!felirat) return;
+      /* CSAK a NEVET írjuk át. Az útszámtáblák felirata az útszám
+         (`ref`), nem név: ha azt is lecserélnénk, üres pajzsok
+         maradnának az autópályák mentén — ez elsőre meg is történt. */
+      if (!JSON.stringify(felirat).includes('"name')) return;
+      try {
+        m.setLayoutProperty(r.id, 'text-field', kifejezes);
+      } catch {
+        /* Ha egy réteg nem fogadja, az nem ér semmit — marad az eredeti. */
+      }
+    });
+  };
+
   useEffect(() => {
     if (terkep.current || !doboz.current) return undefined;
 
-    const map = L.map(doboz.current, {
-      center: KEZDO_KOZEP,
+    const m = new MapLibre({
+      container: doboz.current,
+      style: sotet ? STILUS.sotet : STILUS.vilagos,
+      /* A MapLibre hosszúság–szélesség sorrendet vár, fordítva, mint a
+         Leaflet és mint az egész projekt többi része. */
+      center: [KEZDO_KOZEP[1], KEZDO_KOZEP[0]],
       zoom: KEZDO_ZOOM,
-      /* A bal felső sarok a módváltóé és a paletta-soré, ezért a
-         nagyítógombok a másik oldalra kerülnek. */
-      zoomControl: false,
-    });
-    L.control.zoom({ position: 'topright' }).addTo(map);
-    /* A „Leaflet” előtag a könyvtár udvariassági megjelölése, nem licenc-
-       feltétel — azt elhagyjuk. A „© OpenStreetMap közreműködői” viszont
-       KÖTELEZŐ, azt sem rövidíteni, sem elhagyni nem szabad. A „Térkép:”
-       előtag a mi kiegészítésünk volt, az mehet. */
-    map.attributionControl.setPrefix(false);
-    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
-      attribution:
-        `© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> ${sz('terkep.kozremukodoi')}`,
-    }).addTo(map);
-
-    map.on('click', (event) => {
-      const { mod: m, onPontHozzaad: pont, onJelolesHozzaad: jel, ujTipus: tipus } = friss.current;
-      if (m === 'ut') pont?.([event.latlng.lat, event.latlng.lng]);
-      if (m === 'jeloles') jel?.({ lat: event.latlng.lat, lng: event.latlng.lng, tipus });
+      /* Alapból csak a szolgáltatók nevét mutatja, kinyitható gombbal.
+         A forrásmegjelölés licencfeltétel: legyen kint, ne egy gomb
+         mögött. */
+      attributionControl: { compact: false },
     });
 
-    terkep.current = map;
+    /* A bal felső sarok a módváltóé és a paletta-soré, ezért a
+       nagyítógombok a másik oldalra kerülnek. Az iránytű is kell: a
+       vektoros térkép elforgatható, és kell egy út vissza északra. */
+    m.addControl(new NavigationControl({ visualizePitch: true }), 'top-right');
 
-    /* Az ellátás-pontok vászonra rajzolódnak, nem DOM-jelölőként. Négyszáz
-       kör így is simán pásztázható; ugyanennyi hagyományos jelölő telefonon
-       megakasztaná a térképet. */
-    vaszon.current = L.canvas({ padding: 0.3 });
-    ellatasReteg.current = L.layerGroup().addTo(map);
+    buborek.current = new Popup({
+      closeButton: false,
+      closeOnClick: false,
+      maxWidth: '340px',
+      offset: 12,
+    });
 
-    map.on('moveend zoomend', () => {
-      const z = map.getZoom();
+    m.on('style.load', () => {
+      alapokFeltesz(m);
+      setStilusJel((n) => n + 1);
+    });
+
+    m.on('click', (esemeny) => {
+      /* Előbb a rétegpontok: ha ellátás-pontra koppintottak, az a
+         buborékot nyitja, nem új útpontot tesz le. */
+      const talalt = pontTalalat(m, esemeny.point);
+      if (talalt) {
+        pontBuborek(talalt);
+        return;
+      }
+      buborekotZar();
+      const { mod: md, onPontHozzaad: pont, onJelolesHozzaad: jel, ujTipus: tipus } = friss.current;
+      const { lat, lng } = esemeny.lngLat;
+      if (md === 'ut') pont?.([lat, lng]);
+      if (md === 'jeloles') jel?.({ lat, lng, tipus });
+    });
+
+    /* Odamutatásra buborék. `mousemove` és nem `mouseenter`: két egymás
+       melletti korong között az egér ki sem lép a rétegből, tehát a
+       `mouseenter` nem szólna újra. */
+    m.on('mousemove', 'ellatas-kor', (esemeny) => {
+      kurzor('pointer');
+      if (esemeny.features?.[0]) pontBuborek(esemeny.features[0]);
+    });
+    m.on('mouseleave', 'ellatas-kor', () => {
+      kurzor(alapKurzor());
+      buborekotZar();
+    });
+
+    m.on('moveend', () => {
+      const z = m.getZoom();
       const eleg = z >= MIN_ZOOM;
       setZoomOk(eleg);
-      const h = map.getBounds();
+      const h = m.getBounds();
+      const hatarok = { del: h.getSouth(), nyugat: h.getWest(), eszak: h.getNorth(), kelet: h.getEast() };
       const bekapcsolt = Object.entries(friss.current.retegek ?? {}).filter(([, be]) => be);
 
       /* A küszöb alatt nem hagyjuk kint a korábbi találatokat: az a
@@ -140,49 +393,118 @@ export default function Terkep({
       setUjraKell(
         bekapcsolt.some(([id]) => {
           const d = utolsoDoboz.current[id];
-          return !d || !d.contains(h);
+          return !d || !tartalmazza(d, hatarok);
         }),
       );
     });
 
-    vonalReteg.current = L.layerGroup().addTo(map);
-    jelolesReteg.current = L.layerGroup().addTo(map);
-    onKesz?.(map);
+    m.on('load', () => onKesz?.(m));
+
+    terkep.current = m;
 
     return () => {
-      map.remove();
+      cancelAnimationFrame(rajzKeret.current);
+      utHorgonyok.current.forEach((j) => j.remove());
+      utHorgonyok.current = [];
+      jelolesJelolok.current.forEach((j) => j.remove());
+      jelolesJelolok.current = [];
+      m.remove();
       terkep.current = null;
-      vonalReteg.current = null;
-      jelolesReteg.current = null;
+      buborek.current = null;
     };
-    /* Szándékosan üres: a térkép nem születik újra minden propváltozásra. */
+    /* Szándékosan üres: a térkép nem születik újra minden propváltozásra.
+       A `sotet` csak a kezdőstílust választja ki, a váltást a lenti hatás
+       intézi. */
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  /* ---- Témaváltás: másik stíluslap ----
+     Nem szűrő a kész képen, hanem igazi sötét térkép. */
+  useEffect(() => {
+    const m = terkep.current;
+    if (!m) return;
+    const kell = sotet ? STILUS.sotet : STILUS.vilagos;
+    if (m.__stilus === kell) return;
+    m.__stilus = kell;
+    m.setStyle(kell);
+  }, [sotet]);
 
   /* A kurzor jelzi, hogy a kattintás most csinál-e valamit. */
   useEffect(() => {
     if (doboz.current) doboz.current.dataset.mod = mod ?? 'nezet';
+    kurzor(mod ? 'crosshair' : '');
   }, [mod]);
 
   /* ---- Nyomvonal újrarajzolása ---- */
   useEffect(() => {
-    const csoport = vonalReteg.current;
-    if (!csoport) return;
-    csoport.clearLayers();
+    const m = terkep.current;
+    if (!m || !m.getSource('ut')) return;
 
-    if (pontok.length > 1) {
-      /* Két vonal egymáson: alul vastag világos „talp”, hogy a sötét
-         erdőfoltokon is elváljon a térképtől. */
-      L.polyline(pontok, { className: 'ut-talp', weight: 9 }).addTo(csoport);
-      L.polyline(pontok, { className: 'ut-vonal', weight: 4 }).addTo(csoport);
+    m.getSource('ut').setData(
+      pontok.length > 1
+        ? {
+            type: 'Feature',
+            properties: {},
+            geometry: { type: 'LineString', coordinates: pontok.map(([lat, lng]) => [lng, lat]) },
+          }
+        : URES,
+    );
+
+    /* A vonal megrajzolása — csak nézetben.
+
+       Raszteres térképen ez SVG `stroke-dashoffset` volt, CSS-ből. A
+       vektoros vonalat a videokártya rajzolja, oda nem ér el a CSS: a
+       `line-gradient` az, ami megfelel neki. A színátmenet vágópontját
+       toljuk 0-tól 1-ig, a mögötte lévő rész átlátszó. */
+    cancelAnimationFrame(rajzKeret.current);
+    const nyom = szinValtozo('--nyom', '#D94F1E');
+    const talp = szinValtozo('--nyom-talp', '#FFFFFF');
+    const teljes = (szin) => ['interpolate', ['linear'], ['line-progress'], 0, szin, 1, szin];
+
+    const keves =
+      typeof window !== 'undefined' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (friss.current.mod || pontok.length < 2 || keves) {
+      m.setPaintProperty('ut-talp', 'line-gradient', teljes(talp));
+      m.setPaintProperty('ut-vonal', 'line-gradient', teljes(nyom));
+    } else {
+      const HOSSZ = 1100;
+      const indul = performance.now();
+      const lepes = (most) => {
+        const arany = Math.min(1, (most - indul) / HOSSZ);
+        /* Lágy kifutás, ugyanaz a görbe, ami a CSS-ben volt. */
+        const t = Math.max(0.0005, 1 - (1 - arany) ** 3);
+        if (!terkep.current?.getLayer('ut-vonal')) return;
+        const atmenet = (szin) =>
+          t >= 1
+            ? teljes(szin)
+            : [
+                'interpolate', ['linear'], ['line-progress'],
+                0, szin,
+                t, szin,
+                Math.min(1, t + 0.0004), 'rgba(0,0,0,0)',
+                1, 'rgba(0,0,0,0)',
+              ];
+        m.setPaintProperty('ut-talp', 'line-gradient', atmenet(talp));
+        m.setPaintProperty('ut-vonal', 'line-gradient', atmenet(nyom));
+        if (arany < 1) rajzKeret.current = requestAnimationFrame(lepes);
+      };
+      rajzKeret.current = requestAnimationFrame(lepes);
     }
+  }, [pontok, stilusJel]);
+
+  /* ---- Horgonyok: a húzható pontok a vonalon ---- */
+  useEffect(() => {
+    const m = terkep.current;
+    if (!m) return undefined;
 
     /* Ha vannak horgonyok, azokra kerülnek a jelölők; különben magára a
        vonalra. Sűrű vonalnál (betöltött turistaút, megosztott link) csak a
        rajt és a cél kap jelölőt.
 
-       Miért: a Leaflet minden jelölőt újrapozicionál a térkép minden
-       mozdításakor. Kétszázötven húzható jelölő telefonon érezhetően
+       Miért: minden jelölő DOM-elem, amit a térkép minden mozdításakor újra
+       kell pozicionálni. Kétszázötven húzható jelölő telefonon érezhetően
        akadozóvá teszi a pásztázást — mérve 266 jelölő és 761 DOM-elem.
        Cserébe alig veszítünk: egy routolt vonal 137. pontját amúgy sem
        értelmes külön arrébb húzni, azt a szolgáltatás rakta oda.
@@ -191,83 +513,110 @@ export default function Terkep({
        teljesen szerkeszthetők. */
     const jelolendo = horgonyok ?? pontok;
     const suru = !horgonyok && pontok.length > 60;
+    const szerkeszt = Boolean(friss.current.mod);
 
     jelolendo.forEach(([lat, lng], i) => {
       const elso = i === 0;
       const utolso = i === jelolendo.length - 1 && jelolendo.length > 1;
       if (suru && !elso && !utolso) return;
-      const meret = 16;
-      const jel = L.marker([lat, lng], {
-        draggable: Boolean(friss.current.mod),
-        keyboard: false,
-        icon: L.divIcon({
-          className: '',
-          html: `<span class="ut-pont${elso ? ' ut-pont--rajt' : ''}${
-            utolso ? ' ut-pont--cel' : ''
-          }"></span>`,
-          iconSize: [meret, meret],
-          iconAnchor: [meret / 2, meret / 2],
-        }),
-        title: elso ? 'Rajt' : utolso ? sz('terkep.cel') : `${i + 1}. pont`,
-      }).addTo(csoport);
 
-      jel.on('dragend', (e) => {
-        const { lat: y, lng: x } = e.target.getLatLng();
+      const elem = document.createElement('span');
+      elem.className = `ut-pont${elso ? ' ut-pont--rajt' : ''}${utolso ? ' ut-pont--cel' : ''}`;
+      elem.title = elso ? sz('terkep.rajt') : utolso ? sz('terkep.cel') : sz('terkep.hanyadikPont', { n: i + 1 });
+
+      const jel = new Marker({ element: elem, draggable: szerkeszt })
+        .setLngLat([lng, lat])
+        .addTo(m);
+
+      /* A húzás végén a böngésző kattintást is küld. Enélkül az arrébb
+         húzott pont rögtön törlődne. */
+      let mozgott = false;
+      jel.on('dragstart', () => { mozgott = false; });
+      jel.on('drag', () => { mozgott = true; });
+      jel.on('dragend', () => {
+        const { lat: y, lng: x } = jel.getLngLat();
         friss.current.onPontMozgat?.(i, [y, x]);
       });
-      jel.on('contextmenu', (e) => {
-        L.DomEvent.preventDefault(e);
+
+      /* Egyetlen kattintás törli a pontot — ezt kérte a felhasználó. */
+      elem.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (mozgott) { mozgott = false; return; }
+        if (friss.current.mod) friss.current.onPontTorol?.(i);
+      });
+      elem.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
         friss.current.onPontTorol?.(i);
       });
 
-      /* Egyetlen kattintás törli a pontot — ezt kérte a felhasználó.
-         A húzás nem vált ki kattintást, tehát az arrébb húzás nem töröl. */
-      if (friss.current.mod) {
-        jel.on('click', () => friss.current.onPontTorol?.(i));
-      }
+      utHorgonyok.current.push(jel);
     });
-  }, [pontok, horgonyok]);
+
+    return () => {
+      utHorgonyok.current.forEach((j) => j.remove());
+      utHorgonyok.current = [];
+    };
+  }, [pontok, horgonyok, mod]);
 
   /* ---- Jelölések újrarajzolása ---- */
   useEffect(() => {
-    const csoport = jelolesReteg.current;
-    if (!csoport) return;
-    csoport.clearLayers();
+    const m = terkep.current;
+    if (!m) return undefined;
 
     jelolesek.forEach((j, i) => {
-      const jel = L.marker([j.lat, j.lng], {
+      const elem = document.createElement('div');
+      elem.className = 'tu-doboz';
+      elem.innerHTML = tuHtml(j.tipus);
+      if (j.cimke) elem.title = j.cimke;
+
+      const jel = new Marker({
+        element: elem,
+        anchor: 'bottom',
         draggable: Boolean(friss.current.mod),
-        icon: L.divIcon({
-          className: '',
-          html: tuHtml(j.tipus),
-          iconSize: [30, 38],
-          iconAnchor: [15, 38],
-          popupAnchor: [0, -34],
-        }),
-        title: j.cimke || '',
-      }).addTo(csoport);
+      })
+        .setLngLat([j.lng, j.lat])
+        .addTo(m);
 
-      if (j.cimke) jel.bindTooltip(j.cimke, { direction: 'top', offset: [0, -34] });
+      if (j.cimke) {
+        jel.setPopup(
+          new Popup({ closeButton: false, className: 'pont-tipp', offset: 24 })
+            .setHTML(`<strong>${htmlBiztos(j.cimke)}</strong>`),
+        );
+        elem.addEventListener('mouseenter', () => jel.getPopup().addTo(m));
+        elem.addEventListener('mouseleave', () => jel.getPopup().remove());
+      }
 
-      jel.on('dragend', (e) => {
-        const { lat, lng } = e.target.getLatLng();
+      let mozgott = false;
+      jel.on('dragstart', () => { mozgott = false; });
+      jel.on('drag', () => { mozgott = true; });
+      jel.on('dragend', () => {
+        const { lat, lng } = jel.getLngLat();
         friss.current.onJelolesMozgat?.(i, { lat, lng });
       });
-      jel.on('contextmenu', (e) => {
-        L.DomEvent.preventDefault(e);
+
+      elem.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (mozgott) { mozgott = false; return; }
+        if (friss.current.mod) friss.current.onJelolesTorol?.(i);
+      });
+      elem.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
         friss.current.onJelolesTorol?.(i);
       });
 
-      if (friss.current.mod) {
-        jel.on('click', () => friss.current.onJelolesTorol?.(i));
-      }
+      jelolesJelolok.current.push(jel);
     });
-  }, [jelolesek]);
+
+    return () => {
+      jelolesJelolok.current.forEach((j) => j.remove());
+      jelolesJelolok.current = [];
+    };
+  }, [jelolesek, mod]);
 
   /* Itt épült fel korábban a tizenöt magyar látványosság, mindig
      bekapcsolva, letöltött képekkel. Réteg lett belőle (`latvany`), és
      ezzel a világ bármelyik országában működik — a rajzolását a lenti
-     vászonra kerülő rétegek intézik, a képét pedig a kepek.js, kérésre. */
+     körréteg intézi, a képét pedig a kepek.js, kérésre. */
 
   /* ---- Ellátás-rétegek: ivóvíz és megállók a látható területen ----
 
@@ -275,20 +624,18 @@ export default function Terkep({
      csak a gomb bekapcsolására, illetve ha a felhasználó kifejezetten új
      keresést kér az elpásztázott területre. */
   const retegetKer = async (id) => {
-    const map = terkep.current;
-    if (!map) return;
-    if (map.getZoom() < (RETEGEK[id].minZoom ?? MIN_ZOOM)) {
+    const m = terkep.current;
+    if (!m) return;
+    if (m.getZoom() < (RETEGEK[id].minZoom ?? MIN_ZOOM)) {
       setRetegAllapot((e) => ({ ...e, [id]: { allapot: 'tavol' } }));
       return;
     }
     setRetegAllapot((e) => ({ ...e, [id]: { allapot: 'keres' } }));
-    const h = map.getBounds();
+    const h = m.getBounds();
+    const hatarok = { del: h.getSouth(), nyugat: h.getWest(), eszak: h.getNorth(), kelet: h.getEast() };
     try {
-      const t = await teruleten(
-        { del: h.getSouth(), nyugat: h.getWest(), eszak: h.getNorth(), kelet: h.getEast() },
-        id,
-      );
-      utolsoDoboz.current[id] = h;
+      const t = await teruleten(hatarok, id);
+      utolsoDoboz.current[id] = hatarok;
       setUjraKell(false);
       setRetegAllapot((e) => ({
         ...e,
@@ -299,68 +646,23 @@ export default function Terkep({
     }
   };
 
-  /* Kép a látványosság buborékjába — odamutatáskor, egyszer.
+  /* ---- A bekapcsolt rétegek pontjai egyetlen forrásban ----
 
-     A sorrend: előbb a tizenöt helyben tárolt magyar kép (az már itt van),
-     utána a Wikidata. Szerző nélküli képet nem teszünk ki, mert a
-     megjelölés a licenc feltétele — ilyenkor marad a puszta név. */
-  const kepetKes = (kor, x) => {
-    let kertuk = false;
-
-    const mutasd = (adat) => {
-      if (!adat?.kep) return;
-      kor.setTooltipContent(
-        `<figure class="latvany-buborek">
-           <img src="${htmlBiztos(adat.kep)}" alt="${htmlBiztos(x.nev)}" loading="lazy" width="92" height="92" />
-           <figcaption>
-             <strong>${htmlBiztos(x.nev)}</strong>
-             <span>${htmlBiztos(x.fajta)}</span>
-             <small>${htmlBiztos(adat.szerzo)} · ${htmlBiztos(adat.licenc)}</small>
-           </figcaption>
-         </figure>`,
-      );
-    };
-
-    const keres = () => {
-      if (kertuk) return;
-      kertuk = true;
-      const helyi = helyiKep(x.lat, x.lng);
-      if (helyi) {
-        mutasd(helyi);
-        return;
-      }
-      if (!x.wikidata) return;
-      latvanyKepe(x.wikidata).then(mutasd);
-    };
-
-    kor.on('mouseover', keres);
-    kor.on('click', keres);
-  };
-
-  /* A vászonra rajzolás: minden bekapcsolt réteg pontjai egy csoportban. */
+     Eddig minden pont külön rajzolt elem volt vásznon. Itt egyetlen
+     GeoJSON-forrás van, és a videokártya rajzolja — négyszáz korong
+     ugyanannyiba kerül, mint négy. */
   useEffect(() => {
-    const csoport = ellatasReteg.current;
-    if (!csoport) return;
-    csoport.clearLayers();
+    const m = terkep.current;
+    if (!m || !m.getSource('ellatas')) return;
 
+    const jellemzok = [];
     Object.entries(retegek).forEach(([id, be]) => {
       if (!be) return;
       const allapot = retegAllapot[id];
       if (allapot?.allapot !== 'kesz') return;
-      const { szin, sugar, tomor } = RETEGEK[id];
+      const { szin, sugar, tomor, magos } = RETEGEK[id];
 
       allapot.lista.forEach((x) => {
-        /* Három szín, két változat. A tömör és az üreges kör nem szín,
-           hanem forma — színtévesztéssel is elválik, márpedig hat színt
-           megkülönböztethetően nem lehetett kiosztani. */
-        const kor = L.circleMarker([x.lat, x.lng], {
-          renderer: vaszon.current,
-          radius: sugar,
-          weight: tomor ? 2 : 3,
-          color: tomor ? '#fff' : szin,
-          fillColor: tomor ? szin : '#fff',
-          fillOpacity: 1,
-        });
         /* Az ivhatóságot itt is ki kell mondani: a forrás lehet kiszáradva
            vagy nem ivóvízminőségű. */
         const jeloles =
@@ -371,44 +673,44 @@ export default function Terkep({
               : x.tipus === 'forras'
                 ? sz('viz.nincsAdat')
                 : x.fajta;
-        kor.bindTooltip(`<strong>${htmlBiztos(x.nev)}</strong><br>${htmlBiztos(jeloles)}`, {
-          direction: 'top',
-          className: 'pont-tipp',
+
+        jellemzok.push({
+          type: 'Feature',
+          geometry: { type: 'Point', coordinates: [x.lng, x.lat] },
+          properties: {
+            nev: x.nev ?? '',
+            fajta: x.fajta ?? '',
+            jeloles,
+            tipus: x.tipus ?? '',
+            wikidata: x.wikidata ?? '',
+            lat: x.lat,
+            lng: x.lng,
+            sugar,
+            toltes: tomor ? szin : '#fff',
+            keret: tomor ? '#fff' : szin,
+            keretVastag: tomor ? 2 : 3,
+            magos: Boolean(magos),
+            magSugar: Math.max(2, sugar - 5),
+          },
         });
-
-        /* Látványosságnál a képet ODAMUTATÁSKOR kérjük el, nem előre: amíg
-           nem érdekel, a böngésződ egyetlen képet sem tölt le. Ha a hely
-           benne van a tizenöt helyben tároltban, még kérdezni sem kell. */
-        if (x.tipus === 'latnivalo') kepetKes(kor, x);
-
-        kor.addTo(csoport);
-
-        /* A látványosság a hetedik réteg, a hat szín-forma páros viszont
-           elfogyott. Ez ezért MÉRETBEN és formában válik el: nagyobb
-           korong, közepén világos maggal — színtévesztéssel is más.
-
-           A mag a korong UTÁN kerül a csoportba, különben alatta maradna:
-           a vászon abban a sorrendben rajzol, ahogy megkapja. */
-        if (RETEGEK[id].magos) {
-          L.circleMarker([x.lat, x.lng], {
-            renderer: vaszon.current,
-            radius: Math.max(2, sugar - 5),
-            weight: 0,
-            fillColor: '#fff',
-            fillOpacity: 1,
-            interactive: false,
-          }).addTo(csoport);
-        }
       });
     });
-  }, [retegek, retegAllapot]);
+
+    buborekotZar();
+    m.getSource('ellatas').setData({ type: 'FeatureCollection', features: jellemzok });
+  }, [retegek, retegAllapot, stilusJel]);
 
   /* ---- Ráközelítés kérésre ---- */
   useEffect(() => {
-    if (!illeszt || !terkep.current) return;
-    const osszes = [...pontok.map(([lat, lng]) => [lat, lng]), ...jelolesek.map((j) => [j.lat, j.lng])];
+    const m = terkep.current;
+    if (!illeszt || !m) return;
+    const osszes = [...pontok.map(([lat, lng]) => [lng, lat]), ...jelolesek.map((j) => [j.lng, j.lat])];
     if (osszes.length === 0) return;
-    terkep.current.fitBounds(L.latLngBounds(osszes), { padding: [56, 56], maxZoom: 16 });
+    const hatar = osszes.reduce(
+      (h, [lng, lat]) => new LngLatBounds(h.getSouthWest(), h.getNorthEast()).extend([lng, lat]),
+      new LngLatBounds(osszes[0], osszes[0]),
+    );
+    m.fitBounds(hatar, { padding: 56, maxZoom: 16, duration: 0 });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [illeszt]);
 

@@ -4,14 +4,21 @@
    eltárolja az oldalt és a már megnézett térképszeleteket, hogy jel nélkül is
    megnyíljon, amit korábban láttál.
 
-   Amit NEM csinál: nem tölt le előre térképet. Az OpenStreetMap csempéinek
-   tömeges letöltése tilos, és jogos okból — közösségi, ingyenes szolgáltatás.
-   Csak azt tartjuk meg, amit a böngésződ amúgy is lekért, amikor nézted. */
+   Amit NEM csinál: nem tölt le előre térképet. A csempék közösségi,
+   ingyenes szolgáltatásból jönnek (OpenFreeMap, OpenStreetMap-adatból), és
+   a tömeges letöltésük tilos — jogos okból. Csak azt tartjuk meg, amit a
+   böngésződ amúgy is lekért, amikor nézted. */
 
-const VERZIO = 'v5';
+const VERZIO = 'v6';
 const VAZ = `turabakancs-vaz-${VERZIO}`;
 const CSEMPE = `turabakancs-csempe-${VERZIO}`;
+/* A stíluslap, a jelkészlet és a betűk nem csempék: kicsik, és NÉLKÜLÜK a
+   térkép el sem indul. Ezért külön tárban ülnek, amit nem nyirbálunk —
+   különben egy hosszabb pásztázás kiszoríthatná őket, és a völgyben épp
+   az hiányozna, ami az egészet összerakja. */
+const VAZLAT = `turabakancs-terkepvaz-${VERZIO}`;
 const CSEMPE_MAX = 600;
+const CSEMPE_GAZDA = 'tiles.openfreemap.org';
 
 self.addEventListener('install', (e) => {
   e.waitUntil(
@@ -46,10 +53,15 @@ self.addEventListener('fetch', (e) => {
   if (request.method !== 'GET') return;
   const url = new URL(request.url);
 
-  /* Térképcsempe: előbb a tárból, mert a hegyen ez a lényeg. */
-  if (/tile\.openstreetmap\.org$/.test(url.hostname)) {
+  /* Térkép: előbb a tárból, mert a hegyen ez a lényeg.
+
+     A csempék vektorosak (.pbf), és egy dolgozószálból kérődnek —
+     a service worker azokat is látja. A stíluslap, a jelkészlet és a
+     betűkészlet a nem nyirbált tárba megy. */
+  if (url.hostname === CSEMPE_GAZDA) {
+    const vazlate = /^\/(styles|sprites|fonts)\//.test(url.pathname);
     e.respondWith(
-      caches.open(CSEMPE).then(async (c) => {
+      caches.open(vazlate ? VAZLAT : CSEMPE).then(async (c) => {
         const tarolt = await c.match(request);
         if (tarolt) return tarolt;
         try {
@@ -60,7 +72,7 @@ self.addEventListener('fetch', (e) => {
              semmit nem tárolnánk el. */
           if (valasz.ok || valasz.type === 'opaque') {
             c.put(request, valasz.clone());
-            csempetNyirbal();
+            if (!vazlate) csempetNyirbal();
           }
           return valasz;
         } catch {

@@ -31,6 +31,7 @@
 
   --nyom:        #D94F1E;  /* a megrajzolt vonal színe */
   --nyom-ink:    #A8380F;  /* ugyanez szövegként, sötétítve */
+  --nyom-talp:   #FFFFFF;  /* a vonal alatti világos talp – a térkép rajzolja */
 
   /* Tanácsok három szintje. Mind mérve a saját lágy hátterén is. */
   --figyelem:      #8A5500;  /* 5,3:1 a lágy háttéren */
@@ -104,7 +105,7 @@
     --gomb-keret: #6F746B;
     --ink: #ECEFE7; --ink-2: #C4CABE; --muted: #8C9385;
     --accent: #86C28E; --accent-ink: #86C28E; --accent-soft: #22301F; --on-accent: #0E1A10;
-    --nyom: #F0824B; --nyom-ink: #F0824B;
+    --nyom: #F0824B; --nyom-ink: #F0824B; --nyom-talp: #10130E;
     --logo-zold: #5FA05A; --logo-talp: #C99A3F;
     --figyelem: #E0A83C; --figyelem-lagy: #2A2213;
     --fontos: #F0824B; --fontos-lagy: #2C1B14;
@@ -119,7 +120,7 @@
   --gomb-keret: #6F746B;
   --ink: #ECEFE7; --ink-2: #C4CABE; --muted: #8C9385;
   --accent: #86C28E; --accent-ink: #86C28E; --accent-soft: #22301F; --on-accent: #0E1A10;
-  --nyom: #F0824B; --nyom-ink: #F0824B;
+  --nyom: #F0824B; --nyom-ink: #F0824B; --nyom-talp: #10130E;
   --logo-zold: #5FA05A; --logo-talp: #C99A3F;
   --figyelem: #E0A83C; --figyelem-lagy: #2A2213;
   --fontos: #F0824B; --fontos-lagy: #2C1B14;

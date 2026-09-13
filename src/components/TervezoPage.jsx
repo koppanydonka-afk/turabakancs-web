@@ -77,7 +77,7 @@ export default function TervezoPage() {
 
      Maga a hőmérséklet a fejlécben látszik, ezért a helyet oda adjuk át.
 
-     A kiindulás a térkép alaphelye, nem `null`: a Leaflet külön darabban
+     A kiindulás a térkép alaphelye, nem `null`: a térkép külön darabban
      érkezik, és ha a fokot is megvárnánk vele, másodpercekkel később
      jelenne meg. Amint a térkép kész, felülírja a tényleges közepével. */
   const [terkepKozep, setTerkepKozep] = useState(KEZDO_KOZEP);
@@ -500,7 +500,7 @@ export default function TervezoPage() {
                     {/* 1. A kérdés */}
                     <HonnanHova
                       onUgras={(pont, { kozeli: kell } = {}) => {
-                        terkep.current?.setView(pont, 13);
+                        terkep.current?.flyTo({ center: [pont[1], pont[0]], zoom: 13 });
                         if (kell) setKozeli(kozeliTurak(pont));
                         setNyitottLap(null);
                       }}
@@ -594,7 +594,7 @@ export default function TervezoPage() {
                             megjegyez();
                             setJelolesek((e) => e.filter((_, n) => n !== i));
                           }}
-                          onOdaugrik={(j) => terkep.current?.setView([j.lat, j.lng], 16)}
+                          onOdaugrik={(j) => terkep.current?.flyTo({ center: [j.lng, j.lat], zoom: 16 })}
                         />
                       </div>
                     </details>

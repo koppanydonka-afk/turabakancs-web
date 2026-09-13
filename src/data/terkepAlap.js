@@ -1,7 +1,7 @@
 /* Ahol a térkép indul, ha nincs megosztott útvonal.
 
    Saját modul, mert nem csak a térképnek kell: a tervező is ebből tudja,
-   hova kérdezze a hőmérsékletet, még MIELŐTT a Leaflet betöltődne. A
+   hova kérdezze a hőmérsékletet, még MIELŐTT a térkép betöltődne. A
    térkép komponense külön darabban érkezik (lásd TerkepKesobb.jsx), és ha
    ezért a fejléc foka is megvárná, másodpercekkel később jelenne meg. */
 

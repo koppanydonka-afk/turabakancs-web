@@ -30,7 +30,8 @@ export async function osvenyreHuz(pontok) {
     );
   }
 
-  /* Az OSRM hosszúság–szélesség sorrendet vár, fordítva, mint a Leaflet. */
+  /* Az OSRM hosszúság–szélesség sorrendet vár, fordítva, mint ahogy a
+     projekt a pontokat tartja. */
   const koordinatak = pontok.map(([lat, lng]) => `${lng.toFixed(6)},${lat.toFixed(6)}`).join(';');
 
   let valasz;
@@ -58,7 +59,7 @@ export async function osvenyreHuz(pontok) {
 
   const ut = adat.routes[0];
   return {
-    /* Vissza Leaflet-sorrendbe. */
+    /* Vissza szélesség–hosszúság sorrendbe. */
     pontok: ut.geometry.coordinates.map(([lng, lat]) => [lat, lng]),
     km: ut.distance / 1000,
     /* Az OSRM saját menetidő-becslése; mi a sajátunkat használjuk, de

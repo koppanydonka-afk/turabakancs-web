@@ -1,7 +1,7 @@
 /* Egy útvonal rajza — térkép nélkül.
 
-   MIÉRT NEM TÉRKÉP: a főoldalnak gyorsan kell betöltenie, a Leaflet pedig
-   163 kilobájt. Ez a rajz a példa VALÓDI pontjaiból készül, ugyanabból az
+   MIÉRT NEM TÉRKÉP: a főoldalnak gyorsan kell betöltenie, a térkép
+   könyvtára pedig kétszáz kilobájt, és WebGL kell hozzá. Ez a rajz a példa VALÓDI pontjaiból készül, ugyanabból az
    adatból, amiből a tervező dolgozik — tehát nem illusztráció, hanem az,
    ami tényleg kijön. Néhány száz bájt, és nincs hozzá idegen kérés.
 

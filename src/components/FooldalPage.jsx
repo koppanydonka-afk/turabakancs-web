@@ -58,8 +58,8 @@ export default function FooldalPage() {
           A főoldalon eddig egyetlen térkép sem volt, pedig ez egy térképes
           eszköz. Ez a rajz a példa VALÓDI pontjaiból készül — ugyanabból az
           adatból, amiből a tervező dolgozik —, tehát nem illusztráció,
-          hanem az, ami tényleg kijön belőle. Leaflet nélkül, pár száz
-          bájtból: a főoldalnak gyorsan kell betöltenie. */}
+          hanem az, ami tényleg kijön belőle. Térképkönyvtár nélkül, pár
+          száz bájtból: a főoldalnak gyorsan kell betöltenie. */}
       {kiemelt && (
         <section className="pelda-sav" data-feltun>
           <div className="pelda-sav__rajz">

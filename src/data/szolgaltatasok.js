@@ -165,10 +165,11 @@ function egyesit(lista) {
      Budai-hegység       143 ivóvíz,  485 megálló
      Pilis               115 ivóvíz,   82 megálló
 
-   A projekt korábbi mérése szerint 266 hagyományos Leaflet-jelölő már
+   A projekt korábbi mérése szerint 266 hagyományos DOM-jelölő már
    érezhetően akasztja a pásztázást telefonon. Ezért itt NEM jelölőt
-   rajzolunk, hanem vászonra rajzolt köröket (`circleMarker` + `L.canvas`),
-   amiből ezer is elfér akadás nélkül — és a darabszámot is korlátozzuk.
+   rajzolunk, hanem egyetlen GeoJSON-forrás korongjait, amiket a
+   videokártya rajzol — abból ezer is elfér akadás nélkül. A darabszámot
+   ettől függetlenül korlátozzuk: az Overpass kedvéért.
 
    Nagyítási alsó határ is van: fél országnyi területre nincs értelme
    lekérdezni, se a felhasználónak, se az Overpassnak. */
@@ -346,7 +347,9 @@ const GYORSITO_MS = 15 * 60 * 1000;
 const GYORSITO_MAX = 24;
 const gyorsito = [];
 
-const tartalmazza = (kulso, belso) =>
+/* Benne van-e a belső doboz a külsőben? A térkép is ezt kérdezi: abból
+   tudja, hogy az elpásztázott kivágathoz kell-e új lekérdezés. */
+export const tartalmazza = (kulso, belso) =>
   kulso.del <= belso.del &&
   kulso.nyugat <= belso.nyugat &&
   kulso.eszak >= belso.eszak &&

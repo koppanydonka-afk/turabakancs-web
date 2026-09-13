@@ -319,13 +319,12 @@ body.nincs-gorgetes { overflow: hidden; }
 }
 .terkep__sug--rejtve { opacity: 0; }
 
-/* ---- A térképre rajzolt elemek ---- */
-.ut-talp { stroke: #FFFFFF; opacity: .85; stroke-linecap: round; stroke-linejoin: round; }
-.ut-vonal { stroke: var(--nyom); stroke-linecap: round; stroke-linejoin: round; }
-:root[data-tema='sotet'] .ut-talp { stroke: #10130E; }
-@media (prefers-color-scheme: dark) {
-  :root:not([data-tema='vilagos']) .ut-talp { stroke: #10130E; }
-}
+/* ---- A térképre rajzolt elemek ----
+
+   A nyomvonal két vonalát (talp + szín) a videokártya rajzolja, nem az
+   SVG: a színét a `--nyom` és a `--nyom-talp` jelöli ki, kiolvasva a
+   Terkep.jsx-ből. Ide ezért csak az kerül, ami DOM marad: a horgonyok
+   és a jelölőtűk. */
 
 .ut-pont {
   display: block;
@@ -344,6 +343,10 @@ body.nincs-gorgetes { overflow: hidden; }
 }
 .ut-pont--rajt { background: var(--nyom); border-color: #fff; }
 .ut-pont--cel { background: var(--accent); border-color: #fff; }
+
+/* A tű hegye a pontra kerül, ezért a MapLibre-nek egy alsó élére
+   horgonyzott doboz kell: a tű 30 képpont, a lelógó hegy még nyolc. */
+.tu-doboz { position: relative; width: 30px; height: 38px; }
 
 .tu {
   position: relative;
@@ -368,37 +371,51 @@ body.nincs-gorgetes { overflow: hidden; }
   stroke-linecap: round; stroke-linejoin: round;
 }
 
-/* A Leaflet saját forrásmegjelölése illeszkedjen a felülethez. */
-/* Sötét módban a csempék nyers fényereje kiabál a sötét felület mellett.
-   Nem invertáljuk (attól olvashatatlan lenne a térkép), csak tompítjuk. */
-:root[data-tema='sotet'] .leaflet-tile-pane {
-  filter: brightness(.82) saturate(.85) contrast(1.04);
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-tema='vilagos']) .leaflet-tile-pane {
-    filter: brightness(.82) saturate(.85) contrast(1.04);
-  }
-}
+/* ---------- A MapLibre saját felülete ----------
 
-.leaflet-container { font: inherit; font-size: var(--text-xs); }
-.leaflet-control-attribution {
-  background: color-mix(in srgb, var(--surface) 85%, transparent) !important;
+   Sötét módban itt korábban szűrő ült a kész csempéken. Most nincs rá
+   szükség: a sötét mód SAJÁT stíluslapot kap (lásd Terkep.jsx), vagyis
+   igazi sötét térképet, nem letompított világosat.
+
+   A MapLibre stíluslapja a saját, késve érkező darabjában van, tehát a
+   köteg VÉGÉN áll — azonos fajsúlynál ő nyerne. Ezért mindent a térkép
+   dobozán keresztül címzünk: eggyel feljebb vesszük a fajsúlyt.
+   (Ugyanezen bukott el korábban a forrásmegjelölés olvashatósága.) */
+.terkep.maplibregl-map { font: inherit; font-size: var(--text-xs); }
+
+.terkep .maplibregl-ctrl.maplibregl-ctrl-attrib {
+  /* 92%, nem 85%: a doboz a térképen ül, és a térkép mögötte bármilyen
+     színű lehet. Mérve a legvilágosabb sötét módú foltra is 4,9:1 a
+     szöveg — a forrásmegjelölés licencfeltétel, olvashatónak kell
+     lennie minden kivágaton. */
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
   color: var(--muted);
   /* Kisebb, mert zavaró volt — de nem tetszőlegesen kicsi: a forrás-
      megjelölés licencfeltétel, olvashatónak kell maradnia. Tíz képpont
      alá ezért nem megyünk. */
-  font-size: 10px !important;
+  font-size: 10px;
   line-height: 1.5;
-  padding: 1px 6px !important;
+  padding: 1px 6px;
 }
-/* A Leaflet saját szabálya azonos fajsúlyú a miénkkel, és a köteg végén
-   áll — így sötét módban ő nyert: a szöveg #333 maradt (1,28:1 a sötét
-   háttéren, gyakorlatilag olvashatatlan), a link meg Leaflet-kék. A
-   térképre hivatkozva egy szinttel feljebb vesszük a fajsúlyt.
+.terkep .maplibregl-ctrl-attrib a { color: var(--accent-ink); }
+.terkep .maplibregl-ctrl-attrib a:hover { color: var(--accent-ink); }
 
-   A forrásmegjelölés licencfeltétel: olvashatónak kell lennie. */
-.leaflet-container .leaflet-control-attribution { color: var(--muted); }
-.leaflet-container .leaflet-control-attribution a { color: var(--accent-ink); }
+/* Nagyító és iránytű. */
+.terkep .maplibregl-ctrl-group {
+  background: var(--surface);
+  border-radius: var(--radius-md);
+  box-shadow: var(--lap-keret), var(--lap-arnyek);
+}
+.terkep .maplibregl-ctrl-group button + button { border-top-color: var(--line); }
+.terkep .maplibregl-ctrl button:not(:disabled):hover { background-color: var(--surface-2); }
+/* A gombok ikonjai beégetett sötét rajzok. Sötét felületen megfordítjuk
+   őket, különben feketén ülnének a sötét gombon. */
+:root[data-tema='sotet'] .terkep .maplibregl-ctrl-icon { filter: invert(1) hue-rotate(180deg); }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-tema='vilagos']) .terkep .maplibregl-ctrl-icon {
+    filter: invert(1) hue-rotate(180deg);
+  }
+}
 
 /* ---------- Oldalsó panel ---------- */
 .panel {
@@ -1301,23 +1318,39 @@ input::placeholder { color: var(--muted); }
   transition: transform var(--duration) var(--ease-out);
 }
 .latvany-jel svg { width: 15px; height: 15px; fill: currentColor; }
-.leaflet-marker-icon:hover .latvany-jel { transform: scale(1.15); }
+.maplibregl-marker:hover .latvany-jel { transform: scale(1.15); }
 
-/* A Leaflet saját buborékdobozát lecsupaszítjuk, a formát mi adjuk. */
-.latvany-tipp.leaflet-tooltip {
-  padding: 0;
-  border: 0;
-  /* A Leaflet 200 képpontra szorítja a buborékokat; a kép + szöveg ennél
-     többet kíván, különben a szerző neve szilánkokra törik. */
-  max-width: 340px;
-  width: max-content;
-  border-radius: var(--radius-lg);
+/* A MapLibre saját buborékdobozát lecsupaszítjuk, a formát mi adjuk. */
+.terkep .maplibregl-popup-content {
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
   background: var(--surface);
   box-shadow: var(--lap-keret), var(--shadow-lift);
   color: var(--ink);
-  white-space: normal;
+  font-size: var(--text-xs);
+  line-height: 1.45;
+  width: max-content;
+  max-width: 340px;
 }
-.latvany-tipp.leaflet-tooltip::before { display: none; }
+/* A buborék csak mutat: az egér menjen át rajta a térképre, különben a
+   pont fölött megjelenő doboz maga venné el a saját elhagyását. */
+.terkep .maplibregl-popup { pointer-events: none; }
+
+/* A képes buborék a saját keretét hozza, ezért itt nem kell belső tér. */
+.terkep .latvany-tipp .maplibregl-popup-content {
+  padding: 0;
+  border-radius: var(--radius-lg);
+}
+
+/* A nyilacska ugyanabból a felületszínből, mint a doboz. */
+.terkep .maplibregl-popup-anchor-top .maplibregl-popup-tip,
+.terkep .maplibregl-popup-anchor-top-left .maplibregl-popup-tip,
+.terkep .maplibregl-popup-anchor-top-right .maplibregl-popup-tip { border-bottom-color: var(--surface); }
+.terkep .maplibregl-popup-anchor-bottom .maplibregl-popup-tip,
+.terkep .maplibregl-popup-anchor-bottom-left .maplibregl-popup-tip,
+.terkep .maplibregl-popup-anchor-bottom-right .maplibregl-popup-tip { border-top-color: var(--surface); }
+.terkep .maplibregl-popup-anchor-left .maplibregl-popup-tip { border-right-color: var(--surface); }
+.terkep .maplibregl-popup-anchor-right .maplibregl-popup-tip { border-left-color: var(--surface); }
 
 .latvany-buborek {
   margin: 0;
@@ -1473,14 +1506,6 @@ input::placeholder { color: var(--muted); }
 }
 
 /* ---------- Törlőbuborék a térképen ---------- */
-.pont-tipp .leaflet-popup-content-wrapper {
-  border-radius: var(--radius-md);
-  background: var(--surface);
-  box-shadow: var(--lap-keret), var(--shadow-lift);
-  color: var(--ink);
-}
-.pont-tipp .leaflet-popup-content { margin: 0; }
-.pont-tipp .leaflet-popup-tip { background: var(--surface); }
 .pont-buborek {
   display: flex;
   align-items: center;
@@ -1633,26 +1658,21 @@ input::placeholder { color: var(--muted); }
 .pirula:active,
 .fulek__gomb:active { transform: scale(.97); }
 
-/* ---------- A vonal megrajzolása (csak nézetben) ---------- */
-.terkep[data-mod='nezet'] .ut-vonal,
-.terkep[data-mod='nezet'] .ut-talp {
-  stroke-dasharray: 6000;
-  stroke-dashoffset: 6000;
-  animation: vonalRajz 1100ms var(--ease-out) 120ms forwards;
-}
-@keyframes vonalRajz { to { stroke-dashoffset: 0; } }
+/* A vonal megrajzolása a nézetoldalakon innentől nem CSS: a vektoros
+   vonalat a videokártya rajzolja, oda a `stroke-dashoffset` nem ér el.
+   A Terkep.jsx `line-gradient`-tel csinálja ugyanazt — a kevesebb
+   mozgást kérőknek ott is rögtön kész a vonal. */
 
 /* ---------- Kártyák és listaelemek ---------- */
 .kartya { animation: beuszik 340ms var(--ease-out) both; }
 .velemeny-lista > *, .turak__elem { animation: beuszik 280ms var(--ease-out) both; }
 
 /* ---------- Buborékok a térképen ----------
-   FIGYELEM: itt CSAK az átlátszóságot szabad animálni. A Leaflet a
-   buborékokat `transform: translate3d(...)` értékkel helyezi el, és a
+   FIGYELEM: itt CSAK az átlátszóságot szabad animálni. A MapLibre a
+   buborékokat `transform: translate(...)` értékkel helyezi el, és a
    `beuszik` animáció `transform: none` végállapota ezt felülírná — a
    buborék ilyenkor a térkép bal felső sarkába ugrik. */
-.latvany-tipp.leaflet-tooltip,
-.pont-tipp.leaflet-popup { animation: halkanElo 200ms var(--ease-out) both; }
+.terkep .maplibregl-popup { animation: halkanElo 200ms var(--ease-out) both; }
 
 @keyframes halkanElo {
   from { opacity: 0; }
@@ -1672,8 +1692,6 @@ input::placeholder { color: var(--muted); }
     scroll-behavior: auto !important;
   }
   .mozgas [data-feltun] { opacity: 1 !important; transform: none !important; }
-  .terkep[data-mod='nezet'] .ut-vonal,
-  .terkep[data-mod='nezet'] .ut-talp { stroke-dasharray: none; stroke-dashoffset: 0; }
 }
 
 /* ---------- „Honnan hova” a panelen ---------- */

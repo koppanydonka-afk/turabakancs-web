@@ -39,5 +39,33 @@ const feliratkozas = (f) => {
   return () => figyelok.delete(f);
 };
 
+/* Sötét-e MOST a felület — a rendszerbeállítást is beleszámítva.
+
+   A CSS-nek elég a `data-tema` attribútum és a médialekérdezés, a
+   térképnek viszont nem: a MapLibre-nek egész stíluslapot kell váltania,
+   ahhoz pedig egy igen/nem kell. Ez a horog azt adja meg, és akkor is
+   szól, ha a látogató a rendszer szintjén vált sötétre. */
+export function useSotet() {
+  return useSyncExternalStore(
+    (ertesit) => {
+      figyelok.add(ertesit);
+      const mq = window.matchMedia('(prefers-color-scheme: dark)');
+      mq.addEventListener('change', ertesit);
+      return () => {
+        figyelok.delete(ertesit);
+        mq.removeEventListener('change', ertesit);
+      };
+    },
+    () => {
+      const t = olvas();
+      if (t === 'sotet') return true;
+      if (t === 'vilagos') return false;
+      return window.matchMedia('(prefers-color-scheme: dark)').matches;
+    },
+    /* Előállításkor nincs böngésző: a világos a kiindulás. */
+    () => false,
+  );
+}
+
 export const useTema = () =>
   useSyncExternalStore(feliratkozas, () => olvas() ?? 'rendszer', () => 'rendszer');
