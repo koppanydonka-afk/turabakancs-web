@@ -858,9 +858,8 @@ input::placeholder { color: var(--muted); }
 
 /* ---------- Szóvédjegy ---------- */
 .vedjegy__lockup {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 0;
+  display: inline-block;
+  position: relative;
   font-family: var(--font-vedjegy);
   font-weight: 800;
   font-size: var(--vj-magassag);
@@ -868,18 +867,59 @@ input::placeholder { color: var(--muted); }
   letter-spacing: -0.015em;
   color: var(--ink);
   white-space: nowrap;
+  /* Alul helyet hagyunk a nyomvonalnak, balra és jobbra a két pontnak.
+     Minden `em`-ben: a jel a szöveggel együtt nő. */
+  padding: 0 0.16em 0.46em;
 }
-.vedjegy__betuk { display: inline-block; }
-.vedjegy__bakancs {
-  /* A bakancs a „k” helyén áll, ezért a betűk magasságához igazodik, nem a sorhoz. */
-  height: calc(var(--vj-magassag) * 1.02);
-  width: auto;
-  align-self: flex-end;
-  margin: 0 0.02em;
-  transform: translateY(0.07em);
+.vedjegy__szo { display: block; }
+
+/* A nyomvonal doboza pontosan a szó alatt és két oldalán. A vonal ennek a
+   bal alsó sarkából megy a jobb felsőbe, a pontok ugyanezekhez a
+   sarkokhoz tapadnak — így nincs kézzel belőtt eltolás. */
+.vedjegy__ut {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 0.46em;
 }
-.vedjegy__bor { fill: var(--logo-zold); }
-.vedjegy__talp { fill: var(--logo-talp); }
+.vedjegy__vonal {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.vedjegy__vonal path {
+  fill: none;
+  stroke: var(--accent-ink);
+  /* Hajszálvékony a fejlécben, de sosem tűnik el: a felismerést amúgy is
+     a két pont viszi. */
+  stroke-width: max(1.4px, 0.055em);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.vedjegy__rajt,
+.vedjegy__cel {
+  position: absolute;
+  width: 0.19em;
+  height: 0.19em;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+/* A vonal a viewBox 18,6/20 magasságában indul és 1,7/20-ban ér véget —
+   a pontok ugyanezen az arányon ülnek. */
+.vedjegy__rajt {
+  left: 0;
+  top: 93%;
+  background: var(--surface);
+  box-shadow: inset 0 0 0 max(1.4px, 0.05em) var(--accent-ink);
+}
+.vedjegy__cel {
+  left: 100%;
+  top: 8.5%;
+  background: var(--logo-talp);
+}
 
 /* ---------- Főoldal ---------- */
 .fooldal {
