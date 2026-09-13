@@ -986,7 +986,10 @@ input::placeholder { color: var(--muted); }
     grid-template-rows: subgrid;
   }
 }
-.tud__cim { margin: 0; font-size: var(--text-lg); text-wrap: balance; }
+/* Nem `--text-lg`: az négyoszlopos rácsban, 272 képpontos kártyán
+   túl nagy — a cím két-három sorra tört, és elnyomta a szöveget.
+   A példakártyák szélesebbek (három oszlop), ott a nagyobb méret jó. */
+.tud__cim { margin: 0; font-size: var(--text-base); line-height: 1.25; text-wrap: balance; }
 .tud__szoveg { margin: 0; font-size: var(--text-sm); color: var(--ink-2); }
 
 /* A hét rétegikon jelmagyarázatként — ugyanazok, amiket a tervezőben
