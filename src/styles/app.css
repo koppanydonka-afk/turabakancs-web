@@ -279,6 +279,10 @@ body.nincs-gorgetes { overflow: hidden; }
 }
 .tervezo__terkep-doboz { position: relative; height: 100%; min-height: 0; }
 .terkep { height: 100%; width: 100%; background: var(--surface-2); }
+/* A bakancs-kurzort a Terkep.jsx teszi a vászonra (kurzor.js) — oda a
+   CSS nem ér el, mert a MapLibre maga állítja. Ez a sor a doboz
+   szélének szól, és tartalék: ugyanaz a kereszt, amire a bakancs is
+   visszaesik, ha a böngésző nem kéri. */
 .terkep[data-mod='ut'], .terkep[data-mod='jeloles'] { cursor: crosshair; }
 
 .nezet__terkep { height: 62vh; min-height: 360px; border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--lap-keret), var(--lap-arnyek); }

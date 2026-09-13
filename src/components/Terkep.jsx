@@ -8,6 +8,7 @@ import { latvanyKepe } from '../data/kepek.js';
 import { nyelv, sz } from '../nyelv/index.js';
 import { useSotet } from '../data/tema.js';
 import { sotetreFest } from '../data/terkepStilus.js';
+import { BAKANCS_KURZOR } from '../data/kurzor.js';
 import EszkozRudba from './EszkozRudba.jsx';
 import { KEZDO_KOZEP, KEZDO_ZOOM } from '../data/terkepAlap.js';
 
@@ -235,11 +236,19 @@ export default function Terkep({
   /* ---- Kurzor ----
      A MapLibre a vásznon tartja a kurzort, ezért CSS-ből nem lehet
      átírni: onnan kell, ahol ő is állítja. */
-  const alapKurzor = () => (friss.current.mod ? 'crosshair' : '');
   const kurzor = (ertek) => {
     const m = terkep.current;
-    if (m) m.getCanvas().style.cursor = ertek;
+    if (!m) return;
+    const vaszon = m.getCanvas();
+    if (ertek === 'bakancs') {
+      /* Mindkét alakot megpróbáljuk: a böngésző az elsőt biztosan érti,
+         a másodikat csak ha tudja — és akkor az marad érvényben. */
+      BAKANCS_KURZOR.forEach((alak) => { vaszon.style.cursor = alak; });
+      return;
+    }
+    vaszon.style.cursor = ertek;
   };
+  const alapKurzor = () => (friss.current.mod ? 'bakancs' : '');
 
   /* ---- Kép a látványosság buborékjába ----
 
@@ -595,7 +604,7 @@ export default function Terkep({
   /* A kurzor jelzi, hogy a kattintás most csinál-e valamit. */
   useEffect(() => {
     if (doboz.current) doboz.current.dataset.mod = mod ?? 'nezet';
-    kurzor(mod ? 'crosshair' : '');
+    kurzor(alapKurzor());
   }, [mod, terkepKesz]);
 
   /* ---- Nyomvonal újrarajzolása ---- */
