@@ -43,7 +43,7 @@ export default function App() {
       ],
       '/utvonalak': [
         'Példa útvonalak — Túrabakancs',
-        'Nyolc kész vonal a térképen, amit megnyithatsz és továbbrajzolhatsz.',
+        'Kész túraútvonalak a térképen, amiket megnyithatsz és továbbrajzolhatsz.',
       ],
       '/impresszum': [
         'Impresszum és adatkezelés — Túrabakancs',
