@@ -14,6 +14,12 @@
 
 const PELDANYOK = [
   'https://overpass-api.de/api/interpreter',
+  /* A kumi.systems a fő példány leggyorsabb nyilvános tükre; a
+     private.coffee marad harmadiknak, mert lassabb ugyan, de akkor is
+     válaszol, amikor a másik kettő tele van. Ezt a látványosság-rétegen
+     mértük: a nehezebb lekérdezés rendszeresen kifogott a két korábbi
+     példányon. */
+  'https://overpass.kumi.systems/api/interpreter',
   'https://overpass.private.coffee/api/interpreter',
 ];
 

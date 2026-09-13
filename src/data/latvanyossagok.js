@@ -1,4 +1,12 @@
-/* Magyarország ismert látványosságai.
+/* Tizenöt magyar látványosság — helyben tárolt képpel.
+
+   MI EZ MOST: a látványosságok réteggé váltak, és az egész világon
+   működnek (lásd szolgaltatasok.js `latvany`). A kép hozzájuk kérésre jön
+   a Commonsról. Ez a tizenöt viszont itt maradt, mert a képük már le van
+   töltve: ha az OSM-ből jött pont ezek egyikére esik, nem kérdezünk
+   senkit — a kép azonnal ott van.
+
+   Nem duplikátum tehát, hanem gyorsítótár.
 
    HONNAN VAN: a koordináta és a kép a Wikidatáról, a licencadat a Wikimedia
    Commonsról — egyik sem kézzel írt érték. A képeket letöltöttük a
@@ -199,3 +207,18 @@ export const LATVANYOSSAGOK = [
 ];
 
 export const latvanySzerint = (id) => LATVANYOSSAGOK.find((l) => l.id === id) ?? null;
+
+
+/* Van-e helyben tárolt képünk erre a pontra?
+
+   Nyolcvan méteren belül ugyanaz a hely: az OSM és a Wikidata koordinátája
+   ritkán egyezik pontosan (az egyik a bejáratot jelöli, a másik az épület
+   közepét). Tizenöt elemnél a végigjárás olcsóbb, mint bármilyen index. */
+export function helyiKep(lat, lng) {
+  const HATAR = 0.0008;   // ~80 m szélességben; hosszúságban ennél szűkebb
+  return (
+    LATVANYOSSAGOK.find(
+      (l) => Math.abs(l.lat - lat) < HATAR && Math.abs(l.lng - lng) < HATAR * 1.5,
+    ) ?? null
+  );
+}

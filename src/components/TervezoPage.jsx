@@ -381,7 +381,6 @@ export default function TervezoPage() {
             mod="ut"
 
             illeszt={illeszt}
-            latvanyok
             retegGombok
             onKesz={(map) => {
               terkep.current = map;

@@ -1,4 +1,4 @@
-/* Helynév → koordináta.
+/* Helynév → koordináta, bárhol a világon.
 
    Az OpenStreetMap nyilvános keresője (Nominatim) válaszol. Csak
    gombnyomásra kérdez, soha nem gépelés közben — a Nominatim közös,
@@ -13,15 +13,21 @@ function rovidNev(teljes) {
   return teljes.split(',').slice(0, 3).join(',').trim();
 }
 
-export async function keresHelyet(szoveg, { darab = 5 } = {}) {
+export async function keresHelyet(szoveg, { darab = 5, nyelv = 'hu' } = {}) {
   const q = (szoveg ?? '').trim();
   if (q.length < 3) throw new HelyHiba('Írj be legalább három betűt.');
 
+  /* Nincs országszűrő: az oldal a világ bármelyik pontjára tervez. Korábban
+     `countrycodes: 'hu'` volt itt, és ez volt az EGYETLEN hely, ami tényleg
+     Magyarországhoz kötötte a tervezőt — a térkép, az útvonalkereső és a
+     rétegek amúgy is határok nélkül működnek.
+
+     A találatok nyelve a felületé: aki németül nézi az oldalt, német
+     helyneveket kapjon, ahol az OSM tud ilyet. */
   const p = new URLSearchParams({
     format: 'jsonv2',
     limit: String(darab),
-    'accept-language': 'hu',
-    countrycodes: 'hu',
+    'accept-language': nyelv,
     q,
   });
 

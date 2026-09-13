@@ -3,7 +3,8 @@ import { MIN_ZOOM, RETEGEK, teruleten } from '../data/szolgaltatasok.js';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { tipusSzerint, tuHtml } from '../data/jelolesek.js';
-import { LATVANYOSSAGOK } from '../data/latvanyossagok.js';
+import { helyiKep } from '../data/latvanyossagok.js';
+import { latvanyKepe } from '../data/kepek.js';
 import EszkozRudba from './EszkozRudba.jsx';
 import { KEZDO_KOZEP, KEZDO_ZOOM } from '../data/terkepAlap.js';
 
@@ -32,7 +33,6 @@ export default function Terkep({
      sűrű vonal, amit nem értelmes pontonként fogdosni. */
   horgonyok = null,
   jelolesek = [],
-  latvanyok = false,
   /* Ellátás-rétegek gombjai a térkép jobb alsó sarkában (ivóvíz, megálló).
      Csak a tervezőn kell — a példaoldalak nézetében nincs értelme. */
   retegGombok = false,
@@ -51,7 +51,6 @@ export default function Terkep({
   const terkep = useRef(null);
   const vonalReteg = useRef(null);
   const jelolesReteg = useRef(null);
-  const latvanyReteg = useRef(null);
   const ellatasReteg = useRef(null);
   const vaszon = useRef(null);
   /* Melyik területre kérdeztünk le utoljára rétegenként — ebből tudjuk, hogy
@@ -147,7 +146,6 @@ export default function Terkep({
 
     vonalReteg.current = L.layerGroup().addTo(map);
     jelolesReteg.current = L.layerGroup().addTo(map);
-    latvanyReteg.current = L.layerGroup();
     onKesz?.(map);
 
     return () => {
@@ -155,7 +153,6 @@ export default function Terkep({
       terkep.current = null;
       vonalReteg.current = null;
       jelolesReteg.current = null;
-      latvanyReteg.current = null;
     };
     /* Szándékosan üres: a térkép nem születik újra minden propváltozásra. */
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -266,51 +263,10 @@ export default function Terkep({
     });
   }, [jelolesek]);
 
-  /* ---- Látványosságok ----
-     A réteg egyszer épül fel, utána csak be- és kikapcsoljuk: tizenöt
-     buborékot fölösleges újra összerakni minden váltásnál. */
-  useEffect(() => {
-    const csoport = latvanyReteg.current;
-    const map = terkep.current;
-    if (!csoport || !map) return;
-
-    if (csoport.getLayers().length === 0) {
-      for (const l of LATVANYOSSAGOK) {
-        const jel = L.marker([l.lat, l.lng], {
-          icon: L.divIcon({
-            className: '',
-            html: `<span class="latvany-jel" title="${htmlBiztos(l.nev)}">
-                     <svg viewBox="0 0 24 24" aria-hidden="true">
-                       <path d="M12 3 3 9v2h18V9zM5 13v6H3v2h18v-2h-2v-6h-2v6h-3v-6h-2v6H7v-6z"/>
-                     </svg>
-                   </span>`,
-            iconSize: [26, 26],
-            iconAnchor: [13, 13],
-          }),
-          keyboard: false,
-          /* A nyomvonal fölé ne kerüljön: azt rajzolják, ezeket nézik. */
-          zIndexOffset: -200,
-        });
-
-        jel.bindTooltip(
-          `<figure class="latvany-buborek">
-             <img src="${htmlBiztos(l.kep)}" alt="${htmlBiztos(l.nev)}" loading="lazy" width="92" height="92" />
-             <figcaption>
-               <strong>${htmlBiztos(l.nev)}</strong>
-               <span>${htmlBiztos(l.tajegyseg)}</span>
-               <small>${htmlBiztos(l.szerzo)} · ${htmlBiztos(l.licenc)}</small>
-             </figcaption>
-           </figure>`,
-          { direction: 'top', offset: [0, -14], className: 'latvany-tipp', opacity: 1 },
-        );
-
-        jel.addTo(csoport);
-      }
-    }
-
-    if (latvanyok) csoport.addTo(map);
-    else csoport.remove();
-  }, [latvanyok]);
+  /* Itt épült fel korábban a tizenöt magyar látványosság, mindig
+     bekapcsolva, letöltött képekkel. Réteg lett belőle (`latvany`), és
+     ezzel a világ bármelyik országában működik — a rajzolását a lenti
+     vászonra kerülő rétegek intézik, a képét pedig a kepek.js, kérésre. */
 
   /* ---- Ellátás-rétegek: ivóvíz és megállók a látható területen ----
 
@@ -320,7 +276,7 @@ export default function Terkep({
   const retegetKer = async (id) => {
     const map = terkep.current;
     if (!map) return;
-    if (map.getZoom() < MIN_ZOOM) {
+    if (map.getZoom() < (RETEGEK[id].minZoom ?? MIN_ZOOM)) {
       setRetegAllapot((e) => ({ ...e, [id]: { allapot: 'tavol' } }));
       return;
     }
@@ -340,6 +296,44 @@ export default function Terkep({
     } catch (err) {
       setRetegAllapot((e) => ({ ...e, [id]: { allapot: 'hiba', uzenet: err.message } }));
     }
+  };
+
+  /* Kép a látványosság buborékjába — odamutatáskor, egyszer.
+
+     A sorrend: előbb a tizenöt helyben tárolt magyar kép (az már itt van),
+     utána a Wikidata. Szerző nélküli képet nem teszünk ki, mert a
+     megjelölés a licenc feltétele — ilyenkor marad a puszta név. */
+  const kepetKes = (kor, x) => {
+    let kertuk = false;
+
+    const mutasd = (adat) => {
+      if (!adat?.kep) return;
+      kor.setTooltipContent(
+        `<figure class="latvany-buborek">
+           <img src="${htmlBiztos(adat.kep)}" alt="${htmlBiztos(x.nev)}" loading="lazy" width="92" height="92" />
+           <figcaption>
+             <strong>${htmlBiztos(x.nev)}</strong>
+             <span>${htmlBiztos(x.fajta)}</span>
+             <small>${htmlBiztos(adat.szerzo)} · ${htmlBiztos(adat.licenc)}</small>
+           </figcaption>
+         </figure>`,
+      );
+    };
+
+    const keres = () => {
+      if (kertuk) return;
+      kertuk = true;
+      const helyi = helyiKep(x.lat, x.lng);
+      if (helyi) {
+        mutasd(helyi);
+        return;
+      }
+      if (!x.wikidata) return;
+      latvanyKepe(x.wikidata).then(mutasd);
+    };
+
+    kor.on('mouseover', keres);
+    kor.on('click', keres);
   };
 
   /* A vászonra rajzolás: minden bekapcsolt réteg pontjai egy csoportban. */
@@ -380,7 +374,30 @@ export default function Terkep({
           direction: 'top',
           className: 'pont-tipp',
         });
+
+        /* Látványosságnál a képet ODAMUTATÁSKOR kérjük el, nem előre: amíg
+           nem érdekel, a böngésződ egyetlen képet sem tölt le. Ha a hely
+           benne van a tizenöt helyben tároltban, még kérdezni sem kell. */
+        if (x.tipus === 'latnivalo') kepetKes(kor, x);
+
         kor.addTo(csoport);
+
+        /* A látványosság a hetedik réteg, a hat szín-forma páros viszont
+           elfogyott. Ez ezért MÉRETBEN és formában válik el: nagyobb
+           korong, közepén világos maggal — színtévesztéssel is más.
+
+           A mag a korong UTÁN kerül a csoportba, különben alatta maradna:
+           a vászon abban a sorrendben rajzol, ahogy megkapja. */
+        if (RETEGEK[id].magos) {
+          L.circleMarker([x.lat, x.lng], {
+            renderer: vaszon.current,
+            radius: Math.max(2, sugar - 5),
+            weight: 0,
+            fillColor: '#fff',
+            fillOpacity: 1,
+            interactive: false,
+          }).addTo(csoport);
+        }
       });
     });
   }, [retegek, retegAllapot]);
