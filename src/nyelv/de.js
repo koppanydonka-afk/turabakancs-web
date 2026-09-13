@@ -310,6 +310,7 @@ export default {
   'terv.mentesFrissit': 'Speicherung aktualisieren',
   'terv.mentesBongeszobe': 'Im Browser speichern',
   'terkep.cel': 'Ziel',
+  'terkep.kozremukodoi': 'Mitwirkende',
   'terkep.rajt': 'Start',
   'terkep.hanyadikPont': 'Punkt {n}',
   'hh.koordinata': 'eingegebene Koordinaten',

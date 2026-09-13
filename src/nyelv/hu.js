@@ -329,6 +329,7 @@ export default {
   'terv.mentesFrissit': 'Mentés frissítése',
   'terv.mentesBongeszobe': 'Mentés a böngészőbe',
   'terkep.cel': 'Cél',
+  'terkep.kozremukodoi': 'közreműködői',
   'terkep.rajt': 'Rajt',
   'terkep.hanyadikPont': '{n}. pont',
   'hh.koordinata': 'megadott koordináta',

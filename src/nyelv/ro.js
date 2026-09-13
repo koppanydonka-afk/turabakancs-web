@@ -310,6 +310,7 @@ export default {
   'terv.mentesFrissit': 'Actualizează salvarea',
   'terv.mentesBongeszobe': 'Salvează în browser',
   'terkep.cel': 'Sosire',
+  'terkep.kozremukodoi': 'contribuitori',
   'terkep.rajt': 'Start',
   'terkep.hanyadikPont': 'Punctul {n}',
   'hh.koordinata': 'coordonate introduse',

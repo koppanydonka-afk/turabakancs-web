@@ -310,6 +310,7 @@ export default {
   'terv.mentesFrissit': 'Mettre à jour l’enregistrement',
   'terv.mentesBongeszobe': 'Enregistrer dans le navigateur',
   'terkep.cel': 'Arrivée',
+  'terkep.kozremukodoi': 'contributeurs',
   'terkep.rajt': 'Départ',
   'terkep.hanyadikPont': 'Point {n}',
   'hh.koordinata': 'coordonnées saisies',

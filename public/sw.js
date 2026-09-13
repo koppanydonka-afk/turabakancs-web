@@ -9,7 +9,7 @@
    a tömeges letöltésük tilos — jogos okból. Csak azt tartjuk meg, amit a
    böngésződ amúgy is lekért, amikor nézted. */
 
-const VERZIO = 'v6';
+const VERZIO = 'v7';
 const VAZ = `turabakancs-vaz-${VERZIO}`;
 const CSEMPE = `turabakancs-csempe-${VERZIO}`;
 /* A stíluslap, a jelkészlet és a betűk nem csempék: kicsik, és NÉLKÜLÜK a
@@ -18,7 +18,10 @@ const CSEMPE = `turabakancs-csempe-${VERZIO}`;
    az hiányozna, ami az egészet összerakja. */
 const VAZLAT = `turabakancs-terkepvaz-${VERZIO}`;
 const CSEMPE_MAX = 600;
-const CSEMPE_GAZDA = 'tiles.openfreemap.org';
+/* Két csempeforrás: a vektoros, és a raszteres tartalék arra az esetre,
+   ha az előbbi nem felel (lásd Terkep.jsx). Mindkettőt eltároljuk —
+   ahol a tartalékra szorultál, ott a völgyben is az kell majd. */
+const CSEMPE_GAZDAK = ['tiles.openfreemap.org', 'tile.openstreetmap.org'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(
@@ -58,7 +61,7 @@ self.addEventListener('fetch', (e) => {
      A csempék vektorosak (.pbf), és egy dolgozószálból kérődnek —
      a service worker azokat is látja. A stíluslap, a jelkészlet és a
      betűkészlet a nem nyirbált tárba megy. */
-  if (url.hostname === CSEMPE_GAZDA) {
+  if (CSEMPE_GAZDAK.includes(url.hostname)) {
     const vazlate = /^\/(styles|sprites|fonts)\//.test(url.pathname);
     e.respondWith(
       caches.open(vazlate ? VAZLAT : CSEMPE).then(async (c) => {

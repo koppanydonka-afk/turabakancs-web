@@ -54,7 +54,71 @@ const STILUS = {
   sotet: 'https://tiles.openfreemap.org/styles/dark',
 };
 
+/* ---- Tartalék: raszteres csempe, ha a vektoros nem jön ----
+
+   Az OpenFreeMap egyetlen ember projektje, és maguk mondják ki, hogy
+   nincs rendelkezésre állási garancia. Ha leáll, e nélkül fekete lyuk
+   marad a tervező helyén — márpedig egy térképes eszközön a térkép nem
+   opcionális.
+
+   A tartalék az, amin az oldal a mai napig futott: az OpenStreetMap
+   raszteres csempéi. Kulcs ehhez sem kell. Amit elveszítünk vele: a
+   feliratok visszaváltanak helyi nyelvre, és a sötét mód megint csak
+   tompítás lesz, nem külön térkép. Ez viszont még mindig térkép.
+
+   A tompítást itt nem CSS-szűrő végzi, hanem maga a MapLibre — a
+   `raster-*` tulajdonságok pont erre valók. */
+const raszterStilus = (sotet) => ({
+  version: 8,
+  sources: {
+    osm: {
+      type: 'raster',
+      tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+      tileSize: 256,
+      maxzoom: 19,
+      /* KÖTELEZŐ forrásmegjelölés. A vektoros csempeleírás a magáét
+         hozza; a raszteres csempének nekünk kell megadnunk. */
+      attribution:
+        `© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> ${sz('terkep.kozremukodoi')}`,
+    },
+  },
+  layers: [
+    { id: 'hatter', type: 'background', paint: { 'background-color': sotet ? '#10130E' : '#F8F4F0' } },
+    {
+      id: 'osm',
+      type: 'raster',
+      source: 'osm',
+      paint: sotet
+        ? { 'raster-brightness-max': 0.82, 'raster-saturation': -0.15, 'raster-contrast': 0.04 }
+        : {},
+    },
+  ],
+});
+
+/* A stíluslapot magunk kérjük le, nem a MapLibre-re bízzuk: csak így
+   derül ki időben, hogy a kiszolgáló áll-e. Ugyanaz az egy kérés, csak
+   mi látjuk az eredményét is. Nyolc másodperc után feladjuk — ennyi
+   idő után a látogató már azt hiszi, elromlott valami. */
+async function stilustHoz(sotet) {
+  const megszakit = new AbortController();
+  const ora = setTimeout(() => megszakit.abort(), 8000);
+  try {
+    const valasz = await fetch(sotet ? STILUS.sotet : STILUS.vilagos, { signal: megszakit.signal });
+    if (!valasz.ok) throw new Error(String(valasz.status));
+    return { stilus: await valasz.json(), tartalek: false };
+  } catch {
+    return { stilus: raszterStilus(sotet), tartalek: true };
+  } finally {
+    clearTimeout(ora);
+  }
+}
+
 const URES = { type: 'FeatureCollection', features: [] };
+
+/* A mi forrásaink. A MapLibre ezeket is csempékre bontja, és ugyanolyan
+   „megjött egy csempe" jelzést ad rájuk, mint a térképére — az őrszemnek
+   viszont csak az utóbbi számít. */
+const SAJAT_FORRASOK = new Set(['ut', 'ellatas']);
 
 /* A vonal színét a stíluslap tartja (világos és sötét módban más), a
    MapLibre viszont kész értéket vár — itt olvassuk ki. */
@@ -96,6 +160,11 @@ export default function Terkep({
   const utHorgonyok = useRef([]);
   const jelolesJelolok = useRef([]);
   const rajzKeret = useRef(0);
+  /* Igaz, ha a raszteres tartalékra estünk vissza. Egy látogatáson belül
+     nem próbálkozunk újra: ha a kiszolgáló egyszer nem felelt, a
+     témaváltásnál sem fog. */
+  const tartalekon = useRef(false);
+  const orszem = useRef(0);
   /* Melyik területre kérdeztünk le utoljára rétegenként — ebből tudjuk, hogy
      az elpásztázott térképhez kell-e új keresés. */
   const utolsoDoboz = useRef({});
@@ -110,6 +179,11 @@ export default function Terkep({
   const [stilusJel, setStilusJel] = useState(0);
 
   const sotet = useSotet();
+  /* A stíluslap kérése eltarthat pár másodpercig. Ha közben témát
+     váltanak, a lenti hatás még nem talál térképet — ezért a kész
+     térképet utólag is hozzáigazítjuk ehhez a mindig friss értékhez. */
+  const sotetRef = useRef(sotet);
+  sotetRef.current = sotet;
 
   /* A térkép egyszer jön létre, a kattintáskezelő viszont mindig a friss
      propokat kell lássa — ezért ref-en át éri el őket. */
@@ -124,6 +198,28 @@ export default function Terkep({
     onJelolesMozgat,
     onJelolesTorol,
     retegek,
+  };
+
+  /* A térképen ülő stíluslapot a mostani témához igazítja. Két helyről
+     hívjuk: témaváltáskor, és amikor a térkép elkészül — az utóbbi azért,
+     mert a stíluslap kérése közben is válthattak. */
+  const temahozIgazit = (m) => {
+    if (!m) return;
+    const kell = sotetRef.current ? 'sotet' : 'vilagos';
+    if (m.__tema === kell) return;
+    m.__tema = kell;
+
+    /* Raszteres tartalékból nincs sötét változat: marad a tompítás. */
+    if (tartalekon.current) {
+      m.setStyle(raszterStilus(sotetRef.current));
+      return;
+    }
+    stilustHoz(sotetRef.current).then(({ stilus, tartalek }) => {
+      /* Közben elmehetett a térkép, vagy újra válthattak témát. */
+      if (terkep.current !== m || m.__tema !== kell) return;
+      tartalekon.current = tartalek;
+      m.setStyle(stilus);
+    });
   };
 
   /* ---- Kurzor ----
@@ -308,107 +404,165 @@ export default function Terkep({
   useEffect(() => {
     if (terkep.current || !doboz.current) return undefined;
 
-    const m = new MapLibre({
-      container: doboz.current,
-      style: sotet ? STILUS.sotet : STILUS.vilagos,
-      /* A MapLibre hosszúság–szélesség sorrendet vár, fordítva, mint a
-         Leaflet és mint az egész projekt többi része. */
-      center: [KEZDO_KOZEP[1], KEZDO_KOZEP[0]],
-      zoom: KEZDO_ZOOM,
-      maxZoom: 19,
-      /* Alapból csak a szolgáltatók nevét mutatja, kinyitható gombbal.
-         A forrásmegjelölés licencfeltétel: legyen kint, ne egy gomb
-         mögött. */
-      attributionControl: { compact: false },
+    /* A stíluslap kérésének megvárása a térkép születése előtt: így
+       derül ki, kell-e a tartalék. Nem plusz kérés — ezt a MapLibre is
+       elküldte volna, csak most mi is látjuk a választ. */
+    let eldobva = false;
+    let terkepem = null;
+
+    const kert = sotetRef.current;
+    stilustHoz(kert).then(({ stilus, tartalek }) => {
+      if (eldobva || !doboz.current) return;
+      tartalekon.current = tartalek;
+      terkepem = terkepetEpit(stilus, kert);
+      /* Amíg a stíluslap jött, válthattak témát. */
+      temahozIgazit(terkepem);
     });
 
-    /* A bal felső sarok a módváltóé és a paletta-soré, ezért a
-       nagyítógombok a másik oldalra kerülnek. Az iránytű is kell: a
-       vektoros térkép elforgatható, és kell egy út vissza északra. */
-    m.addControl(new NavigationControl({ visualizePitch: true }), 'top-right');
+    function terkepetEpit(stilus, sotetVolt) {
+      const m = new MapLibre({
+        container: doboz.current,
+        style: stilus,
+        /* A MapLibre hosszúság–szélesség sorrendet vár, fordítva, mint a
+           Leaflet és mint az egész projekt többi része. */
+        center: [KEZDO_KOZEP[1], KEZDO_KOZEP[0]],
+        zoom: KEZDO_ZOOM,
+        maxZoom: 19,
+        /* Alapból csak a szolgáltatók nevét mutatja, kinyitható gombbal.
+           A forrásmegjelölés licencfeltétel: legyen kint, ne egy gomb
+           mögött. */
+        attributionControl: { compact: false },
+      });
+      /* Melyik témához való stíluslap ül rajta — a témaváltás ebből tudja,
+         van-e egyáltalán dolga. */
+      m.__tema = sotetVolt ? 'sotet' : 'vilagos';
 
-    buborek.current = new Popup({
-      closeButton: false,
-      closeOnClick: false,
-      maxWidth: '340px',
-      offset: 12,
-    });
+      /* A bal felső sarok a módváltóé és a paletta-soré, ezért a
+         nagyítógombok a másik oldalra kerülnek. Az iránytű is kell: a
+         vektoros térkép elforgatható, és kell egy út vissza északra. */
+      m.addControl(new NavigationControl({ visualizePitch: true }), 'top-right');
 
-    m.on('style.load', () => {
-      alapokFeltesz(m);
-      setStilusJel((n) => n + 1);
-    });
+      buborek.current = new Popup({
+        closeButton: false,
+        closeOnClick: false,
+        maxWidth: '340px',
+        offset: 12,
+      });
 
-    m.on('click', (esemeny) => {
-      /* Előbb a rétegpontok: ha ellátás-pontra koppintottak, az a
-         buborékot nyitja, nem új útpontot tesz le. */
-      const talalt = pontTalalat(m, esemeny.point);
-      if (talalt) {
-        pontBuborek(talalt);
-        return;
-      }
-      buborekotZar();
-      const { mod: md, onPontHozzaad: pont, onJelolesHozzaad: jel, ujTipus: tipus } = friss.current;
-      const { lat, lng } = esemeny.lngLat;
-      if (md === 'ut') pont?.([lat, lng]);
-      if (md === 'jeloles') jel?.({ lat, lng, tipus });
-    });
+      m.on('style.load', () => {
+        alapokFeltesz(m);
+        setStilusJel((n) => n + 1);
+      });
 
-    /* Odamutatásra buborék. `mousemove` és nem `mouseenter`: két egymás
-       melletti korong között az egér ki sem lép a rétegből, tehát a
-       `mouseenter` nem szólna újra. */
-    m.on('mousemove', 'ellatas-kor', (esemeny) => {
-      kurzor('pointer');
-      if (esemeny.features?.[0]) pontBuborek(esemeny.features[0]);
-    });
-    m.on('mouseleave', 'ellatas-kor', () => {
-      kurzor(alapKurzor());
-      buborekotZar();
-    });
-
-    m.on('moveend', () => {
-      const z = m.getZoom();
-      const eleg = z >= MIN_ZOOM;
-      setZoomOk(eleg);
-      const h = m.getBounds();
-      const hatarok = { del: h.getSouth(), nyugat: h.getWest(), eszak: h.getNorth(), kelet: h.getEast() };
-      const bekapcsolt = Object.entries(friss.current.retegek ?? {}).filter(([, be]) => be);
-
-      /* A küszöb alatt nem hagyjuk kint a korábbi találatokat: az a
-         legrosszabb, ha elavult adat frissnek látszik. Töröljük, és a gomb
-         megmondja, hogy nagyítani kell. */
-      if (!eleg) {
-        if (bekapcsolt.length > 0) {
-          setRetegAllapot((e) => {
-            const uj = { ...e };
-            bekapcsolt.forEach(([id]) => { uj[id] = { allapot: 'tavol' }; });
-            return uj;
-          });
-          bekapcsolt.forEach(([id]) => { delete utolsoDoboz.current[id]; });
+      m.on('click', (esemeny) => {
+        /* Előbb a rétegpontok: ha ellátás-pontra koppintottak, az a
+           buborékot nyitja, nem új útpontot tesz le. */
+        const talalt = pontTalalat(m, esemeny.point);
+        if (talalt) {
+          pontBuborek(talalt);
+          return;
         }
-        setUjraKell(false);
-        return;
-      }
+        buborekotZar();
+        const { mod: md, onPontHozzaad: pont, onJelolesHozzaad: jel, ujTipus: tipus } = friss.current;
+        const { lat, lng } = esemeny.lngLat;
+        if (md === 'ut') pont?.([lat, lng]);
+        if (md === 'jeloles') jel?.({ lat, lng, tipus });
+      });
 
-      setUjraKell(
-        bekapcsolt.some(([id]) => {
-          const d = utolsoDoboz.current[id];
-          return !d || !tartalmazza(d, hatarok);
-        }),
-      );
-    });
+      /* Odamutatásra buborék. `mousemove` és nem `mouseenter`: két egymás
+         melletti korong között az egér ki sem lép a rétegből, tehát a
+         `mouseenter` nem szólna újra. */
+      m.on('mousemove', 'ellatas-kor', (esemeny) => {
+        kurzor('pointer');
+        if (esemeny.features?.[0]) pontBuborek(esemeny.features[0]);
+      });
+      m.on('mouseleave', 'ellatas-kor', () => {
+        kurzor(alapKurzor());
+        buborekotZar();
+      });
 
-    m.on('load', () => onKesz?.(m));
+      m.on('moveend', () => {
+        const z = m.getZoom();
+        const eleg = z >= MIN_ZOOM;
+        setZoomOk(eleg);
+        const h = m.getBounds();
+        const hatarok = { del: h.getSouth(), nyugat: h.getWest(), eszak: h.getNorth(), kelet: h.getEast() };
+        const bekapcsolt = Object.entries(friss.current.retegek ?? {}).filter(([, be]) => be);
 
-    terkep.current = m;
+        /* A küszöb alatt nem hagyjuk kint a korábbi találatokat: az a
+           legrosszabb, ha elavult adat frissnek látszik. Töröljük, és a gomb
+           megmondja, hogy nagyítani kell. */
+        if (!eleg) {
+          if (bekapcsolt.length > 0) {
+            setRetegAllapot((e) => {
+              const uj = { ...e };
+              bekapcsolt.forEach(([id]) => { uj[id] = { allapot: 'tavol' }; });
+              return uj;
+            });
+            bekapcsolt.forEach(([id]) => { delete utolsoDoboz.current[id]; });
+          }
+          setUjraKell(false);
+          return;
+        }
+
+        setUjraKell(
+          bekapcsolt.some(([id]) => {
+            const d = utolsoDoboz.current[id];
+            return !d || !tartalmazza(d, hatarok);
+          }),
+        );
+      });
+
+      m.on('load', () => onKesz?.(m));
+
+      /* Az őrszem.
+
+         A stíluslap jöhet a böngésző tárából akkor is, amikor a
+         kiszolgáló épp nem felel — ilyenkor a térkép elindul, csak csempe
+         nincs hozzá, és a látogató üres lapot bámul. Ezt nem lehet a
+         hibák számolásával elkapni: ha már a csempeleírás sem jön meg, a
+         MapLibre egyetlen csempét sem kér, tehát egyetlen hiba sincs.
+
+         Ezért nem a hibát figyeljük, hanem az eredményt: ha kilenc
+         másodperc alatt egyetlen csempe sem érkezett, átváltunk. Egy
+         megérkezett csempe elég az ellenkezőjéhez.
+
+         Két eset, amikor NEM váltunk:
+           * offline — a raszteres csempe sem jönne meg, viszont
+             eldobnánk vele a már eltárolt vektoros térképet;
+           * rejtett lapon — ott a böngésző nem is rajzol, tehát a térkép
+             nem is kér csempét. Ilyenkor csak újraindítjuk az órát. */
+      let jottCsempe = false;
+      const figyel = () => {
+        clearTimeout(orszem.current);
+        orszem.current = setTimeout(() => {
+          if (jottCsempe || tartalekon.current || navigator.onLine === false) return;
+          if (document.hidden) { figyel(); return; }
+          tartalekon.current = true;
+          m.__tema = sotetRef.current ? 'sotet' : 'vilagos';
+          m.setStyle(raszterStilus(sotetRef.current));
+        }, 9000);
+      };
+      figyel();
+      m.on('data', (e) => {
+        if (e?.dataType !== 'source' || !e.tile || SAJAT_FORRASOK.has(e.sourceId)) return;
+        jottCsempe = true;
+        clearTimeout(orszem.current);
+      });
+
+      terkep.current = m;
+      return m;
+    }
 
     return () => {
+      eldobva = true;
+      clearTimeout(orszem.current);
       cancelAnimationFrame(rajzKeret.current);
       utHorgonyok.current.forEach((j) => j.remove());
       utHorgonyok.current = [];
       jelolesJelolok.current.forEach((j) => j.remove());
       jelolesJelolok.current = [];
-      m.remove();
+      terkepem?.remove();
       terkep.current = null;
       buborek.current = null;
     };
@@ -419,14 +573,11 @@ export default function Terkep({
   }, []);
 
   /* ---- Témaváltás: másik stíluslap ----
-     Nem szűrő a kész képen, hanem igazi sötét térkép. */
+     Nem szűrő a kész képen, hanem igazi sötét térkép. A tartalékon
+     maradva viszont marad a tompítás: raszteres csempéből nincs sötét. */
   useEffect(() => {
-    const m = terkep.current;
-    if (!m) return;
-    const kell = sotet ? STILUS.sotet : STILUS.vilagos;
-    if (m.__stilus === kell) return;
-    m.__stilus = kell;
-    m.setStyle(kell);
+    temahozIgazit(terkep.current);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sotet]);
 
   /* A kurzor jelzi, hogy a kattintás most csinál-e valamit. */

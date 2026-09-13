@@ -310,6 +310,7 @@ export default {
   'terv.mentesFrissit': 'Aktualizovať uloženie',
   'terv.mentesBongeszobe': 'Uložiť do prehliadača',
   'terkep.cel': 'Cieľ',
+  'terkep.kozremukodoi': 'prispievatelia',
   'terkep.rajt': 'Štart',
   'terkep.hanyadikPont': '{n}. bod',
   'hh.koordinata': 'zadané súradnice',

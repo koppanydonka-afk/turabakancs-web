@@ -310,6 +310,7 @@ export default {
   'terv.mentesFrissit': 'Zaktualizuj zapis',
   'terv.mentesBongeszobe': 'Zapisz w przeglądarce',
   'terkep.cel': 'Meta',
+  'terkep.kozremukodoi': 'współtwórcy',
   'terkep.rajt': 'Start',
   'terkep.hanyadikPont': 'Punkt {n}',
   'hh.koordinata': 'podane współrzędne',
