@@ -140,12 +140,24 @@
    magassági profil ettől levágódna. Ez a csapda már negyedszer jön elő. */
 .eszkoz-talca > * { flex: 0 0 auto; }
 
+/* Becsukódás: ugyanaz a mozdulat visszafelé. A tálca ilyenkor még ott
+   van egy pillanatig, de már nem fogadja a kattintást — különben a
+   fogyó tálcára lehetne rákoppintani. */
+.eszkoz-talca--zarul {
+  animation: talca-be 140ms var(--ease) forwards;
+  pointer-events: none;
+}
+
 @keyframes talca-ki {
   from { opacity: 0; transform: scaleX(.92); }
   to { opacity: 1; transform: scaleX(1); }
 }
+@keyframes talca-be {
+  from { opacity: 1; transform: scaleX(1); }
+  to { opacity: 0; transform: scaleX(.94); }
+}
 @media (prefers-reduced-motion: reduce) {
-  .eszkoz-talca { animation: none; }
+  .eszkoz-talca, .eszkoz-talca--zarul { animation: none; }
 }
 
 

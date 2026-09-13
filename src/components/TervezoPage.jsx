@@ -92,7 +92,10 @@ export default function TervezoPage() {
   const [aktivId, setAktivId] = useState(null);
   /* Melyik lap van nyitva a fejléc alatt: a kérdés, a válasz vagy az
      eszközök. Egyszerre csak egy — a fejléc alatti hely egy lapé. */
-  const [nyitottLap, setNyitottLap] = useState(null);
+  /* `{ id, zarul }` vagy `null`. A `zarul` azért kell, mert a becsukódás
+     animált: a tálca még ott van egy pillanatig, miközben már fogy. */
+  const [lap, setLap] = useState(null);
+  const nyitottLap = lap && !lap.zarul ? lap.id : null;
   const [kozeli, setKozeli] = useState(null);
   const [huzas, setHuzas] = useState(false);
   const [vanVissza, setVanVissza] = useState(false);
@@ -117,17 +120,98 @@ export default function TervezoPage() {
   const huzasVar = horgonyok.length >= 2 && horgonyKulcs !== huzottKulcs.current;
 
   const lapDoboz = useRef(null);
-  const lapot = (id) => setNyitottLap((e) => (e === id ? null : id));
+  const oszlopDoboz = useRef(null);
+  /* Rögzített a tálca, ha KÉRTÉK: rákattintottak az ikonra, vagy épp
+     beleírnak. Ilyenkor az egér elvitele nem csukja be — a legrosszabb,
+     ami egy ráhúzásra nyíló tálcával történhet, hogy gépelés közben
+     kihúzzák alóla a mezőt. */
+  const rogzitve = useRef(false);
+  const egerBent = useRef(false);
+  const nyitoOra = useRef(0);
+  const zaroOra = useRef(0);
+  const bontoOra = useRef(0);
+
+  /* Ráhúzásnál nem rögtön nyílik: a rúd mellett elhaladó egér ne
+     nyitogasson. Becsukni pedig türelmesebben kell, mint kinyitni — a
+     sarkot levágó egérmozdulat ne vegye el a tálcát. */
+  const NYIT_MS = 160;
+  const ZAR_MS = 260;
+  const KIFUT_MS = 140;
+
+  const orakStop = () => {
+    clearTimeout(nyitoOra.current);
+    clearTimeout(zaroOra.current);
+    clearTimeout(bontoOra.current);
+  };
+
+  const nyit = (id, kerte) => {
+    orakStop();
+    rogzitve.current = kerte;
+    setLap({ id, zarul: false });
+  };
+
+  const zar = () => {
+    orakStop();
+    rogzitve.current = false;
+    setLap((e) => (e ? { ...e, zarul: true } : null));
+    const keves = typeof window !== 'undefined'
+      && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    bontoOra.current = setTimeout(() => setLap(null), keves ? 0 : KIFUT_MS);
+  };
+
+  /* Kattintásra ugyanaz marad, ami eddig volt: kapcsol, és nyitva is
+     tartja. Ez a billentyűzet és az érintés útja is. */
+  const lapot = (id) => {
+    if (nyitottLap === id) zar();
+    else nyit(id, true);
+  };
+
+  const rahuzas = (id) => (e) => {
+    /* Csak egérrel. Ujjal nincs „ráhúzás", ott a koppintás nyit. */
+    if (e.pointerType !== 'mouse') return;
+    /* Amibe épp írnak, azt egy elhaladó egér nem cserélheti le. */
+    if (rogzitve.current) return;
+    orakStop();
+    if (nyitottLap === id) return;
+    nyitoOra.current = setTimeout(() => nyit(id, false), NYIT_MS);
+  };
+
+  const oszlopraLep = () => {
+    egerBent.current = true;
+    clearTimeout(zaroOra.current);
+  };
+  const oszloprolLe = (e) => {
+    /* A rétegikonok PORTÁLON át kerülnek a rúdba (a térkép rendeli őket),
+       és a React a ki-belépést a saját fájára számolja, nem a DOM-ra —
+       így „kilépésnek" látja azt is, ha csak átmegyünk rajtuk. A DOM
+       viszont tudja az igazat: ha a másik elem is az oszlopban van, nem
+       léptünk sehova. */
+    if (e.relatedTarget && oszlopDoboz.current?.contains(e.relatedTarget)) return;
+    egerBent.current = false;
+    clearTimeout(nyitoOra.current);
+    if (e.pointerType !== 'mouse' || rogzitve.current || !lap) return;
+    zaroOra.current = setTimeout(zar, ZAR_MS);
+  };
+
+  /* Amint beleírnak, a tálca marad. Amint kilép belőle a fókusz, megint
+     az egér dönt — így „ha megvan, eltűnik". */
+  const talcabaFokusz = () => { rogzitve.current = true; };
+  const talcabolKi = (e) => {
+    if (lapDoboz.current?.contains(e.relatedTarget)) return;
+    rogzitve.current = false;
+    if (!egerBent.current && lap) {
+      clearTimeout(zaroOra.current);
+      zaroOra.current = setTimeout(zar, ZAR_MS);
+    }
+  };
 
   /* Escape zárja, és a lapon kívülre koppintva is becsukódik. A sávban lévő
      ikonok maguk kapcsolgatnak, őket ki kell hagyni. */
   useEffect(() => {
-    if (!nyitottLap) return undefined;
-    const billentyu = (e) => e.key === 'Escape' && setNyitottLap(null);
+    if (!lap) return undefined;
+    const billentyu = (e) => e.key === 'Escape' && zar();
     const kattintas = (e) => {
-      if (!e.target.closest('.eszkoz-oszlop')) {
-        setNyitottLap(null);
-      }
+      if (!e.target.closest('.eszkoz-oszlop')) zar();
     };
     document.addEventListener('keydown', billentyu);
     document.addEventListener('pointerdown', kattintas);
@@ -135,7 +219,11 @@ export default function TervezoPage() {
       document.removeEventListener('keydown', billentyu);
       document.removeEventListener('pointerdown', kattintas);
     };
-  }, [nyitottLap]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lap]);
+
+  /* Az időzítők ne éljék túl a lapot. */
+  useEffect(() => orakStop, []);
 
   /* A fejléc hőmérséklete a túra helyét mutatja: az útvonal kezdőpontját,
      vagy amíg nincs útvonal, a térkép közepét. */
@@ -430,7 +518,12 @@ export default function TervezoPage() {
               nyílnak, tálcaként. Ezért van a kettő egy sorban, hézag
               nélkül, és ezért veszi le a rúd a jobb oldali lekerekítését,
               amikor nyitva van. */}
-          <div className="eszkoz-oszlop">
+          <div
+            className="eszkoz-oszlop"
+            ref={oszlopDoboz}
+            onPointerEnter={oszlopraLep}
+            onPointerLeave={oszloprolLe}
+          >
             <div className="eszkoz-rud">
               <div id="terkep-eszkozok" />
 
@@ -438,6 +531,7 @@ export default function TervezoPage() {
               <button
                 className={`reteg-gomb${nyitottLap === 'hova' ? ' reteg-gomb--nyitva' : ''}`}
                 onClick={() => lapot('hova')}
+                onPointerEnter={rahuzas('hova')}
                 aria-expanded={nyitottLap === 'hova'}
                 title={sz('tervezo.honnanHova')}
                 aria-label={sz('tervezo.honnanHova')}
@@ -452,6 +546,7 @@ export default function TervezoPage() {
                 <button
                   className={`reteg-gomb${nyitottLap === 'adat' ? ' reteg-gomb--nyitva' : ''}`}
                   onClick={() => lapot('adat')}
+                onPointerEnter={rahuzas('adat')}
                   aria-expanded={nyitottLap === 'adat'}
                   title={sz('tervezo.adatokCimke', { km: kmSzoveg(km), ido: idoSzoveg })}
                   aria-label={sz('tervezo.adatokCimke', { km: kmSzoveg(km), ido: idoSzoveg })}
@@ -467,6 +562,7 @@ export default function TervezoPage() {
               <button
                 className={`reteg-gomb${nyitottLap === 'eszkoz' ? ' reteg-gomb--nyitva' : ''}`}
                 onClick={() => lapot('eszkoz')}
+                onPointerEnter={rahuzas('eszkoz')}
                 aria-expanded={nyitottLap === 'eszkoz'}
                 title={sz('tervezo.eszkozok')}
                 aria-label={sz('tervezo.eszkozok')}
@@ -492,29 +588,36 @@ export default function TervezoPage() {
               </div>
             </div>
 
-            {nyitottLap && (
-              <div className="eszkoz-talca" ref={lapDoboz} role="dialog" aria-label={sz(LAP_KULCSA[nyitottLap])}>
+            {lap && (
+              <div
+                className={`eszkoz-talca${lap.zarul ? ' eszkoz-talca--zarul' : ''}`}
+                ref={lapDoboz}
+                role="dialog"
+                aria-label={sz(LAP_KULCSA[lap.id])}
+                onFocusCapture={talcabaFokusz}
+                onBlurCapture={talcabolKi}
+              >
 
-                {nyitottLap === 'hova' && (
+                {lap.id === 'hova' && (
                   <>
                     {/* 1. A kérdés */}
                     <HonnanHova
                       onUgras={(pont, { kozeli: kell } = {}) => {
                         terkep.current?.flyTo({ center: [pont[1], pont[0]], zoom: 13 });
                         if (kell) setKozeli(kozeliTurak(pont));
-                        setNyitottLap(null);
+                        zar();
                       }}
                       onUtvonal={({ pontok: ujPontok, nev: ujNev, honnan, horgonyok: ujHorgonyok }) => {
                         betolt({ nev: ujNev, pontok: ujPontok, jelolesek: [], horgonyok: ujHorgonyok });
                         setKozeli(kozeliTurak(honnan));
                         setUzenet(sz('terkep.keszVonal'));
-                        setNyitottLap(null);
+                        zar();
                       }}
                     />
                   </>
                 )}
 
-                {nyitottLap === 'adat' && vanUt && (
+                {lap.id === 'adat' && vanUt && (
                   <>
                     <div className="ertekek">
                       <div className="ertekek__elem">
@@ -562,7 +665,7 @@ export default function TervezoPage() {
                   </>
                 )}
 
-                {nyitottLap === 'eszkoz' && (
+                {lap.id === 'eszkoz' && (
                   <>
                     {/* 3. Az eszközök — csak ha van min dolgozni */}
                     {!ures && (
