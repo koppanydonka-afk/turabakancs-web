@@ -5,6 +5,7 @@ import KozeliTurak from './KozeliTurak.jsx';
 import TuraLista from './TuraLista.jsx';
 import JelolesLista from './JelolesLista.jsx';
 import Tanacsok from './Tanacsok.jsx';
+import IdoWidget from './IdoWidget.jsx';
 import Labjegyzet from './Labjegyzet.jsx';
 
 import {
@@ -54,6 +55,10 @@ export default function TervezoPage() {
   const { params } = useRoute();
   const terkep = useRef(null);
   const [terkepKesz, setTerkepKesz] = useState(false);
+  /* Az időjárás helye. Alapból a térkép közepe (betöltéskor egyszer), utána
+     az útvonal kezdőpontja. Pásztázásra NEM követ: az Open-Meteo ingyenes
+     szolgáltatás, nem kérdezzük minden térképmozdulatra. */
+  const [terkepKozep, setTerkepKozep] = useState(null);
 
   const [pontok, setPontok] = useState(() => dekodol(params.get('ut')));
   const [horgonyok, setHorgonyok] = useState(() => horgonynak(dekodol(params.get('ut'))));
@@ -64,6 +69,9 @@ export default function TervezoPage() {
   const [illeszt, setIlleszt] = useState(0);
   const [aktivId, setAktivId] = useState(null);
   const [lapNyitva, setLapNyitva] = useState(false);
+  /* A honnan-hova widget összecsukható: telefonon a fele térképet eltakarná,
+     és ha már megvan az útvonal, ritkán kell újra. */
+  const [hhNyitva, setHhNyitva] = useState(true);
   const [kozeli, setKozeli] = useState(null);
   const [huzas, setHuzas] = useState(false);
   const [vanVissza, setVanVissza] = useState(false);
@@ -330,6 +338,8 @@ export default function TervezoPage() {
             onKesz={(map) => {
               terkep.current = map;
               setTerkepKesz(true);
+              const k = map.getCenter();
+              setTerkepKozep([k.lat, k.lng]);
             }}
             onPontHozzaad={pontHozzaad}
             onPontMozgat={(i, p) => pontCsere((lista) => lista.map((x, n) => (n === i ? p : x)))}
@@ -370,27 +380,23 @@ export default function TervezoPage() {
               és a „Szerkesztés és mentés” fiókban átnevezhetők, törölhetők.
               Új jelölést viszont már nem lehet kézzel kirakni. */}
 
-          <p className={`terkep__sug${sugLathato ? '' : ' terkep__sug--rejtve'}`}>{sugSzoveg}</p>
-        </div>
+          {/* ---- Lebegő widgetek a térkép fölött ----
 
-        <aside className={`panel${lapNyitva ? ' panel--nyitva' : ''}`}>
-          <button
-            className="lapfogo"
-            onClick={() => setLapNyitva((v) => !v)}
-            aria-expanded={lapNyitva}
-            aria-controls="tervezo-panel"
-          >
-            <span className="lapfogo__csik" aria-hidden="true" />
-            <span className="lapfogo__szoveg">
-              {lapNyitva
-                ? 'Térkép mutatása'
-                : vanUt
-                  ? `${kmSzoveg(km)} · ${ido ? `${Math.floor(ido / 60)} ó ${String(ido % 60).padStart(2, '0')} p` : '—'} · részletek`
-                  : 'Honnan hova? · részletek'}
-            </span>
-          </button>
+              Az oldalsáv megszűnt: a kérdés (honnan hova), az időjárás és a
+              válasz (táv, menetidő, tanácsok) a térképre került. A felhúzható
+              lapon már csak az eszközök maradtak. */}
 
-          <div className="panel__tartalom" id="tervezo-panel">
+          <div className="widgetek">
+            <div className={`hh-widget${hhNyitva ? '' : ' hh-widget--csukva'}`}>
+              <button
+                className="hh-widget__fej"
+                onClick={() => setHhNyitva((v) => !v)}
+                aria-expanded={hhNyitva}
+              >
+                <span>Honnan hova?</span>
+                <span className="hh-widget__nyil" aria-hidden="true">{hhNyitva ? '−' : '+'}</span>
+              </button>
+
             {/* 1. A kérdés */}
             <HonnanHova
               onUgras={(pont, { kozeli: kell } = {}) => {
@@ -404,11 +410,15 @@ export default function TervezoPage() {
               }}
             />
 
+            </div>
+
+            <IdoWidget hely={pontok.length > 0 ? pontok[0] : terkepKozep} />
+
             {uzenet && <p className="uzenet">{uzenet}</p>}
 
             {/* 2. A válasz */}
             {vanUt && (
-              <div className="adatok">
+              <div className="adatok adat-widget">
                 <div className="ertekek">
                   <div className="ertekek__elem">
                     <strong>{kmSzoveg(km)}</strong>
@@ -420,14 +430,14 @@ export default function TervezoPage() {
                     </strong>
                     <span>
                       <select
-                        className="tempo"
-                        value={tempo}
-                        onChange={(e) => setTempo(e.target.value)}
-                        aria-label="Haladási tempó"
+                      className="tempo"
+                      value={tempo}
+                      onChange={(e) => setTempo(e.target.value)}
+                      aria-label="Haladási tempó"
                       >
-                        {TEMPOK.map((t) => (
-                          <option key={t.id} value={t.id}>{t.nev}</option>
-                        ))}
+                      {TEMPOK.map((t) => (
+                        <option key={t.id} value={t.id}>{t.nev}</option>
+                      ))}
                       </select>
                     </span>
                   </div>
@@ -454,6 +464,27 @@ export default function TervezoPage() {
                 </div>
               </div>
             )}
+          </div>
+
+          <p className={`terkep__sug${sugLathato ? '' : ' terkep__sug--rejtve'}`}>{sugSzoveg}</p>
+        </div>
+
+        <aside className={`panel${lapNyitva ? ' panel--nyitva' : ''}`}>
+          <button
+            className="lapfogo"
+            onClick={() => setLapNyitva((v) => !v)}
+            aria-expanded={lapNyitva}
+            aria-controls="tervezo-panel"
+          >
+            <span className="lapfogo__csik" aria-hidden="true" />
+            {/* A táv és a menetidő már a térképen van, a lapon csak az
+                eszközök maradtak — a felirat ezt mondja. */}
+            <span className="lapfogo__szoveg">
+              {lapNyitva ? 'Térkép mutatása' : 'Mentés, kész útvonalak, GPX'}
+            </span>
+          </button>
+
+          <div className="panel__tartalom" id="tervezo-panel">
 
             {/* 3. Az eszközök — csak ha van min dolgozni */}
             {!ures && (

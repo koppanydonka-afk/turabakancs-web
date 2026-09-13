@@ -97,6 +97,49 @@ Volt egy név nélküli véleményfal is félkészen; kikerült. Nyilvános vél
 tárhelyet, moderálást és tárhelyszolgáltatói kötelezettséget (Ekertv.) igényel — ez
 külön döntés, nem programozási kérdés.
 
+## Az oldalsáv megszűnt
+
+A tervező korábban kétoszlopos volt: térkép és mellette egy 380 képpontos
+oldalsáv. Most a térkép a teljes felület, a tartalom pedig két helyre került.
+
+**Lebegő widgetek a térképen** (jobb felső oszlop, a nagyítógombok alatt):
+
+| widget | mikor | megjegyzés |
+| --- | --- | --- |
+| Honnan hova | mindig | összecsukható — telefonon 306 helyett 69 képpont |
+| Időjárás | mindig | **alapból betöltve**, nem gombnyomásra |
+| Útvonaladatok | ha van útvonal | táv, menetidő, emelkedő, nehézség, tanácsok |
+
+**A felhúzható lapon** maradt: mentés, kész útvonalak, GPX-betöltés, mentett
+tervek, lábjegyzet. Ez a megoldás telefonon már működött; most gépen is ez van,
+egyetlen elrendezés mindkettőre.
+
+### Az időjárás helye
+
+Betöltéskor a térkép közepe, utána az útvonal kezdőpontja. **Pásztázásra nem
+követ**: az Open-Meteo ingyenes, kulcs nélküli szolgáltatás, nem kérdezzük
+minden térképmozdulatra. A koordináta három tizedesre kerekítve a gyorsítótár
+kulcsa, tehát száz méteren belüli elmozdulás sem indít új kérést.
+
+Másfél másodperc késleltetés is van benne. Rajzolás közben a kezdőpont többször
+változik egymás után — kattintáskor, majd amikor a vonal ösvényre kerül —, és
+három gyors kérésre az Open-Meteo hibát ad. Mérve: késleltetés nélkül a widget
+„nem érhető el” állapotba ment minden rajzolásnál.
+
+### A flex-csapda, harmadszor
+
+A widgetoszlop görgethető, a benne lévők viszont nem zsugorodhatnak. Enélkül a
+flex-oszlop **összenyomta** az időjárás-widgetet nulla magasságúra — tartalommal
+együtt, láthatatlanul.
+
+Ugyanez a hiba korábban kétszer előfordult a panelnél. A szabály:
+
+```css
+.widgetek > * { flex: 0 0 auto; }
+```
+
+Ha egy görgethető flex-oszlopban eltűnik valami, ez az első hely, ahol nézni kell.
+
 ## Hat réteg a térkép bal felső sarkában
 
 A jelöléstípusokból rétegek lettek: amit eddig kézzel kellett a térképre
