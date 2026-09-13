@@ -97,7 +97,7 @@ export default function Terkep({
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
       attribution:
-        '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> közreműködői',
+        `© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> ${sz('terkep.kozremukodoi')}`,
     }).addTo(map);
 
     map.on('click', (event) => {
@@ -208,7 +208,7 @@ export default function Terkep({
           iconSize: [meret, meret],
           iconAnchor: [meret / 2, meret / 2],
         }),
-        title: elso ? 'Rajt' : utolso ? 'Cél' : `${i + 1}. pont`,
+        title: elso ? 'Rajt' : utolso ? sz('terkep.cel') : `${i + 1}. pont`,
       }).addTo(csoport);
 
       jel.on('dragend', (e) => {
@@ -365,11 +365,11 @@ export default function Terkep({
            vagy nem ivóvízminőségű. */
         const jeloles =
           x.ivasra === true
-            ? 'iható'
+            ? sz('viz.ihato')
             : x.ivasra === false
-              ? 'NEM iható'
+              ? sz('viz.nemIhato')
               : x.tipus === 'forras'
-                ? 'nincs adat róla, hogy iható-e'
+                ? sz('viz.nincsAdat')
                 : x.fajta;
         kor.bindTooltip(`<strong>${htmlBiztos(x.nev)}</strong><br>${htmlBiztos(jeloles)}`, {
           direction: 'top',

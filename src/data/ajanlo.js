@@ -7,8 +7,18 @@
 import { hossz, tavolsag, tempoSzerint } from './utvonalak.js';
 import { emelkedoPerc } from './magassag.js';
 import { napnyugta, oraPerc } from './naptar.js';
+import { nyelv, sz } from '../nyelv/index.js';
 
-const perc = (p) => (p < 60 ? `${p} perc` : `${Math.floor(p / 60)} ó ${String(p % 60).padStart(2, '0')} p`);
+/* Egy tizedes, a felület nyelvén. A `toFixed` mindig pontot ad, a spanyol
+   és a magyar viszont vesszőt ír — a fejlécben „9,0 km" állt, a tanácsban
+   „9.0 km", egymás mellett. */
+const egyTizedes = (x) =>
+  x.toLocaleString(nyelv(), { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+
+const perc = (p) =>
+  p < 60
+    ? sz('ido.rovidPerc', { p })
+    : sz('ido.rovidOra', { o: Math.floor(p / 60), p: String(p % 60).padStart(2, '0') });
 
 /* A menetidő a táv és az emelkedő együttese (Naismith). Pihenő nélkül. */
 export function menetido(km, tempoId, felMeter) {
@@ -17,12 +27,13 @@ export function menetido(km, tempoId, felMeter) {
   return Math.round(alap + plusz);
 }
 
+/* A nehézség AZONOSÍTÓJA nyelvfüggetlen — a szűrő ezzel dolgozik, tehát
+   nem eshet szét attól, hogy valaki németül nézi az oldalt. A megjelenő
+   szó és a magyarázat abból az azonosítóból jön. */
 export function nehezseg(km, felMeter) {
   const pont = km + (felMeter ?? 0) / 100;
-  if (pont < 5) return { szo: 'Könnyű', leiras: 'Rövid séta, bárkinek megy.' };
-  if (pont < 12) return { szo: 'Közepes', leiras: 'Fél nap, edzettség nem kell hozzá.' };
-  if (pont < 22) return { szo: 'Erős', leiras: 'Egész napos túra, készülj rá.' };
-  return { szo: 'Nehéz', leiras: 'Hosszú nap. Csak gyakorlattal és felszereléssel.' };
+  const id = pont < 5 ? 'konnyu' : pont < 12 ? 'kozepes' : pont < 22 ? 'eros' : 'nehez';
+  return { id, szo: sz(`nehez.${id}`), leiras: sz(`nehez.${id}Leiras`) };
 }
 
 export function ajanlasok({ pontok, jelolesek, tempo = 'gyalog', magassag = null, most = new Date() }) {
@@ -38,12 +49,12 @@ export function ajanlasok({ pontok, jelolesek, tempo = 'gyalog', magassag = null
   ki.push({
     id: 'osszkep',
     szint: 'info',
-    cimke: `${n.szo} — ${perc(ido)} menetidő`,
+    cimke: sz('tanacs.osszkepCimke', { nehez: n.szo, ido: perc(ido) }),
     szoveg: magassag
-      ? `${km.toFixed(1)} km, ${magassag.fel} m emelkedő. ${n.leiras} A menetidő pihenők nélkül értendő; számolj még legalább fél órát.`
+      ? sz('tanacs.osszkepMagassag', { km: egyTizedes(km), fel: magassag.fel, leiras: n.leiras })
       /* A magasság magától töltődik, nincs mit „lekérni” — a szöveg ezért
          csak annyit mond, hogy a becslés még a táv alapján készült. */
-      : `${km.toFixed(1)} km. ${n.leiras} Az emelkedőt még töltöm; addig a menetidő csak a távból számol.`,
+      : sz('tanacs.osszkepNincs', { km: egyTizedes(km), leiras: n.leiras }),
   });
 
   /* --- Világosság: ez a legfontosabb, ha ma indulsz --- */
@@ -54,22 +65,26 @@ export function ajanlasok({ pontok, jelolesek, tempo = 'gyalog', magassag = null
       ki.push({
         id: 'sotet',
         szint: 'fontos',
-        cimke: 'Már lement a nap',
-        szoveg: `Ma ${oraPerc(ny)}-kor volt a napnyugta. Ha most indulsz, fejlámpa nélkül ne vágj neki.`,
+        cimke: sz('tanacs.sotetCimke'),
+        szoveg: sz('tanacs.sotetSzoveg', { ido: oraPerc(ny) }),
       });
     } else if (maradek < ido + 30) {
       ki.push({
         id: 'sotetedes',
         szint: 'fontos',
-        cimke: 'Nem éred be sötétedés előtt',
-        szoveg: `Napnyugta ${oraPerc(ny)}-kor, addig ${perc(maradek)} van. Az út ${perc(ido)}, pihenők nélkül. Vigyél fejlámpát, vagy indulj korábban.`,
+        cimke: sz('tanacs.sotetedesCimke'),
+        szoveg: sz('tanacs.sotetedesSzoveg', {
+          nyugta: oraPerc(ny),
+          maradek: perc(maradek),
+          ut: perc(ido),
+        }),
       });
     } else {
       ki.push({
         id: 'vilagos',
         szint: 'info',
-        cimke: `Napnyugtáig ${perc(maradek)}`,
-        szoveg: `Ma ${oraPerc(ny)}-kor sötétedik. Ha most indulsz, bőven beéred.`,
+        cimke: sz('tanacs.vilagosCimke', { maradek: perc(maradek) }),
+        szoveg: sz('tanacs.vilagosSzoveg', { ido: oraPerc(ny) }),
       });
     }
   }
@@ -80,8 +95,8 @@ export function ajanlasok({ pontok, jelolesek, tempo = 'gyalog', magassag = null
     ki.push({
       id: 'visszaut',
       szint: 'figyelem',
-      cimke: 'A cél nem ott van, ahol a rajt',
-      szoveg: `${rajtCel.toFixed(1)} km választja el őket. Ha autóval mész, gondold végig, hogyan jutsz vissza érte — vagy tervezz kört.`,
+      cimke: sz('tanacs.visszautCimke'),
+      szoveg: sz('tanacs.visszautSzoveg', { tav: egyTizedes(rajtCel) }),
     });
   }
 
@@ -90,8 +105,8 @@ export function ajanlasok({ pontok, jelolesek, tempo = 'gyalog', magassag = null
     ki.push({
       id: 'viz',
       szint: 'figyelem',
-      cimke: 'Nincs vízvételi hely jelölve',
-      szoveg: `${km.toFixed(1)} km-hez ez kevés. Kapcsold be a térkép ivóvíz-gombját: megmutatom, mi van a környéken.`,
+      cimke: sz('tanacs.vizCimke'),
+      szoveg: sz('tanacs.vizSzoveg', { km: egyTizedes(km) }),
     });
   }
 
@@ -100,8 +115,8 @@ export function ajanlasok({ pontok, jelolesek, tempo = 'gyalog', magassag = null
     ki.push({
       id: 'megkozelites',
       szint: 'figyelem',
-      cimke: 'Nincs jelölve, hogyan jutsz a rajthoz',
-      szoveg: 'Indulás előtt ez lesz az első kérdés. A térkép megálló-gombjával megnézheted, mi van a környéken.',
+      cimke: sz('tanacs.megkozelitesCimke'),
+      szoveg: sz('tanacs.megkozelitesSzoveg'),
     });
   }
 
@@ -111,8 +126,8 @@ export function ajanlasok({ pontok, jelolesek, tempo = 'gyalog', magassag = null
     ki.push({
       id: 'durva',
       szint: 'figyelem',
-      cimke: 'A vonal nagyon egyenes',
-      szoveg: `Szakaszonként átlag ${kmPontonkent.toFixed(1)} km. A valódi ösvény kanyarog, tehát a tényleges táv ennél hosszabb — kattints be több pontot a pontosabb képhez.`,
+      cimke: sz('tanacs.durvaCimke'),
+      szoveg: sz('tanacs.durvaSzoveg', { atlag: egyTizedes(kmPontonkent) }),
     });
   }
 
@@ -121,8 +136,12 @@ export function ajanlasok({ pontok, jelolesek, tempo = 'gyalog', magassag = null
     ki.push({
       id: 'emelkedo',
       szint: 'figyelem',
-      cimke: `${magassag.fel} méter emelkedő`,
-      szoveg: `A legalacsonyabb pont ${magassag.min} m, a legmagasabb ${magassag.max} m. Ez az emelkedő önmagában ${perc(emelkedoPerc(magassag.fel))}-cel hosszabbítja a menetidőt.`,
+      cimke: sz('tanacs.emelkedoCimke', { fel: magassag.fel }),
+      szoveg: sz('tanacs.emelkedoSzoveg', {
+        min: magassag.min,
+        max: magassag.max,
+        plusz: perc(emelkedoPerc(magassag.fel)),
+      }),
     });
   }
 
@@ -131,8 +150,8 @@ export function ajanlasok({ pontok, jelolesek, tempo = 'gyalog', magassag = null
     ki.push({
       id: 'veszely',
       szint: 'fontos',
-      cimke: 'Nehéz szakaszt jelöltél be',
-      szoveg: 'Eső után és fagyban a meredek, sziklás részek jóval lassabbak és kockázatosabbak. Nézd meg az időjárást indulás előtt.',
+      cimke: sz('tanacs.veszelyCimke'),
+      szoveg: sz('tanacs.veszelySzoveg'),
     });
   }
 

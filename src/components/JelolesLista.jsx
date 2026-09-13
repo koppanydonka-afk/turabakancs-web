@@ -1,4 +1,5 @@
 import { tipusSzerint } from '../data/jelolesek.js';
+import { sz } from '../nyelv/index.js';
 
 /* A kitett jelölések listája. A címke itt kap nevet: a térképen csak
    kattintani kell, elnevezni ráérsz utólag. */
@@ -17,19 +18,19 @@ export default function JelolesLista({ jelolesek, onCimke, onTorol, onOdaugrik }
               className="jeloles-sor__jel"
               style={{ '--tu-szin': tipus.szin }}
               onClick={() => onOdaugrik(j)}
-              title={`Ugrás ide: ${j.cimke || tipus.nev}`}
-              aria-label={`Ugrás ide: ${j.cimke || tipus.nev}`}
+              title={sz('jeloles.ugras', { nev: j.cimke || sz(tipus.nevKulcs) })}
+              aria-label={sz('jeloles.ugras', { nev: j.cimke || sz(tipus.nevKulcs) })}
             >
               <svg viewBox="0 0 24 24" aria-hidden="true" dangerouslySetInnerHTML={{ __html: tipus.rajz }} />
             </button>
             <input
               type="text"
               value={j.cimke}
-              placeholder={tipus.nev}
+              placeholder={sz(tipus.nevKulcs)}
               onChange={(e) => onCimke(i, e.target.value)}
-              aria-label={`${tipus.nev} neve`}
+              aria-label={sz('jeloles.neve', { tipus: sz(tipus.nevKulcs) })}
             />
-            <button className="lista__torol" onClick={() => onTorol(i)} aria-label="Jelölés törlése">
+            <button className="lista__torol" onClick={() => onTorol(i)} aria-label={sz('terkep.jelolesTorol')}>
               Törlés
             </button>
           </div>

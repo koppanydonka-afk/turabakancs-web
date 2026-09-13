@@ -1,4 +1,5 @@
 import { LATVANYOSSAGOK } from '../data/latvanyossagok.js';
+import { sz } from '../nyelv/index.js';
 
 /* Impresszum, felelősség, adatkezelés és képjegyzék — egy oldalon.
 
@@ -20,69 +21,41 @@ export default function ImpresszumPage() {
         {/* Nincs nagy címsor: ez nem kirakat, hanem tudnivaló. A kalap
             viszont h1 maradt — egy oldalnak legyen egy címe, különben a
             képolvasó és a kereső is elveszti a fonalat. */}
-        <h1 className="kalap">Impresszum és adatkezelés</h1>
+        <h1 className="kalap">{sz('imp.cim')}</h1>
       </header>
 
       <div className="szoveg">
-        <h2>Felelősség — ezt olvasd el, ha túrázni indulsz</h2>
+        <h2>{sz('imp.felelossegCim')}</h2>
+        {/* A kiemelt részt a szótár {eros} helye jelöli ki — a szórend
+            nyelvenként más, a hangsúly nem mozdulhat el tőle. */}
         <p>
-          Az oldal útvonalakat, távolságokat, emelkedőket, menetidőt és napnyugtát mutat.
-          Ezek <strong>számítások és becslések</strong>, nem garanciák:
+          {sz('imp.felelossegLead', { eros: '\u0000' }).split('\u0000')[0]}
+          <strong>{sz('imp.felelossegEros')}</strong>
+          {sz('imp.felelossegLead', { eros: '\u0000' }).split('\u0000')[1]}
         </p>
         <ul>
-          <li>
-            A vonalak a térképadatból származó gyalogutakat követik. Hogy az adott ösvény
-            most járható-e, azt a térkép nem tudja — fa dőlhet rá, elmoshatja az eső,
-            lezárhatják.
-          </li>
-          <li>
-            A menetidő sík terepre és átlagos tempóra számol. Terhelés, hó, sár, sötétedés
-            és a saját erőnléted mind felülírja.
-          </li>
-          <li>
-            Az emelkedő domborzatmodellből jön, ami néhány méterrel eltérhet a valóságtól.
-          </li>
+          <li>{sz('imp.felelosseg1')}</li>
+          <li>{sz('imp.felelosseg2')}</li>
+          <li>{sz('imp.felelosseg3')}</li>
         </ul>
         <p>
-          <strong>A terepen a saját döntésed és felelősséged számít.</strong> Tájékozódásra a
-          jelzett turistautak és a hivatalos térképek valók; indulás előtt nézd meg az
-          időjárást, és mondd meg valakinek, hova mész. Ez az oldal segít tervezni — nem
-          helyettesíti a józan észt.
+          <strong>{sz('imp.felelossegZaroEros')}</strong>
+          {sz('imp.felelossegZaro', { eros: '' })}
         </p>
 
-        <h2>A tartalom</h2>
+        <h2>{sz('imp.tartalomCim')}</h2>
         <p>
-          A csillagos értékelések a mi véleményünk, nem mások pontszámainak átlaga.
-          A térképadat az OpenStreetMapből jön, amit önkéntesek tartanak karban. A
-          látványosságok fotói szabad licenc alatt állnak, a szerzőik nevével együtt —
-          a teljes jegyzék lent, <a href="#kepek">A képek</a> alatt.
+          {sz('imp.tartalom', { link: '\u0000' }).split('\u0000')[0]}
+          <a href="#kepek">{sz('imp.kepekCim')}</a>
+          {sz('imp.tartalom', { link: '\u0000' }).split('\u0000')[1]}
         </p>
 
-        <h2>Adatkezelés</h2>
-        <p>
-          Az oldal nem kér fiókot, nem gyűjt személyes adatot, és nem használ sütiket.
-          Amit rajzolsz, a böngésződben keletkezik, és ott is marad: a mentett terveid a
-          saját géped tárolójába kerülnek, a megosztható link pedig magába a címbe teszi
-          az útvonalat, nem egy adatbázisba.
-        </p>
-        <p>
-          Ami mégis kimegy az internetre, az nem hozzánk megy. A térképcsempéket és a
-          helykeresés válaszát az OpenStreetMap nyilvános szolgáltatásai adják, a
-          magassági adatot az Open-Meteo, az útvonalak ösvényre húzását pedig a FOSSGIS
-          gyalogos útvonalkeresője. Ilyenkor — mint minden weboldal minden képénél —
-          látszik feléjük az IP-címed, a húzásnál és a magasságnál pedig a vonalad
-          koordinátái is. Ezt nem tudjuk megkerülni, ha térképet akarunk mutatni; de
-          legalább tudsz róla.
-        </p>
+        <h2>{sz('imp.adatCim')}</h2>
+        <p>{sz('imp.adat1')}</p>
+        <p>{sz('imp.adat2')}</p>
 
-        <h2 id="kepek">A képek</h2>
-        <p>
-          A térképen látható látványosságok fotói a Wikimedia Commonsról valók, és
-          szabad licenc alatt állnak — de a szabad nem azt jelenti, hogy gazdátlan:
-          mindegyiknek van szerzője, akit meg kell nevezni. Az alábbi lista ezt teszi.
-          A képeket letöltöttük a saját oldalunkra, hogy a böngésződ ne kérjen le
-          semmit idegen szerverről.
-        </p>
+        <h2 id="kepek">{sz('imp.kepekCim')}</h2>
+        <p>{sz('imp.kepek')}</p>
         <ul className="kepjegyzek">
           {LATVANYOSSAGOK.map((l) => (
             <li key={l.id}>

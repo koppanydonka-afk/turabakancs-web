@@ -5,6 +5,8 @@ import { tipusSzerint } from '../data/jelolesek.js';
 import { gpxLetoltes } from '../data/gpx.js';
 import Ertekeles from './Ertekeles.jsx';
 import { ertekelesSzerint } from '../data/ertekelesek.js';
+import { ut } from '../router.js';
+import { sz } from '../nyelv/index.js';
 
 /* Egy példa útvonal. A térkép itt csak nézet: nincs `mod`, tehát a
    kattintás nem rajzol. Aki továbbdolgozna rajta, egy gombbal átviszi
@@ -16,9 +18,9 @@ export default function UtvonalPage({ id }) {
   if (!p) {
     return (
       <section className="oldal">
-        <h1 className="oldal__cim">Ez az útvonal nincs meg.</h1>
+        <h1 className="oldal__cim">{sz('utvonal.nincs')}</h1>
         <p className="oldal__bevezeto">
-          Lehet, hogy elgépelted a címet. <a href="/utvonalak">Itt a többi példa.</a>
+          {sz('utvonal.elgepelt')} <a href={ut('/utvonalak')}>{sz('utvonal.tobbi')}</a>
         </p>
       </section>
     );
@@ -44,28 +46,28 @@ export default function UtvonalPage({ id }) {
           <div className="ertekek">
             <div className="ertekek__elem">
               <strong>{kmSzoveg(km)}</strong>
-              <span>Hossz</span>
+              <span>{sz('utvonal.hossz')}</span>
             </div>
             {TEMPOK.map((t) => (
               <div className="ertekek__elem" key={t.id}>
                 <strong>{ido(km, t.id)}</strong>
-                <span>{t.nev}</span>
+                <span>{sz(t.nevKulcs)}</span>
               </div>
             ))}
           </div>
-          <p className="apro">Sík terepre számolva; emelkedőn több.</p>
+          <p className="apro">{sz('utvonal.sik')}</p>
 
           <div className="gombsor">
             <a className="gomb gomb--fo" href={tervLinkje('/tervezo', p)}>
-              Megnyitás a tervezőben
+              {sz('utvonal.megnyitas')}
             </a>
             <button className="gomb gomb--halk" onClick={() => gpxLetoltes(p)}>
-              GPX letöltése
+              {sz('utvonal.gpx')}
             </button>
           </div>
 
           <div className="lista">
-            <h2 className="lista__cim">Jelölések</h2>
+            <h2 className="lista__cim">{sz('utvonal.jelolesek')}</h2>
             {p.jelolesek.map((j) => {
               const tipus = tipusSzerint(j.tipus);
               return (
@@ -75,7 +77,7 @@ export default function UtvonalPage({ id }) {
                   </span>
                   <span className="jeloles-sor__nev">
                     {j.cimke}
-                    <em>{tipus.nev}</em>
+                    <em>{sz(tipus.nevKulcs)}</em>
                   </span>
                 </div>
               );
@@ -93,8 +95,7 @@ export default function UtvonalPage({ id }) {
       </div>
 
       <p className="figyelmeztetes">
-        <strong>Hozzávetőleges vonalvezetés, nem felmért turistaút.</strong> A terepen a
-        jelzett turistautak és a hivatalos térképek a mérvadók.
+        <strong>{sz('utvonal.kozelito')}</strong>{sz('utvonal.kozelitoUtan')}
       </p>
     </section>
   );

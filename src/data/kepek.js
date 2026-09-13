@@ -1,3 +1,4 @@
+import { sz } from '../nyelv/index.js';
 /* Kép egy látványossághoz — kérésre, a Wikimedia Commonsról.
 
    MIÉRT ÍGY: a látványosságok korábban tizenöt magyar hely voltak, a
@@ -90,7 +91,7 @@ async function fajlAdatai(fajlnev) {
   return {
     kep: info.thumburl ?? info.url,
     szerzo,
-    licenc: licenc || 'lásd a forrásnál',
+    licenc: licenc || sz('kep.lasdForras'),
     forras: info.descriptionurl ?? `https://commons.wikimedia.org/wiki/File:${encodeURIComponent(fajlnev)}`,
   };
 }

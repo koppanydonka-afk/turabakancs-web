@@ -7,13 +7,16 @@
 import { hossz } from './utvonalak.js';
 import { nehezseg } from './ajanlo.js';
 
+/* A sávok és a nehézségi fokok AZONOSÍTÓVAL szerepelnek, nem szóval: a
+   szűrés így nem esik szét attól, hogy valaki németül nézi az oldalt. A
+   megjelenő feliratot a szótár adja. */
 export const HOSSZ_SAVOK = [
-  { id: 'rovid', nev: 'Rövid', leiras: '3 km alatt', bele: (km) => km < 3 },
-  { id: 'kozepes', nev: 'Közepes', leiras: '3–8 km', bele: (km) => km >= 3 && km <= 8 },
-  { id: 'hosszu', nev: 'Hosszú', leiras: '8 km fölött', bele: (km) => km > 8 },
+  { id: 'rovid', bele: (km) => km < 3 },
+  { id: 'kozepes', bele: (km) => km >= 3 && km <= 8 },
+  { id: 'hosszu', bele: (km) => km > 8 },
 ];
 
-export const NEHEZSEGEK = ['Könnyű', 'Közepes', 'Erős', 'Nehéz'];
+export const NEHEZSEGEK = ['konnyu', 'kozepes', 'eros', 'nehez'];
 
 /* Egy útvonal összes szűrhető jellemzője, egy helyen. */
 export function jellemzok(p) {
@@ -24,7 +27,7 @@ export function jellemzok(p) {
     fel,
     tajegyseg: p.hol,
     hosszSav: HOSSZ_SAVOK.find((s) => s.bele(km))?.id ?? 'kozepes',
-    nehezseg: nehezseg(km, fel).szo,
+    nehezseg: nehezseg(km, fel).id,
   };
 }
 

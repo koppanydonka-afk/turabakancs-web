@@ -1250,10 +1250,12 @@ input::placeholder { color: var(--muted); }
 }
 
 /* A nehézség címkéje a szintjéhez igazodik. */
-.cimke--könnyű { background: var(--jo-soft, var(--accent-soft)); color: var(--accent-ink); }
-.cimke--közepes { background: var(--surface-2); }
-.cimke--erős { background: var(--figyelem-lagy); color: var(--figyelem); }
-.cimke--nehéz { background: var(--fontos-lagy); color: var(--fontos); }
+/* A nehézség azonosítója ékezet nélküli, és nyelvtől független — a német
+   oldalon is `cimke--konnyu` a könnyű túra, csak a felirat más. */
+.cimke--konnyu { background: var(--jo-soft, var(--accent-soft)); color: var(--accent-ink); }
+.cimke--kozepes { background: var(--surface-2); }
+.cimke--eros { background: var(--figyelem-lagy); color: var(--figyelem); }
+.cimke--nehez { background: var(--fontos-lagy); color: var(--fontos); }
 
 @media (max-width: 680px) {
   .szuro { padding: var(--space-4); }

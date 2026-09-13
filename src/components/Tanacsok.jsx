@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { ajanlasok } from '../data/ajanlo.js';
 import { useMost } from '../ora.js';
 import { elorejelzes, figyelmeztetes, kodSzerint } from '../data/idojaras.js';
+import { nyelv, sz } from '../nyelv/index.js';
 
 /* Tanácsok és időjárás.
 
@@ -51,7 +52,7 @@ export default function Tanacsok({ pontok, jelolesek, tempo, magassag }) {
       ) : (
         <>
           <button className="gomb gomb--halk gomb--szeles" onClick={idotKer} disabled={fut} aria-busy={fut}>
-            {fut ? 'Lekérem…' : 'Milyen idő lesz?'}
+            {fut ? sz('tanacs.lekerem') : sz('tanacs.milyenIdo')}
           </button>
           {hiba && <p className="uzenet">{hiba}</p>}
         </>
@@ -63,7 +64,9 @@ export default function Tanacsok({ pontok, jelolesek, tempo, magassag }) {
 /* Öt nap előrejelzése. A figyelmeztetés a nap alatt jelenik meg, ha van —
    a szám önmagában keveset mond, az „ilyenkor csúszik a létra” sokat. */
 function Idojaras({ napok }) {
-  const nevek = ['vasárnap', 'hétfő', 'kedd', 'szerda', 'csütörtök', 'péntek', 'szombat'];
+  /* A napneveket a böngésző adja a felület nyelvén — kilenc kézzel írt
+     listánál ez egyszerűbb is, pontosabb is. */
+  const napNeve = (d) => d.toLocaleDateString(nyelv(), { weekday: 'long' });
 
   return (
     <div className="idojaras">
@@ -73,7 +76,7 @@ function Idojaras({ napok }) {
           const fig = figyelmeztetes(n);
           return (
             <div className={`ido-nap${fig ? ` ido-nap--${fig.szint}` : ''}`} key={n.nap}>
-              <p className="ido-nap__nap">{i === 0 ? 'ma' : i === 1 ? 'holnap' : nevek[d.getDay()]}</p>
+              <p className="ido-nap__nap">{i === 0 ? sz('nap.ma') : i === 1 ? sz('nap.holnap') : napNeve(d)}</p>
               <p className="ido-nap__fok">
                 <strong>{n.max}°</strong>
                 <span>{n.min}°</span>
@@ -89,7 +92,7 @@ function Idojaras({ napok }) {
         if (!fig) return null;
         return (
           <p className={`tanacs tanacs--${fig.szint}`} key={`f-${n.nap}`}>
-            <span className="tanacs__cim">{i === 0 ? 'Ma' : i === 1 ? 'Holnap' : 'Két nap múlva'}</span>
+            <span className="tanacs__cim">{i === 0 ? 'Ma' : i === 1 ? 'Holnap' : sz('nap.ketNapMulva')}</span>
             <span className="tanacs__szoveg">{fig.szoveg}</span>
           </p>
         );
@@ -120,9 +123,9 @@ function Profil({ magassag }) {
         <polyline points={pontok} className="profil__vonal" />
       </svg>
       <figcaption className="profil__adatok">
-        <span><strong>↑ {fel} m</strong> emelkedő</span>
-        <span><strong>↓ {le} m</strong> lejtő</span>
-        <span><strong>{min}–{max} m</strong> tengerszint felett</span>
+        <span><strong>↑ {fel} m</strong> {sz('adat.emelkedo')}</span>
+        <span><strong>↓ {le} m</strong> {sz('adat.lejto')}</span>
+        <span><strong>{min}–{max} m</strong> {sz('adat.tengerszintUtan')}</span>
       </figcaption>
     </figure>
   );

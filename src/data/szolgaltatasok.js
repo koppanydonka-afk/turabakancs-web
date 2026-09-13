@@ -41,31 +41,31 @@ function tavolsag(a, b) {
    ivhatóságot mondják meg. */
 
 const ALFAJTA = [
-  [(t) => t.amenity === 'drinking_water', 'Ivóvíz'],
-  [(t) => t.natural === 'spring', 'Forrás'],
-  [(t) => t.amenity === 'shelter', 'Esőbeálló'],
-  [(t) => t.tourism === 'wilderness_hut', 'Menedékház'],
-  [(t) => t.tourism === 'alpine_hut', 'Turistaház'],
-  [(t) => t.railway === 'station', 'Vasútállomás'],
-  [(t) => t.railway === 'halt', 'Megállóhely'],
-  [(t) => t.highway === 'bus_stop', 'Buszmegálló'],
-  [(t) => t.amenity === 'parking', 'Parkoló'],
-  [(t) => t.tourism === 'viewpoint', 'Kilátópont'],
-  [(t) => t.man_made === 'tower', 'Kilátótorony'],
-  [(t) => t.amenity === 'restaurant', 'Étterem'],
-  [(t) => t.amenity === 'cafe', 'Kávézó'],
-  [(t) => t.amenity === 'pub' || t.amenity === 'bar', 'Kocsma'],
-  [(t) => t.amenity === 'fast_food', 'Büfé'],
-  [(t) => t.historic === 'castle', 'Vár, kastély'],
-  [(t) => t.historic === 'ruins', 'Rom'],
-  [(t) => t.historic === 'archaeological_site', 'Régészeti lelőhely'],
-  [(t) => t.historic === 'monument' || t.historic === 'memorial', 'Emlékmű'],
-  [(t) => t.tourism === 'museum', 'Múzeum'],
-  [(t) => t.waterway === 'waterfall', 'Vízesés'],
-  [(t) => t.natural === 'cave_entrance', 'Barlangbejárat'],
-  [(t) => t.natural === 'arch', 'Sziklakapu'],
-  [(t) => t.man_made === 'lighthouse', 'Világítótorony'],
-  [(t) => t.tourism === 'attraction', 'Látnivaló'],
+  [(t) => t.amenity === 'drinking_water', 'fajta.ivoviz'],
+  [(t) => t.natural === 'spring', 'fajta.forras'],
+  [(t) => t.amenity === 'shelter', 'fajta.esobeallo'],
+  [(t) => t.tourism === 'wilderness_hut', 'fajta.menedekhaz'],
+  [(t) => t.tourism === 'alpine_hut', 'fajta.turistahaz'],
+  [(t) => t.railway === 'station', 'fajta.vasutallomas'],
+  [(t) => t.railway === 'halt', 'fajta.megallohely'],
+  [(t) => t.highway === 'bus_stop', 'fajta.buszmegallo'],
+  [(t) => t.amenity === 'parking', 'fajta.parkolo'],
+  [(t) => t.tourism === 'viewpoint', 'fajta.kilatopont'],
+  [(t) => t.man_made === 'tower', 'fajta.kilatotorony'],
+  [(t) => t.amenity === 'restaurant', 'fajta.etterem'],
+  [(t) => t.amenity === 'cafe', 'fajta.kavezo'],
+  [(t) => t.amenity === 'pub' || t.amenity === 'bar', 'fajta.kocsma'],
+  [(t) => t.amenity === 'fast_food', 'fajta.bufe'],
+  [(t) => t.historic === 'castle', 'fajta.var'],
+  [(t) => t.historic === 'ruins', 'fajta.rom'],
+  [(t) => t.historic === 'archaeological_site', 'fajta.regeszeti'],
+  [(t) => t.historic === 'monument' || t.historic === 'memorial', 'fajta.emlekmu'],
+  [(t) => t.tourism === 'museum', 'fajta.muzeum'],
+  [(t) => t.waterway === 'waterfall', 'fajta.vizeses'],
+  [(t) => t.natural === 'cave_entrance', 'fajta.barlang'],
+  [(t) => t.natural === 'arch', 'fajta.sziklakapu'],
+  [(t) => t.man_made === 'lighthouse', 'fajta.vilagitotorony'],
+  [(t) => t.tourism === 'attraction', 'fajta.latnivalo'],
 ];
 
 function feldolgoz(adat, reteg) {
@@ -74,7 +74,8 @@ function feldolgoz(adat, reteg) {
       const hely = [e.lat ?? e.center?.lat, e.lon ?? e.center?.lon];
       if (!Number.isFinite(hely[0]) || !Number.isFinite(hely[1])) return null;
       const t = e.tags ?? {};
-      const fajta = ALFAJTA.find(([ill]) => ill(t))?.[1] ?? sz(reteg.nevKulcs);
+      const kulcs = ALFAJTA.find(([ill]) => ill(t))?.[1];
+      const fajta = kulcs ? sz(kulcs) : sz(reteg.nevKulcs);
 
       /* Ivhatóság CSAK a víznél értelmes, és ott is óvatosan:
            igen  – ivásra szánták, vagy az OSM külön kimondja
@@ -330,7 +331,7 @@ const TERULET_MAX = 400;
 
 export async function teruleten({ del, nyugat, eszak, kelet }, retegId) {
   const reteg = RETEGEK[retegId];
-  if (!reteg) throw new SzolgaltatasHiba('Ismeretlen réteg.');
+  if (!reteg) throw new SzolgaltatasHiba(sz('hiba.ismeretlenReteg'));
 
   const doboz = `${del.toFixed(5)},${nyugat.toFixed(5)},${eszak.toFixed(5)},${kelet.toFixed(5)}`;
   const agak = reteg.szurok

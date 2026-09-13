@@ -66,9 +66,9 @@ export default function UtvonalakPage() {
                   className={`pirula${hosszSav === s.id ? ' pirula--aktiv' : ''}`}
                   onClick={() => setHosszSav(hosszSav === s.id ? '' : s.id)}
                   aria-pressed={hosszSav === s.id}
-                  title={s.leiras}
+                  title={sz(`szuro.${s.id}Leiras`)}
                 >
-                  {s.nev}
+                  {sz(`szuro.${s.id}`)}
                 </button>
               ))}
             </div>
@@ -84,7 +84,7 @@ export default function UtvonalakPage() {
                   onClick={() => nehezsegValt(n)}
                   aria-pressed={nehezsegek.includes(n)}
                 >
-                  {n}
+                  {sz(`nehez.${n}`)}
                 </button>
               ))}
             </div>
@@ -130,7 +130,7 @@ export default function UtvonalakPage() {
                   <li>{kmSzoveg(km)}</li>
                   {p.emelkedo && <li>↑ {p.emelkedo.fel} m</li>}
                   <li>{ido(km)} gyalog</li>
-                  <li className={`cimke--${j.nehezseg.toLowerCase()}`}>{j.nehezseg}</li>
+                  <li className={`cimke--${j.nehezseg}`}>{sz(`nehez.${j.nehezseg}`)}</li>
                 </ul>
 
                 <ul className="cimkek">

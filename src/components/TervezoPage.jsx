@@ -188,8 +188,8 @@ export default function TervezoPage() {
           if (futoHuzas.current !== sajat) return;
           /* A szolgáltatás saját üzenete pontosabb, mint bármi, amit itt
              kitalálnánk (nincs gyalogút, túl sok kérés, túl sok pont). */
-          const ok = hiba instanceof UtvonalHiba ? hiba.message : 'Az útvonalkereső most nem érhető el.';
-          setUzenet(`${ok} A vonal addig egyenes marad, a táv és az emelkedő ezért kevesebb a valóságosnál.`);
+          const ok = hiba instanceof UtvonalHiba ? hiba.message : sz('hiba.utvonalkereso');
+          setUzenet(sz('terv.egyenesMarad', { ok }));
         })
         .finally(() => {
           if (futoHuzas.current === sajat) setHuzas(false);
@@ -268,7 +268,7 @@ export default function TervezoPage() {
     const uj = [...horgonyok, p];
     setHorgonyok(uj);
     setPontok(uj); // azonnali visszajelzés; a húzás másfél másodperc múlva felülírja
-    setUzenet(ujKezdes ? 'Új útvonalat kezdtél — a nyíllal visszakapod az előzőt.' : null);
+    setUzenet(ujKezdes ? sz('terv.ujKezdtel') : null);
   };
 
   /* A jelölők a horgonyokon ülnek, ha vannak; különben magán a vonalon
@@ -289,7 +289,7 @@ export default function TervezoPage() {
     setUzenet(
       eredetiPontok > ujPontok.length
         ? `Betöltve. A vonalat ritkítottam, hogy szerkeszthető maradjon — a valódi hossz ${kmSzoveg(eredetiHossz)}.`
-        : 'Betöltve. Húzd arrébb a pontjait, vagy tegyél rá jelöléseket.',
+        : sz('terv.betoltve'),
     );
   };
 
@@ -301,7 +301,7 @@ export default function TervezoPage() {
   const gpxBetolt = async (fajl) => {
     if (!fajl) return;
     if (fajl.size > 5 * 1024 * 1024) {
-      setUzenet('Ez a fájl 5 MB-nál nagyobb. Ekkora nyomvonalat nem tudok értelmesen megnyitni.');
+      setUzenet(sz('gpx.nagy'));
       return;
     }
     try {
@@ -320,7 +320,7 @@ export default function TervezoPage() {
           (t.ritkitva ? ` A ${t.eredetiPontok} pontos nyomvonalat ritkítottam, hogy szerkeszthető maradjon.` : ''),
       );
     } catch (e) {
-      setUzenet(e instanceof GpxHiba ? e.message : 'Ezt a fájlt nem sikerült beolvasni.');
+      setUzenet(e instanceof GpxHiba ? e.message : sz('gpx.nemSikerult'));
     }
   };
 
@@ -328,19 +328,19 @@ export default function TervezoPage() {
     const cim = tervLinkje(`${window.location.origin}/tervezo`, { pontok, jelolesek });
     try {
       await navigator.clipboard.writeText(cim);
-      setUzenet('A link a vágólapon — az útvonal magában a címben van.');
+      setUzenet(sz('terv.vagolapon'));
     } catch {
       window.history.replaceState({}, '', tervLinkje('/tervezo', { pontok, jelolesek }));
-      setUzenet('A böngésző címsorában ott a megosztható link.');
+      setUzenet(sz('terv.cimsorban'));
     }
   };
 
   const ment = (event) => {
     event.preventDefault();
     if (pontok.length < 2 && jelolesek.length === 0) return;
-    const mentett = tervMentes({ id: aktivId, nev: nev.trim() || 'Névtelen terv', pontok, jelolesek });
+    const mentett = tervMentes({ id: aktivId, nev: nev.trim() || sz('terv.nevtelen'), pontok, jelolesek });
     setAktivId(mentett.id);
-    setUzenet('Elmentve. Másik gépen a megosztható linkkel éred el.');
+    setUzenet(sz('terv.elmentve'));
   };
 
   /* A térképre írt súgó felugrik, majd magától eltűnik — a felhasználó
@@ -369,7 +369,10 @@ export default function TervezoPage() {
   const vanUt = pontok.length >= 2;
   const ido = vanUt ? menetido(km, tempo, magassag?.fel) : 0;
   const nehez = vanUt ? nehezseg(km, magassag?.fel) : null;
-  const idoSzoveg = ido < 60 ? `${ido} perc` : `${Math.floor(ido / 60)} ó ${String(ido % 60).padStart(2, '0')} p`;
+  const idoSzoveg =
+    ido < 60
+      ? sz('ido.rovidPerc', { p: ido })
+      : sz('ido.rovidOra', { o: Math.floor(ido / 60), p: String(ido % 60).padStart(2, '0') });
 
   return (
     <section className="tervezo">
@@ -530,7 +533,7 @@ export default function TervezoPage() {
                           aria-label={sz('adat.tempo')}
                           >
                           {TEMPOK.map((t) => (
-                            <option key={t.id} value={t.id}>{t.nev}</option>
+                            <option key={t.id} value={t.id}>{sz(t.nevKulcs)}</option>
                           ))}
                           </select>
                         </span>
@@ -577,7 +580,7 @@ export default function TervezoPage() {
                             />
                           </label>
                           <button className="gomb gomb--halk" type="submit">
-                            {aktivId ? 'Mentés frissítése' : 'Mentés a böngészőbe'}
+                            {aktivId ? sz('terv.mentesFrissit') : sz('terv.mentesBongeszobe')}
                           </button>
                         </form>
 

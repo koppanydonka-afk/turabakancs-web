@@ -1,3 +1,4 @@
+import { sz } from '../nyelv/index.js';
 /* Helynév → koordináta, bárhol a világon.
 
    Az OpenStreetMap nyilvános keresője (Nominatim) válaszol. Csak
@@ -15,7 +16,7 @@ function rovidNev(teljes) {
 
 export async function keresHelyet(szoveg, { darab = 5, nyelv = 'hu' } = {}) {
   const q = (szoveg ?? '').trim();
-  if (q.length < 3) throw new HelyHiba('Írj be legalább három betűt.');
+  if (q.length < 3) throw new HelyHiba(sz('hiba.haromBetu'));
 
   /* Nincs országszűrő: az oldal a világ bármelyik pontjára tervez. Korábban
      `countrycodes: 'hu'` volt itt, és ez volt az EGYETLEN hely, ami tényleg
@@ -40,12 +41,12 @@ export async function keresHelyet(szoveg, { darab = 5, nyelv = 'hu' } = {}) {
       headers: { 'User-Agent': 'Turabakancs/0.1 (helykereses; turabakancs.com)' },
     });
   } catch {
-    throw new HelyHiba('A helykereső most nem érhető el.');
+    throw new HelyHiba(sz('hiba.helykereso'));
   }
-  if (!valasz.ok) throw new HelyHiba('A helykereső most nem válaszol.');
+  if (!valasz.ok) throw new HelyHiba(sz('hiba.helykeresoNema'));
 
   const adat = await valasz.json();
-  if (!adat.length) throw new HelyHiba(`Erre nem találtam helyet: „${q}”`);
+  if (!adat.length) throw new HelyHiba(sz('hiba.nincsHely', { mit: q }));
 
   return adat.map((t) => ({
     nev: rovidNev(t.display_name),

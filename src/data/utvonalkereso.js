@@ -1,3 +1,4 @@
+import { sz } from '../nyelv/index.js';
 /* Ösvényre húzás.
 
    Eddig a két kattintás közé egyenest húztunk, és ebből minden szám hibás
@@ -21,11 +22,11 @@ export class UtvonalHiba extends Error {}
 
 export async function osvenyreHuz(pontok) {
   if (pontok.length < 2) {
-    throw new UtvonalHiba('Legalább két pont kell hozzá.');
+    throw new UtvonalHiba(sz('ut.ketPont'));
   }
   if (pontok.length > MAX_PONT) {
     throw new UtvonalHiba(
-      `Egyszerre legfeljebb ${MAX_PONT} pontot tudok ösvényre húzni. Törölj néhányat, vagy darabold szakaszokra.`,
+      sz('ut.tulSokPont', { max: MAX_PONT }),
     );
   }
 
@@ -36,22 +37,22 @@ export async function osvenyreHuz(pontok) {
   try {
     valasz = await fetch(`${VEGPONT}/${koordinatak}?overview=full&geometries=geojson`);
   } catch {
-    throw new UtvonalHiba('Az útvonalkereső most nem érhető el. Próbáld később.');
+    throw new UtvonalHiba(sz('ut.nemErheto'));
   }
 
   if (valasz.status === 429) {
-    throw new UtvonalHiba('Túl sok kérés ment ki rövid idő alatt. Várj egy kicsit.');
+    throw new UtvonalHiba(sz('ut.tulSok'));
   }
   if (!valasz.ok) {
-    throw new UtvonalHiba('Az útvonalkereső hibát adott.');
+    throw new UtvonalHiba(sz('ut.hibat'));
   }
 
   const adat = await valasz.json();
   if (adat.code !== 'Ok' || !adat.routes?.length) {
     throw new UtvonalHiba(
       adat.code === 'NoRoute'
-        ? 'Ezek közt a pontok közt nem találtam gyalogutat. Lehet, hogy vízen vagy úttalan területen visz át.'
-        : 'Nem sikerült útvonalat találni.',
+        ? sz('ut.nincsGyalogut2')
+        : sz('ut.nemSikerult'),
     );
   }
 

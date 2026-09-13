@@ -1,3 +1,4 @@
+import { sz } from '../nyelv/index.js';
 /* Overpass-lekérdezés, tartaléktükörrel.
 
    Az OpenStreetMap adatait az Overpass API adja, kulcs és fizetés nélkül.
@@ -57,7 +58,7 @@ export async function overpass(lekerdezes, { cimke = 'overpass' } = {}) {
         signal: megszakito.signal,
       });
     } catch (e) {
-      utolsoHiba = new OverpassHiba('Az OpenStreetMap keresője most nem válaszol.', {
+      utolsoHiba = new OverpassHiba(sz('hiba.osmNema'), {
         cause: reszletek(vegpont, e.name === 'AbortError' ? `időtúllépés ${VARAKOZAS_MS} ms után` : e.message),
       });
       continue;
@@ -70,8 +71,8 @@ export async function overpass(lekerdezes, { cimke = 'overpass' } = {}) {
     if (UJRAPROBALHATO.has(valasz.status)) {
       utolsoHiba = new OverpassHiba(
         valasz.status === 429
-          ? 'A kereső most túlterhelt. Próbáld pár másodperc múlva.'
-          : 'A kereső most nem bírja a terhelést. Próbáld pár másodperc múlva.',
+          ? sz('hiba.tulterhelt')
+          : sz('hiba.terheles'),
         { cause: reszletek(vegpont, `HTTP ${valasz.status}`) },
       );
       continue;
@@ -79,8 +80,8 @@ export async function overpass(lekerdezes, { cimke = 'overpass' } = {}) {
 
     /* Minden más (400, 406…) a kérdésünkkel van, nem a kiszolgálóval —
        tükörrel sem lenne jobb. */
-    throw new OverpassHiba('A keresés nem sikerült.');
+    throw new OverpassHiba(sz('hiba.keresesNemSikerult'));
   }
 
-  throw utolsoHiba ?? new OverpassHiba('A keresés nem sikerült.');
+  throw utolsoHiba ?? new OverpassHiba(sz('hiba.keresesNemSikerult'));
 }

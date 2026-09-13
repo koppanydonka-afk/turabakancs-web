@@ -29,9 +29,9 @@ export function hossz(pontok) {
 /* Haladási tempók. Terepen a domborzat ezeken ront, ezért a kiírt idő
    mindig „becsült” — nem ígéret. */
 export const TEMPOK = [
-  { id: 'gyalog', nev: 'Gyalog', kmh: 4.5 },
-  { id: 'futas', nev: 'Futás', kmh: 8 },
-  { id: 'bringa', nev: 'Kerékpár', kmh: 15 },
+  { id: 'gyalog', nevKulcs: 'tempo.gyalog', kmh: 4.5 },
+  { id: 'futas', nevKulcs: 'tempo.futas', kmh: 8 },
+  { id: 'bringa', nevKulcs: 'tempo.bringa', kmh: 15 },
 ];
 
 export const tempoSzerint = (id) => TEMPOK.find((t) => t.id === id) ?? TEMPOK[0];

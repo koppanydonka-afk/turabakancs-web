@@ -11,6 +11,7 @@ const VEGPONT = 'https://api.open-meteo.com/v1/elevation';
 const MAX_PONT = 100;
 
 import { tavolsag } from './utvonalak.js';
+import { sz } from '../nyelv/index.js';
 
 /* Egyenletes mintavétel a vonal mentén. Ha valaki három kattintással rajzolt
    egy 20 kilométeres utat, a három pont magassága semmit nem mondana — ezért
@@ -77,11 +78,11 @@ export async function magassagot(pontok) {
   const lng = minta.map((p) => p[1].toFixed(5)).join(',');
 
   const valasz = await fetch(`${VEGPONT}?latitude=${lat}&longitude=${lng}`);
-  if (!valasz.ok) throw new Error('A magassági adat most nem érhető el.');
+  if (!valasz.ok) throw new Error(sz('hiba.magassag'));
   const adat = await valasz.json();
   const magassagok = adat.elevation;
   if (!Array.isArray(magassagok) || magassagok.length === 0) {
-    throw new Error('A magassági adat most nem érhető el.');
+    throw new Error(sz('hiba.magassag'));
   }
 
   return { magassagok, ...emelkedo(magassagok) };

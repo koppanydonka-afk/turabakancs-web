@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { kozeliUtak, ritkit, utVonala } from '../data/turautak.js';
 import { hossz, kmSzoveg } from '../data/utvonalak.js';
+import { sz } from '../nyelv/index.js';
 
 /* Jelzett turistautak a képernyőn látható területen.
 
@@ -58,8 +59,9 @@ export default function TuraLista({ terkep, onBetolt }) {
   return (
     <div className="turak">
       <p className="apro">
-        Megmutatom, milyen <strong>jelzett turistaút</strong> fut ott, ahol épp a
-        térkép áll. Bármelyiket betöltheted és továbbrajzolhatod.
+        {sz('turak.lead', { jelzett: '\u0000' }).split('\u0000')[0]}
+        <strong>{sz('turak.jelzett')}</strong>
+        {sz('turak.lead', { jelzett: '\u0000' }).split('\u0000')[1]}
       </p>
 
       <button
@@ -68,7 +70,7 @@ export default function TuraLista({ terkep, onBetolt }) {
         disabled={fut}
         aria-busy={fut}
       >
-        {fut ? 'Keresem…' : 'Utak keresése ezen a területen'}
+        {fut ? sz('turak.keresem') : sz('turak.keres')}
       </button>
 
       {hiba && <p className="uzenet">{hiba}</p>}
@@ -99,17 +101,17 @@ export default function TuraLista({ terkep, onBetolt }) {
                 <span className="turak__nev">
                   {ut.nev}
                   <span>
-                    {[ut.jelzes?.nev, ut.tavsag].filter(Boolean).join(' · ') || 'jelzett út'}
+                    {[ut.jelzes?.nev, ut.tavsag].filter(Boolean).join(' · ') || sz('turak.jelzettUt')}
                   </span>
                 </span>
-                {toltId === ut.id && <span className="turak__tolt">töltöm…</span>}
+                {toltId === ut.id && <span className="turak__tolt">{sz('turak.tolt')}</span>}
               </button>
             ))}
           </div>
         </>
       )}
 
-      <p className="apro">A terepen a festett jelzés a mérvadó.</p>
+      <p className="apro">{sz('turak.festett')}</p>
     </div>
   );
 }

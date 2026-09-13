@@ -10,6 +10,7 @@
    minden más megvolt hozzá: térkép, magasság, menetidő, tanácsok. */
 
 import { tipusSzerint, JELOLES_TIPUSOK } from './jelolesek.js';
+import { sz } from '../nyelv/index.js';
 
 const xmlBiztos = (szoveg) =>
   String(szoveg ?? '')
@@ -112,12 +113,12 @@ function ritkit(pontok, max = 300) {
 
 export function gpxBeolvas(szoveg) {
   if (typeof DOMParser === 'undefined') {
-    throw new GpxHiba('Ez a böngésző nem tud GPX-et beolvasni.');
+    throw new GpxHiba(sz('gpx.nemTud'));
   }
 
   const doc = new DOMParser().parseFromString(szoveg, 'application/xml');
   if (doc.querySelector('parsererror')) {
-    throw new GpxHiba('Ez a fájl nem olvasható GPX — sérült vagy más formátum.');
+    throw new GpxHiba(sz('gpx.serult'));
   }
 
   const koordinatak = (csomopontok) =>
@@ -149,7 +150,7 @@ export function gpxBeolvas(szoveg) {
     .slice(0, 60);
 
   if (pontok.length < 2 && jelolesek.length === 0) {
-    throw new GpxHiba('Ebben a fájlban nincs sem nyomvonal, sem jelölés.');
+    throw new GpxHiba(sz('gpx.ures'));
   }
 
   const nev =

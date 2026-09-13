@@ -4,38 +4,44 @@
    magassági adat. Csak gombnyomásra kérdez, és csak az útvonal kezdőpontját
    küldi el — nem a teljes nyomvonalat. */
 
+import { sz } from '../nyelv/index.js';
+
 const VEGPONT = 'https://api.open-meteo.com/v1/forecast';
 
 /* A WMO időjáráskódok, amikre az előrejelzés hivatkozik. Csak azokat
-   soroljuk fel, amik nálunk elő is fordulnak. */
+   soroljuk fel, amik nálunk elő is fordulnak. A szó a szótárból jön: a
+   kód nemzetközi, a neve nem. */
 const KODOK = {
-  0: { szo: 'Derült', jel: 'nap' },
-  1: { szo: 'Jobbára derült', jel: 'nap' },
-  2: { szo: 'Szakadozott felhőzet', jel: 'felho' },
-  3: { szo: 'Borult', jel: 'felho' },
-  45: { szo: 'Köd', jel: 'kod' },
-  48: { szo: 'Zúzmarás köd', jel: 'kod' },
-  51: { szo: 'Gyenge szitálás', jel: 'eso' },
-  53: { szo: 'Szitálás', jel: 'eso' },
-  55: { szo: 'Erős szitálás', jel: 'eso' },
-  61: { szo: 'Gyenge eső', jel: 'eso' },
-  63: { szo: 'Eső', jel: 'eso' },
-  65: { szo: 'Erős eső', jel: 'eso' },
-  71: { szo: 'Gyenge havazás', jel: 'ho' },
-  73: { szo: 'Havazás', jel: 'ho' },
-  75: { szo: 'Erős havazás', jel: 'ho' },
-  77: { szo: 'Hószemcsék', jel: 'ho' },
-  80: { szo: 'Zápor', jel: 'eso' },
-  81: { szo: 'Zápor', jel: 'eso' },
-  82: { szo: 'Heves zápor', jel: 'eso' },
-  85: { szo: 'Hózápor', jel: 'ho' },
-  86: { szo: 'Erős hózápor', jel: 'ho' },
-  95: { szo: 'Zivatar', jel: 'vihar' },
-  96: { szo: 'Jégesős zivatar', jel: 'vihar' },
-  99: { szo: 'Heves jégesős zivatar', jel: 'vihar' },
+  0: { kulcs: 'derult', jel: 'nap' },
+  1: { kulcs: 'jobbaraDerult', jel: 'nap' },
+  2: { kulcs: 'szakadozott', jel: 'felho' },
+  3: { kulcs: 'borult', jel: 'felho' },
+  45: { kulcs: 'kod', jel: 'kod' },
+  48: { kulcs: 'zuzmarasKod', jel: 'kod' },
+  51: { kulcs: 'gyengeSzitalas', jel: 'eso' },
+  53: { kulcs: 'szitalas', jel: 'eso' },
+  55: { kulcs: 'erosSzitalas', jel: 'eso' },
+  61: { kulcs: 'gyengeEso', jel: 'eso' },
+  63: { kulcs: 'eso', jel: 'eso' },
+  65: { kulcs: 'erosEso', jel: 'eso' },
+  71: { kulcs: 'gyengeHavazas', jel: 'ho' },
+  73: { kulcs: 'havazas', jel: 'ho' },
+  75: { kulcs: 'erosHavazas', jel: 'ho' },
+  77: { kulcs: 'hoszemcsek', jel: 'ho' },
+  80: { kulcs: 'zapor', jel: 'eso' },
+  81: { kulcs: 'zapor', jel: 'eso' },
+  82: { kulcs: 'hevesZapor', jel: 'eso' },
+  85: { kulcs: 'hozapor', jel: 'ho' },
+  86: { kulcs: 'erosHozapor', jel: 'ho' },
+  95: { kulcs: 'zivatar', jel: 'vihar' },
+  96: { kulcs: 'jegesoZivatar', jel: 'vihar' },
+  99: { kulcs: 'hevesJegeso', jel: 'vihar' },
 };
 
-export const kodSzerint = (kod) => KODOK[kod] ?? { szo: 'Ismeretlen', jel: 'felho' };
+export const kodSzerint = (kod) => {
+  const k = KODOK[kod];
+  return k ? { szo: sz(`ido.${k.kulcs}`), jel: k.jel } : { szo: sz('ido.ismeretlen'), jel: 'felho' };
+};
 
 export async function elorejelzes([lat, lng]) {
   const p = new URLSearchParams({
@@ -47,10 +53,10 @@ export async function elorejelzes([lat, lng]) {
   });
 
   const valasz = await fetch(`${VEGPONT}?${p}`);
-  if (!valasz.ok) throw new Error('Az előrejelzés most nem érhető el.');
+  if (!valasz.ok) throw new Error(sz('hiba.elorejelzes'));
   const adat = await valasz.json();
   const d = adat.daily;
-  if (!d?.time) throw new Error('Az előrejelzés most nem érhető el.');
+  if (!d?.time) throw new Error(sz('hiba.elorejelzes'));
 
   return d.time.map((nap, i) => ({
     nap,
@@ -66,22 +72,22 @@ export async function elorejelzes([lat, lng]) {
    amiktől tényleg más lesz a nap. */
 export function figyelmeztetes(nap) {
   if ([95, 96, 99].includes(nap.kod)) {
-    return { szint: 'fontos', szoveg: 'Zivatar várható. Gerincen és kilátóban ilyenkor nincs keresnivalód.' };
+    return { szint: 'fontos', szoveg: sz('idoFigy.zivatar') };
   }
   if (nap.csapadek >= 10) {
-    return { szint: 'fontos', szoveg: `${nap.csapadek.toFixed(0)} mm csapadék: a sziklás és létrás szakaszok csúsznak.` };
+    return { szint: 'fontos', szoveg: sz('idoFigy.sokCsapadek', { mm: nap.csapadek.toFixed(0) }) };
   }
   if (nap.csapadek >= 2) {
-    return { szint: 'figyelem', szoveg: 'Eső várható — a sáros lejtőkön lassabb lesz a haladás.' };
+    return { szint: 'figyelem', szoveg: sz('idoFigy.eso') };
   }
   if (nap.max >= 30) {
-    return { szint: 'figyelem', szoveg: `${nap.max} fok: árnyék nélküli szakaszon vigyél dupla vizet.` };
+    return { szint: 'figyelem', szoveg: sz('idoFigy.meleg', { fok: nap.max }) };
   }
   if (nap.min <= -5) {
-    return { szint: 'figyelem', szoveg: `Hajnalban ${nap.min} fok: jeges lehet a nyomvonal.` };
+    return { szint: 'figyelem', szoveg: sz('idoFigy.fagy', { fok: nap.min }) };
   }
   if (nap.szel >= 45) {
-    return { szint: 'figyelem', szoveg: `${nap.szel} km/h szél: gerincen kellemetlen, kilátóban hideg.` };
+    return { szint: 'figyelem', szoveg: sz('idoFigy.szel', { szel: nap.szel }) };
   }
   return null;
 }
@@ -100,10 +106,10 @@ export async function mostaniFok([lat, lng]) {
   });
 
   const valasz = await fetch(`${VEGPONT}?${p}`);
-  if (!valasz.ok) throw new Error('A hőmérséklet most nem érhető el.');
+  if (!valasz.ok) throw new Error(sz('hiba.homerseklet'));
   const adat = await valasz.json();
   const m = adat.current;
-  if (m?.temperature_2m == null) throw new Error('A hőmérséklet most nem érhető el.');
+  if (m?.temperature_2m == null) throw new Error(sz('hiba.homerseklet'));
 
   return { fok: Math.round(m.temperature_2m), kod: m.weather_code };
 }

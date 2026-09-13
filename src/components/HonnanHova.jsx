@@ -26,7 +26,7 @@ export default function HonnanHova({ onUgras, onUtvonal }) {
     if (p) {
       return {
         pont: [Number(p[1].replace(',', '.')), Number(p[2].replace(',', '.'))],
-        nev: 'megadott koordináta',
+        nev: sz('hh.koordinata'),
       };
     }
     const { valasztott } = await elsoTalalat(szoveg);
@@ -35,7 +35,7 @@ export default function HonnanHova({ onUgras, onUtvonal }) {
 
   const sajatHelyzet = () => {
     if (!navigator.geolocation) {
-      setHiba('Ez a böngésző nem tudja megmondani a helyzetedet.');
+      setHiba(sz('hiba.nincsHelyzet'));
       return;
     }
     navigator.geolocation.getCurrentPosition(
