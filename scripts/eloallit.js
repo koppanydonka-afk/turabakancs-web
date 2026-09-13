@@ -44,9 +44,10 @@ function oldalak() {
       leiras:
         'Útvonaltervező térkép, a magyar turistajelzések magyarázata és kész túraútvonalak. Fiók nélkül, adatgyűjtés nélkül.',
       tartalom: `
-        <h1>Nézd meg, mit mutat egy weboldal.</h1>
-        <p>Rajzolj útvonalat a térképre, tegyél ki jelöléseket, és oszd meg egy linkkel.
-           Fiók nincs, süti nincs, adatot nem gyűjtünk.</p>
+        <h1>Túrabakancs — túraútvonal-tervező térkép</h1>
+        <p>Térkép, amire rajzolhatsz. Kész túrák, amikből kiindulhatsz. Menetidő, ami az
+           emelkedővel is számol. Rajzolj útvonalat, tegyél ki jelöléseket, és oszd meg
+           egy linkkel — fiók nélkül.</p>
         <h2>Mit jelent a festék a fán?</h2>
         <p>A magyar turistajelzés két dolgot mond meg egyszerre. A szín azt, mekkora út,
            az alak pedig azt, mire való.</p>`,

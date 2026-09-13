@@ -5,6 +5,7 @@ import { JELZESEK, SZINEK } from '../data/erdekessegek.js';
 import { peldaUtvonalak } from '../data/peldak.js';
 import { hossz, ido, kmSzoveg, tervLinkje } from '../data/utvonalak.js';
 import { napkelte, napnyugta, oraPerc, vilagosMeg } from '../data/naptar.js';
+import { useMost } from '../ora.js';
 
 /* Főoldal. A tervező innen nyílik, de előbb van mit nézni:
    egy mai adat, a jelzésrendszer magyarázata, három példa, és a
@@ -15,7 +16,9 @@ const BUDAPEST = [47.4979, 19.0402];
 const perc = (p) => (p < 60 ? `${p} perc` : `${Math.floor(p / 60)} óra ${p % 60} perc`);
 
 export default function FooldalPage() {
-  const most = new Date();
+  /* Nem `new Date()`: az egyszer futna le, és a nyitva hagyott lap
+     másnap is a tegnapi napkeltét mutatná. */
+  const most = useMost();
   const kelte = napkelte(most, ...BUDAPEST);
   const nyugta = napnyugta(most, ...BUDAPEST);
   const maradek = vilagosMeg(...BUDAPEST, most);
@@ -23,9 +26,13 @@ export default function FooldalPage() {
   return (
     <div className="fooldal">
       <section className="hos">
-        <div className="hos__vedjegy">
+        {/* Eddig egyáltalán nem volt h1 az oldalon. A védjegy a cím: a nevet
+            ő maga mondja ki (a bakancs `aria-label`-je a hiányzó „k”), ezért
+            ide csak a leíró farok kerül — különben kétszer hangzana el. */}
+        <h1 className="hos__vedjegy">
           <Vedjegy magassag={54} />
-        </div>
+          <span className="csak-olvasonak"> — túraútvonal-tervező térkép</span>
+        </h1>
         <p className="hos__lead">
           Térkép, amire rajzolhatsz. Kész túrák, amikből kiindulhatsz.
           Menetidő, ami az emelkedővel is számol.

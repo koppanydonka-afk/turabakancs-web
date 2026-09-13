@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { ajanlasok } from '../data/ajanlo.js';
+import { useMost } from '../ora.js';
 import { elorejelzes, figyelmeztetes, kodSzerint } from '../data/idojaras.js';
 
 /* Tanácsok és időjárás.
@@ -9,6 +10,9 @@ import { elorejelzes, figyelmeztetes, kodSzerint } from '../data/idojaras.js';
    megnyomni ahhoz, hogy a lényeg látszódjon. */
 
 export default function Tanacsok({ pontok, jelolesek, tempo, magassag }) {
+  /* A sötétedésre vonatkozó tanácsok az idő múlásával változnak — a nyitva
+     hagyott tervezőben is követniük kell a valóságot. */
+  const most = useMost();
   const [ido, setIdo] = useState(null);
   const [fut, setFut] = useState(false);
   const [hiba, setHiba] = useState(null);
@@ -27,7 +31,7 @@ export default function Tanacsok({ pontok, jelolesek, tempo, magassag }) {
     }
   };
 
-  const lista = ajanlasok({ pontok, jelolesek, tempo, magassag });
+  const lista = ajanlasok({ pontok, jelolesek, tempo, magassag, most });
 
   return (
     <div className="tanacsok">
