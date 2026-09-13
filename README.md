@@ -151,6 +151,34 @@ Egymáshoz világosságban 2,37:1. A kék–sárga tengely a vörös-zöld szín
 is a legbiztosabb párja. A méret is eltér (6 és 5 képpont), hogy ne csak a szín
 különböztesse meg őket.
 
+### Mobilon
+
+A rétegek nevét elhagyjuk (az ikon és a szín elmondja), de az **állapotot soha**:
+a „keresem…" és a „nagyíts rá" utasítás, nem díszítés. Ezért van külön span a
+névnek és az állapotnak.
+
+A gombsor a felhúzható lap fölé kerül, ugyanarra a magasságra, mint a visszalépő
+nyíl. Vízszintesen nem ütközik a súgósávval: az középen ül, ezek a jobb szélen.
+
+## A halk gomb kerete
+
+A `.gomb--halk` háttere ugyanaz a `--surface-2`, mint a `.fiok`-é. Fiókon belül
+ezért **teljesen eltűnt**: a kettő kontrasztja pontosan **1,00:1** volt, a „Mind a
+18 példa" és a „GPX betöltése" sima szövegnek látszott sötét módban.
+
+A megoldás keret, nem háttérszín: így a gomb bármilyen felületen gombnak látszik.
+A `--gomb-keret` külön token a `--line`-tól, mert annak halk elválasztóként
+kevesebb is elég, egy gomb határa viszont a WCAG 1.4.11 szerint **3:1**-et kíván
+a saját hátteréhez képest:
+
+| mód | keret | kontraszt a gomb hátteréhez |
+| --- | --- | --- |
+| világos | `#888276` | 3,04:1 |
+| sötét | `#6F746B` | 3,01:1 |
+
+Az első nekifutás `--line`-t használt: az 1,29:1-et adott. Képernyőképen jónak
+látszott, mérve nem volt elég.
+
 ## Overpass: tartaléktükör
 
 A `src/data/overpass.js` közös a jelzett utaknak és az ellátás-rétegeknek. A fő

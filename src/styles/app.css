@@ -416,7 +416,18 @@ body.nincs-gorgetes { overflow: hidden; }
 .gomb:hover:not(:disabled) { transform: translateY(-1px); }
 .gomb:disabled { opacity: .45; cursor: not-allowed; }
 .gomb--fo { background: var(--accent); color: var(--on-accent); }
-.gomb--halk { background: var(--surface-2); color: var(--ink); }
+/* A halk gomb háttere ugyanaz a `--surface-2`, mint a fióké — fiókon belül
+   ezért teljesen eltűnt: a kettő kontrasztja pontosan 1,00:1 volt, a „Mind a
+   18 példa” és a „GPX betöltése” sima szövegnek látszott.
+
+   A keret a megoldás, nem a háttér átszínezése: így a gomb bármilyen
+   felületen gombnak látszik, világos és sötét módban egyaránt. Inset
+   árnyékként, hogy ne mozdítsa el a méretet. */
+.gomb--halk {
+  background: var(--surface-2);
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--gomb-keret);
+}
 .gomb--halk:hover:not(:disabled) { background: color-mix(in srgb, var(--surface-2) 70%, var(--line)); }
 .gomb--szeles { width: 100%; }
 
@@ -1280,7 +1291,6 @@ input::placeholder { color: var(--muted); }
   /* A térkép lebegő vezérlői ne kerüljenek a lap alá. */
   .terkep__sug { bottom: calc(62px + var(--space-3)); }
   .vissza-nyil { bottom: calc(62px + var(--space-3)); }
-  .reteg-sor { bottom: calc(62px + var(--space-3)); }
   .leaflet-control-attribution { margin-bottom: 62px !important; }
 
   /* Nagyobb érintőfelületek a gyakori gomboknál. */
@@ -1695,11 +1705,24 @@ input::placeholder { color: var(--muted); }
   text-align: right;
 }
 
-/* Telefonon a feliratot elhagyjuk — a szín és az ikon elég, és a súgósáv
-   mellett nincs hely a szövegnek. */
+.reteg-gomb__allapot {
+  font-variant-numeric: tabular-nums;
+  opacity: .85;
+}
+.reteg-gomb__nev + .reteg-gomb__allapot::before { content: '· '; }
+
+/* Telefonon a RÉTEG NEVÉT elhagyjuk — azt az ikon és a szín elmondja —, de
+   az állapotot soha: a „keresem…” és a „nagyíts rá” utasítás, nem díszítés.
+   Ezért van külön a két span.
+
+   A gombsor a felhúzható lap fölé kerül, ugyanarra a magasságra, mint a
+   visszalépő nyíl. Vízszintesen nem ütközik a súgósávval: az középen ül,
+   ezek a jobb szélen. */
 @media (max-width: 680px) {
-  .reteg-gomb__szo { display: none; }
-  .reteg-gomb { padding: var(--space-2); }
-  .reteg-gomb--ujra .reteg-gomb__szo { display: inline; }
-  .reteg-jegyzet { display: none; }
+  .reteg-sor { bottom: calc(62px + var(--space-3)); }
+  .reteg-gomb__nev { display: none; }
+  .reteg-gomb { padding: var(--space-2) var(--space-3); }
+  .reteg-gomb:not(.reteg-gomb--ujra):not(:has(.reteg-gomb__allapot)) { padding: var(--space-2); }
+  .reteg-gomb__nev + .reteg-gomb__allapot::before { content: none; }
+  .reteg-jegyzet { max-width: 160px; font-size: 11px; }
 }

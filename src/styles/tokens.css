@@ -16,6 +16,10 @@
   --surface:     #FFFDF9;  /* kártyák, panelek */
   --surface-2:   #E9E5DC;  /* mélyebb tónus */
   --line:        #D6D0C4;  /* keretek, elválasztók */
+  /* Interaktív elem körvonala. Külön a --line-tól: annak halk elválasztóként
+     kevesebb is elég, egy gomb határa viszont a WCAG 1.4.11 szerint 3:1-et
+     kíván a SAJÁT hátteréhez képest. Mérve: 3,04:1 világos, 3,01:1 sötét. */
+  --gomb-keret:  #888276;
   --ink:         #1C2119;  /* fő szöveg – 14,7:1 */
   --ink-2:       #3D463A;  /* másodlagos szöveg – 9,7:1 */
   --muted:       #5C6455;  /* címkék, segédszöveg – 5,5:1 */
@@ -97,6 +101,7 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-tema="vilagos"]) {
     --bg: #161914; --surface: #1E221C; --surface-2: #272B24; --line: #383D34;
+    --gomb-keret: #6F746B;
     --ink: #ECEFE7; --ink-2: #C4CABE; --muted: #8C9385;
     --accent: #86C28E; --accent-ink: #86C28E; --accent-soft: #22301F; --on-accent: #0E1A10;
     --nyom: #F0824B; --nyom-ink: #F0824B;
@@ -111,6 +116,7 @@
 }
 :root[data-tema="sotet"] {
   --bg: #161914; --surface: #1E221C; --surface-2: #272B24; --line: #383D34;
+  --gomb-keret: #6F746B;
   --ink: #ECEFE7; --ink-2: #C4CABE; --muted: #8C9385;
   --accent: #86C28E; --accent-ink: #86C28E; --accent-soft: #22301F; --on-accent: #0E1A10;
   --nyom: #F0824B; --nyom-ink: #F0824B;

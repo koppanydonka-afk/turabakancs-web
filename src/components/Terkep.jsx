@@ -409,23 +409,28 @@ export default function Terkep({
         <span className="reteg-gomb__jel" aria-hidden="true">
           <svg viewBox="0 0 24 24" dangerouslySetInnerHTML={{ __html: tipusSzerint(RETEGEK[id].tipus).rajz }} />
         </span>
-        <span className="reteg-gomb__szo">
-          {RETEGEK[id].nev}
-          {be && a.allapot === 'keres' && ' · keresem…'}
-          {be && a.allapot === 'kesz' && ` · ${a.db}`}
-          {be && a.allapot === 'tavol' && ' · nagyíts rá'}
-          {be && a.allapot === 'hiba' && ' · nem sikerült'}
-        </span>
+{/* A nevet telefonon elrejtjük — az ikon elmondja —, de az állapotot
+            soha: a „keresem…” és a „nagyíts rá” utasítás, nem díszítés. */}
+        <span className="reteg-gomb__nev">{RETEGEK[id].nev}</span>
+        {be && a.allapot === 'keres' && <span className="reteg-gomb__allapot">keresem…</span>}
+        {be && a.allapot === 'kesz' && <span className="reteg-gomb__allapot">{a.db}</span>}
+        {be && a.allapot === 'tavol' && <span className="reteg-gomb__allapot">nagyíts rá</span>}
+        {be && a.allapot === 'hiba' && <span className="reteg-gomb__allapot">nem sikerült</span>}
       </button>
     );
   };
 
   const vanBekapcsolt = Object.values(retegek).some(Boolean);
+  const eppKeres = Object.entries(retegek).some(
+    ([id, be]) => be && retegAllapot[id]?.allapot === 'keres',
+  );
   /* Vissza kell kérdezni, ha elpásztáztak, vagy ha a küszöb alól nagyítottak
-     föl és ezért nincs adatunk. */
+     föl és ezért nincs adatunk. Keresés közben viszont nem — akkor épp
+     azt csináljuk, amit a gomb kínál. */
   const keresesKell =
     vanBekapcsolt &&
     zoomOk &&
+    !eppKeres &&
     (ujraKell ||
       Object.entries(retegek).some(([id, be]) => be && retegAllapot[id]?.allapot !== 'kesz'));
   const levagott = Object.entries(retegek)
