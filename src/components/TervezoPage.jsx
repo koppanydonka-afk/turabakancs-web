@@ -21,6 +21,7 @@ import { magassagot } from '../data/magassag.js';
 import { GpxHiba, gpxBeolvas, gpxLetoltes } from '../data/gpx.js';
 import { UtvonalHiba, osvenyreHuz, ritkit as utatRitkit } from '../data/utvonalkereso.js';
 import { idoHelyBeallit } from '../data/idoHely.js';
+import { KEZDO_KOZEP } from '../data/terkepAlap.js';
 import { kozeliTurak } from '../data/kozeli.js';
 import { peldaUtvonalak } from '../data/peldak.js';
 import { tervMentes, tervTorles, useTervek } from '../data/tarolo.js';
@@ -73,8 +74,12 @@ export default function TervezoPage() {
      az útvonal kezdőpontja. Pásztázásra NEM követ: az Open-Meteo ingyenes
      szolgáltatás, nem kérdezzük minden térképmozdulatra.
 
-     Maga a hőmérséklet a fejlécben látszik, ezért a helyet oda adjuk át. */
-  const [terkepKozep, setTerkepKozep] = useState(null);
+     Maga a hőmérséklet a fejlécben látszik, ezért a helyet oda adjuk át.
+
+     A kiindulás a térkép alaphelye, nem `null`: a Leaflet külön darabban
+     érkezik, és ha a fokot is megvárnánk vele, másodpercekkel később
+     jelenne meg. Amint a térkép kész, felülírja a tényleges közepével. */
+  const [terkepKozep, setTerkepKozep] = useState(KEZDO_KOZEP);
 
   const [pontok, setPontok] = useState(() => dekodol(params.get('ut')));
   const [horgonyok, setHorgonyok] = useState(() => horgonynak(dekodol(params.get('ut'))));

@@ -5,6 +5,7 @@ import 'leaflet/dist/leaflet.css';
 import { tipusSzerint, tuHtml } from '../data/jelolesek.js';
 import { LATVANYOSSAGOK } from '../data/latvanyossagok.js';
 import EszkozRudba from './EszkozRudba.jsx';
+import { KEZDO_KOZEP, KEZDO_ZOOM } from '../data/terkepAlap.js';
 
 /* A térkép.
 
@@ -14,9 +15,6 @@ import EszkozRudba from './EszkozRudba.jsx';
 
    Ugyanez a komponens szolgál szerkesztésre és puszta nézegetésre: ha nincs
    `mod`, akkor a kattintás nem csinál semmit. */
-
-const KEZDO_KOZEP = [47.4979, 19.0402];
-const KEZDO_ZOOM = 12;
 
 /* A buborék tartalma a saját adatfájlunkból jön, de a szerzőneveket a
    Commonsról vettük át — ezért itt is megszűrjük, mielőtt HTML-be tesszük. */

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { kodSzerint, mostaniFok } from '../data/idojaras.js';
 import { useIdoHely } from '../data/idoHely.js';
 
@@ -19,6 +19,10 @@ const FRISSITES = 15 * 60 * 1000;
 export default function IdoFok() {
   const hely = useIdoHely();
   const [ido, setIdo] = useState(null);
+  /* Az első lekérdezés ne várjon: betöltéskor a fok másfél másodperccel
+     később ugrott be, és ez látszott is. A késleltetés csak arra kell,
+     hogy rajzolás közben ne kérdezzünk minden kattintásnál. */
+  const voltMar = useRef(false);
   const kulcs = hely ? `${hely[0]},${hely[1]}` : null;
 
   useEffect(() => {
@@ -39,10 +43,13 @@ export default function IdoFok() {
         .catch(() => ervenyes && setIdo(null));
     };
 
-    /* Másfél másodperc késleltetés: rajzolás közben a kezdőpont többször
-       változik egymás után — kattintáskor, majd amikor a vonal ösvényre
-       kerül —, így egy rajzolásból egy kérdés lesz. */
-    const ora = setTimeout(lekerdez, 1500);
+    /* Betöltéskor azonnal, utána másfél másodperc késleltetéssel:
+       rajzolás közben a kezdőpont többször változik egymás után —
+       kattintáskor, majd amikor a vonal ösvényre kerül —, így egy
+       rajzolásból egy kérdés lesz. */
+    const keses = voltMar.current ? 1500 : 0;
+    voltMar.current = true;
+    const ora = setTimeout(lekerdez, keses);
     const ismetlo = setInterval(lekerdez, FRISSITES);
 
     /* A háttérbe tett fülön az időzítőt fékezi a böngésző, ezért
