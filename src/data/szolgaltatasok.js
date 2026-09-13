@@ -1,4 +1,5 @@
 import { overpass } from './overpass.js';
+import { sz } from '../nyelv/index.js';
 
 /* Ami az útvonal mentén van: víz, menedék, ellátás, megálló.
 
@@ -73,7 +74,7 @@ function feldolgoz(adat, reteg) {
       const hely = [e.lat ?? e.center?.lat, e.lon ?? e.center?.lon];
       if (!Number.isFinite(hely[0]) || !Number.isFinite(hely[1])) return null;
       const t = e.tags ?? {};
-      const fajta = ALFAJTA.find(([ill]) => ill(t))?.[1] ?? reteg.nev;
+      const fajta = ALFAJTA.find(([ill]) => ill(t))?.[1] ?? sz(reteg.nevKulcs);
 
       /* Ivhatóság CSAK a víznél értelmes, és ott is óvatosan:
            igen  – ivásra szánták, vagy az OSM külön kimondja
@@ -223,7 +224,7 @@ const GOMB_SZINEK = {
 
 export const RETEGEK = {
   viz: {
-    nev: 'Ivóvíz, forrás',
+    nevKulcs: 'reteg.viz',
     tipus: 'forras',
     szin: SZINEK.ellatas,
     gombSzin: GOMB_SZINEK.ellatas,
@@ -232,7 +233,7 @@ export const RETEGEK = {
     szurok: ['["amenity"="drinking_water"]', '["natural"="spring"]'],
   },
   menedek: {
-    nev: 'Menedék, esőbeálló',
+    nevKulcs: 'reteg.menedek',
     tipus: 'pihen',
     szin: SZINEK.ellatas,
     gombSzin: GOMB_SZINEK.ellatas,
@@ -241,7 +242,7 @@ export const RETEGEK = {
     szurok: ['["amenity"="shelter"]', '["tourism"="wilderness_hut"]', '["tourism"="alpine_hut"]'],
   },
   kozlekedes: {
-    nev: 'Megálló, állomás',
+    nevKulcs: 'reteg.kozlekedes',
     tipus: 'kozlekedes',
     szin: SZINEK.megkozelites,
     gombSzin: GOMB_SZINEK.megkozelites,
@@ -250,7 +251,7 @@ export const RETEGEK = {
     szurok: ['["highway"="bus_stop"]', '["railway"="station"]', '["railway"="halt"]'],
   },
   parkolo: {
-    nev: 'Parkoló',
+    nevKulcs: 'reteg.parkolo',
     tipus: 'parkolo',
     szin: SZINEK.megkozelites,
     gombSzin: GOMB_SZINEK.megkozelites,
@@ -261,7 +262,7 @@ export const RETEGEK = {
     utakIs: true,
   },
   kilato: {
-    nev: 'Kilátó',
+    nevKulcs: 'reteg.kilato',
     tipus: 'kilato',
     szin: SZINEK.celpont,
     gombSzin: GOMB_SZINEK.celpont,
@@ -270,7 +271,7 @@ export const RETEGEK = {
     szurok: ['["tourism"="viewpoint"]', '["man_made"="tower"]["tower:type"="observation"]'],
   },
   vendeglatas: {
-    nev: 'Büfé, kocsma',
+    nevKulcs: 'reteg.vendeglatas',
     tipus: 'vendeglatas',
     szin: SZINEK.celpont,
     gombSzin: GOMB_SZINEK.celpont,
@@ -291,7 +292,7 @@ export const RETEGEK = {
      A kilátó külön réteg maradt, ezért a `tourism=viewpoint` itt nincs
      benne: aki kilátót keres, azt kapcsolja be. */
   latvany: {
-    nev: 'Látványosság',
+    nevKulcs: 'reteg.latvany',
     tipus: 'latnivalo',
     /* Egy fokkal közelebbről, mint a többi réteg: ez a leg­nehezebb
        lekérdezés (öt ág, pontokra ÉS felületekre), és a fél megyényi

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { kodSzerint, mostaniFok } from '../data/idojaras.js';
 import { useIdoHely } from '../data/idoHely.js';
+import { sz } from '../nyelv/index.js';
 
 /* Hőmérséklet a fejlécben, a sötét mód mellett.
 
@@ -73,8 +74,8 @@ export default function IdoFok() {
   if (!ido) return null;
 
   return (
-    <span className="ido-fok" title={`Most ${ido.fok} fok — ${kodSzerint(ido.kod).szo}`}>
-      <span className="csak-olvasonak">Jelenleg </span>{ido.fok}°
+    <span className="ido-fok" title={sz('fejlec.fok', { fok: ido.fok, ido: kodSzerint(ido.kod).szo })}>
+      <span className="csak-olvasonak">{sz('fejlec.jelenleg')} </span>{ido.fok}°
     </span>
   );
 }

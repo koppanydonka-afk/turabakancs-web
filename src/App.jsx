@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { navigal, useMeta, useRoute } from './router.js';
 import { useFeltunes } from './mozgas.js';
 import Fejlec from './components/Fejlec.jsx';
+import { sz } from './nyelv/index.js';
 import Labjegyzet from './components/Labjegyzet.jsx';
 import FooldalPage from './components/FooldalPage.jsx';
 import TervezoPage from './components/TervezoPage.jsx';
@@ -37,26 +38,14 @@ export default function App() {
         : { title: 'Nincs ilyen útvonal — Túrabakancs', description: 'Ez a példa nem található.' };
     }
     const oldalak = {
-      '/tervezo': [
-        'Tervező — Túrabakancs',
-        'Rajzolj útvonalat a térképre, tegyél ki jelöléseket, oszd meg egy linkkel.',
-      ],
-      '/utvonalak': [
-        'Példa útvonalak — Túrabakancs',
-        'Kész túraútvonalak a térképen, amiket megnyithatsz és továbbrajzolhatsz.',
-      ],
-      '/impresszum': [
-        'Impresszum és adatkezelés — Túrabakancs',
-        'Mire jó az oldal és mire nem. Nincs fiók, nincs süti, nincs mérőkód; amit rajzolsz, a böngésződben marad.',
-      ],
+      '/tervezo': [sz('meta.tervezoCim'), sz('meta.tervezoLeiras')],
+      '/utvonalak': [sz('meta.peldakCim'), sz('meta.peldakLeiras')],
+      '/impresszum': [sz('meta.impresszumCim'), sz('meta.impresszumLeiras')],
     };
     if (path !== '/' && !ATIRANYIT[path] && !oldalak[path]) {
-      return { title: 'Nincs ilyen oldal — Túrabakancs', description: 'Ez a cím nem létezik.' };
+      return { title: sz('meta.nincsCim'), description: sz('meta.nincsLeiras') };
     }
-    const [title, description] = oldalak[path] ?? [
-      'Túrabakancs — túraútvonalak, jelzések, vélemények',
-      'Útvonaltervező térkép, a magyar turistajelzések magyarázata és név nélküli vélemények.',
-    ];
+    const [title, description] = oldalak[path] ?? [sz('meta.fooldalCim'), sz('meta.fooldalLeiras')];
     return { title, description };
   })();
 

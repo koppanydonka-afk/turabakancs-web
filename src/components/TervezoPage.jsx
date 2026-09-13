@@ -25,14 +25,15 @@ import { KEZDO_KOZEP } from '../data/terkepAlap.js';
 import { kozeliTurak } from '../data/kozeli.js';
 import { peldaUtvonalak } from '../data/peldak.js';
 import { tervMentes, tervTorles, useTervek } from '../data/tarolo.js';
-import { useRoute } from '../router.js';
+import { ut, useRoute } from '../router.js';
+import { sz } from '../nyelv/index.js';
 
 /* A fejléc alatti lapok neve. Az ikonok némák, a képernyőolvasó ezt
    mondja ki helyettük. */
-const LAP_NEVE = {
-  hova: 'Honnan hova?',
-  adat: 'Az útvonal adatai',
-  eszkoz: 'Mentés, kész útvonalak, GPX',
+const LAP_KULCSA = {
+  hova: 'tervezo.honnanHova',
+  adat: 'tervezo.adatok',
+  eszkoz: 'tervezo.eszkozok',
 };
 
 /* A tervező.
@@ -350,12 +351,12 @@ export default function TervezoPage() {
      első pont után, ösvényre húzás közben. Tehát nem vész el, csak nem ül
      ott örökké. */
   const sugSzoveg = huzas
-    ? 'Ráigazítom a vonalat a valódi gyalogutakra…'
+    ? sz('terkep.igazit')
     : horgonyok.length === 1
-      ? 'Jelöld be a második pontot — a vonal magától az ösvényre kerül.'
+      ? sz('terkep.masodik')
       : horgonyok.length === 0 && pontok.length > 1
-        ? 'Kész útvonal. Érints a térképre, ha újat kezdenél.'
-        : 'Érintsd a térképet a pontokért. A pontok húzhatók; rájuk koppintva törlődnek.';
+        ? sz('terkep.keszUt')
+        : sz('terkep.sug');
 
   const [sugLathato, setSugLathato] = useState(true);
   useEffect(() => {
@@ -435,8 +436,8 @@ export default function TervezoPage() {
                 className={`reteg-gomb${nyitottLap === 'hova' ? ' reteg-gomb--nyitva' : ''}`}
                 onClick={() => lapot('hova')}
                 aria-expanded={nyitottLap === 'hova'}
-                title="Honnan hova?"
-                aria-label="Honnan hova?"
+                title={sz('tervezo.honnanHova')}
+                aria-label={sz('tervezo.honnanHova')}
               >
                 <svg viewBox="0 0 24 24" aria-hidden="true">
                   <circle cx="11" cy="11" r="7" />
@@ -449,8 +450,8 @@ export default function TervezoPage() {
                   className={`reteg-gomb${nyitottLap === 'adat' ? ' reteg-gomb--nyitva' : ''}`}
                   onClick={() => lapot('adat')}
                   aria-expanded={nyitottLap === 'adat'}
-                  title={`Az útvonal adatai — ${kmSzoveg(km)}, ${idoSzoveg}`}
-                  aria-label={`Az útvonal adatai — ${kmSzoveg(km)}, ${idoSzoveg}`}
+                  title={sz('tervezo.adatokCimke', { km: kmSzoveg(km), ido: idoSzoveg })}
+                  aria-label={sz('tervezo.adatokCimke', { km: kmSzoveg(km), ido: idoSzoveg })}
                 >
                   <svg viewBox="0 0 24 24" aria-hidden="true">
                     <path d="M4 19V5" />
@@ -464,8 +465,8 @@ export default function TervezoPage() {
                 className={`reteg-gomb${nyitottLap === 'eszkoz' ? ' reteg-gomb--nyitva' : ''}`}
                 onClick={() => lapot('eszkoz')}
                 aria-expanded={nyitottLap === 'eszkoz'}
-                title="Mentés, kész útvonalak, GPX"
-                aria-label="Mentés, kész útvonalak, GPX"
+                title={sz('tervezo.eszkozok')}
+                aria-label={sz('tervezo.eszkozok')}
               >
                 <svg viewBox="0 0 24 24" aria-hidden="true">
                   <path d="M19 21 12 16l-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
@@ -476,8 +477,8 @@ export default function TervezoPage() {
                 <button
                   className="reteg-gomb"
                   onClick={vissza}
-                  title="Egy lépés vissza"
-                  aria-label="Egy lépés vissza"
+                  title={sz('tervezo.vissza')}
+                  aria-label={sz('tervezo.vissza')}
                 >
                   <svg viewBox="0 0 24 24" aria-hidden="true">
                     <path d="M9 14 4 9l5-5" />
@@ -489,7 +490,7 @@ export default function TervezoPage() {
             </div>
 
             {nyitottLap && (
-              <div className="eszkoz-talca" ref={lapDoboz} role="dialog" aria-label={LAP_NEVE[nyitottLap]}>
+              <div className="eszkoz-talca" ref={lapDoboz} role="dialog" aria-label={sz(LAP_KULCSA[nyitottLap])}>
 
                 {nyitottLap === 'hova' && (
                   <>
@@ -503,7 +504,7 @@ export default function TervezoPage() {
                       onUtvonal={({ pontok: ujPontok, nev: ujNev, honnan, horgonyok: ujHorgonyok }) => {
                         betolt({ nev: ujNev, pontok: ujPontok, jelolesek: [], horgonyok: ujHorgonyok });
                         setKozeli(kozeliTurak(honnan));
-                        setUzenet('Kész — a vonal a tényleges gyalogutakon fut.');
+                        setUzenet(sz('terkep.keszVonal'));
                         setNyitottLap(null);
                       }}
                     />
@@ -515,7 +516,7 @@ export default function TervezoPage() {
                     <div className="ertekek">
                       <div className="ertekek__elem">
                         <strong>{kmSzoveg(km)}</strong>
-                        <span>hossz</span>
+                        <span>{sz('adat.hossz')}</span>
                       </div>
                       <div className="ertekek__elem ertekek__elem--kiemelt">
                         <strong>
@@ -526,7 +527,7 @@ export default function TervezoPage() {
                           className="tempo"
                           value={tempo}
                           onChange={(e) => setTempo(e.target.value)}
-                          aria-label="Haladási tempó"
+                          aria-label={sz('adat.tempo')}
                           >
                           {TEMPOK.map((t) => (
                             <option key={t.id} value={t.id}>{t.nev}</option>
@@ -536,11 +537,11 @@ export default function TervezoPage() {
                       </div>
                       <div className="ertekek__elem">
                         <strong>{magassag ? `↑ ${magassag.fel} m` : '…'}</strong>
-                        <span>emelkedő</span>
+                        <span>{sz('adat.emelkedo')}</span>
                       </div>
                       <div className="ertekek__elem">
                         <strong>{nehez.szo}</strong>
-                        <span>nehézség</span>
+                        <span>{sz('adat.nehezseg')}</span>
                       </div>
                     </div>
 
@@ -572,7 +573,7 @@ export default function TervezoPage() {
                               type="text"
                               value={nev}
                               onChange={(e) => setNev(e.target.value)}
-                              placeholder="Például: vasárnapi kör"
+                              placeholder={sz('adat.nev')}
                             />
                           </label>
                           <button className="gomb gomb--halk" type="submit">

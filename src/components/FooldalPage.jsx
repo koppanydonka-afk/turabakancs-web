@@ -6,6 +6,8 @@ import { peldaUtvonalak } from '../data/peldak.js';
 import { hossz, ido, kmSzoveg, tervLinkje } from '../data/utvonalak.js';
 import { napkelte, napnyugta, oraPerc, vilagosMeg } from '../data/naptar.js';
 import { useMost } from '../ora.js';
+import { ut } from '../router.js';
+import { sz } from '../nyelv/index.js';
 
 /* Főoldal. A tervező innen nyílik, de előbb van mit nézni:
    egy mai adat, a jelzésrendszer magyarázata, három példa, és a
@@ -13,7 +15,8 @@ import { useMost } from '../ora.js';
 
 const BUDAPEST = [47.4979, 19.0402];
 
-const perc = (p) => (p < 60 ? `${p} perc` : `${Math.floor(p / 60)} óra ${p % 60} perc`);
+const perc = (p) =>
+  p < 60 ? sz('ido.perc', { p }) : sz('ido.oraPerc', { o: Math.floor(p / 60), p: p % 60 });
 
 export default function FooldalPage() {
   /* Nem `new Date()`: az egyszer futna le, és a nyitva hagyott lap
@@ -33,43 +36,39 @@ export default function FooldalPage() {
           <Vedjegy magassag={54} />
           <span className="csak-olvasonak"> — túraútvonal-tervező térkép</span>
         </h1>
-        <p className="hos__lead">
-          Térkép, amire rajzolhatsz. Kész túrák, amikből kiindulhatsz.
-          Menetidő, ami az emelkedővel is számol.
-        </p>
+        <p className="hos__lead">{sz('fooldal.lead')}</p>
         <div className="hos__gombok">
-          <a className="gomb gomb--fo" href="/tervezo">Tervezek egy túrát</a>
-          <a className="gomb gomb--halk" href="/utvonalak">Nézek példákat</a>
+          <a className="gomb gomb--fo" href={ut('/tervezo')}>{sz('fooldal.tervezek')}</a>
+          <a className="gomb gomb--halk" href={ut('/utvonalak')}>{sz('fooldal.peldak')}</a>
         </div>
       </section>
 
       {nyugta && (
         <section className="ma" data-feltun style={{ "--lepcso": 0 }}>
-          <h2 className="ma__cim">Ma</h2>
+          <h2 className="ma__cim">{sz('fooldal.ma')}</h2>
           <div className="ma__adatok">
             <div className="ma__elem">
               <strong>{oraPerc(kelte)}</strong>
-              <span>napkelte</span>
+              <span>{sz('fooldal.napkelte')}</span>
             </div>
             <div className="ma__elem">
               <strong>{oraPerc(nyugta)}</strong>
-              <span>napnyugta</span>
+              <span>{sz('fooldal.napnyugta')}</span>
             </div>
             <div className="ma__elem ma__elem--kiemelt">
-              <strong>{maradek > 0 ? perc(maradek) : 'lement'}</strong>
-              <span>{maradek > 0 ? 'világos van még' : 'a nap már lement'}</span>
+              <strong>{maradek > 0 ? perc(maradek) : sz('fooldal.lement')}</strong>
+              <span>{maradek > 0 ? sz('fooldal.vanMeg') : sz('fooldal.marLement')}</span>
             </div>
           </div>
-          <p className="apro">Budapestre. A tervező a saját útvonalad kezdőpontjára számol.</p>
+          <p className="apro">{sz('fooldal.napAlap')}</p>
         </section>
       )}
 
       <section className="szekcio" data-feltun>
         <header className="szekcio__fej">
-          <h2 className="szekcio__cim">Mit jelent a festék a fán?</h2>
+          <h2 className="szekcio__cim">{sz('fooldal.jelzesCim')}</h2>
           <p className="szekcio__lead">
-            A magyar turistajelzés két dolgot mond meg egyszerre. A <strong>szín</strong> azt,
-            mekkora út, az <strong>alak</strong> pedig azt, mire való.
+            {sz('fooldal.jelzesLead')}
           </p>
         </header>
 
@@ -95,19 +94,13 @@ export default function FooldalPage() {
           ))}
         </div>
 
-        <p className="apro">
-          Ezt nem fejből írtuk: az OpenStreetMap jelzett útjaiból ellenőriztük, mi hova
-          vezet. A háromszöggel jelöltek neve csúcsnál vagy kilátónál végződik, a körrel
-          jelöltek ugyanoda érnek vissza, ahonnan indultak.
-        </p>
+        <p className="apro">{sz('fooldal.jelzesApro')}</p>
       </section>
 
       <section className="szekcio" data-feltun>
         <header className="szekcio__fej">
-          <h2 className="szekcio__cim">Kezdd egy kész vonallal</h2>
-          <p className="szekcio__lead">
-            Nyisd meg, húzd arrébb a pontjait, tedd rá a sajátodat.
-          </p>
+          <h2 className="szekcio__cim">{sz('fooldal.keszVonal')}</h2>
+          <p className="szekcio__lead">{sz('fooldal.keszVonalLead')}</p>
         </header>
         <div className="kartyak">
           {peldaUtvonalak.slice(0, 3).map((p) => {
@@ -122,7 +115,7 @@ export default function FooldalPage() {
                 {ertekeles && (
                   <p className="kartya__csillag">
                     <Csillagok ertek={ertekeles.csillag} meret={15} />
-                    <span>szerintünk</span>
+                    <span>{sz('fooldal.szerintunk')}</span>
                   </p>
                 )}
                 <p className="kartya__jegyzet">{ertekeles?.verdikt ?? p.jegyzet}</p>
@@ -141,7 +134,7 @@ export default function FooldalPage() {
         </div>
         {/* Szám nélkül: a kézzel beírt darabszám elavul, és el is avult —
             „nyolc” állt itt, miközben tizennyolc útvonal van. */}
-        <a className="vissza-link" href="/utvonalak">Az összes példa →</a>
+        <a className="vissza-link" href={ut('/utvonalak')}>{sz('fooldal.osszesPelda')}</a>
       </section>
     </div>
   );

@@ -5,6 +5,7 @@ import 'leaflet/dist/leaflet.css';
 import { tipusSzerint, tuHtml } from '../data/jelolesek.js';
 import { helyiKep } from '../data/latvanyossagok.js';
 import { latvanyKepe } from '../data/kepek.js';
+import { sz } from '../nyelv/index.js';
 import EszkozRudba from './EszkozRudba.jsx';
 import { KEZDO_KOZEP, KEZDO_ZOOM } from '../data/terkepAlap.js';
 
@@ -418,23 +419,24 @@ export default function Terkep({
      sor — ott van hely arra, hogy „keresem…” vagy „nagyíts rá” kiférjen. */
   const allapotSzava = (id) => {
     const a = retegAllapot[id]?.allapot;
-    return a === 'keres' ? 'keresem…'
+    return a === 'keres' ? sz('terkep.keresem')
       : a === 'kesz' ? String(retegAllapot[id].db)
-        : a === 'tavol' ? 'nagyíts rá'
-          : a === 'hiba' ? 'nem sikerült'
+        : a === 'tavol' ? sz('terkep.nagyits')
+          : a === 'hiba' ? sz('terkep.hiba')
             : null;
   };
 
   const gomb = (id) => {
     const be = retegek[id];
-    const { nev, gombSzin, tomor } = RETEGEK[id];
+    const { nevKulcs, gombSzin, tomor } = RETEGEK[id];
+    const nev = sz(nevKulcs);
     const szo = be ? allapotSzava(id) : null;
     const keres = be && retegAllapot[id]?.allapot === 'keres';
     /* Ha a területen több van, mint amennyit lekértünk, azt tudni kell:
        üres térképből nem szabad arra következtetni, hogy nincs is víz.
        Felirat helyett egy pont az ikon sarkán, a mondat a címkében. */
     const tobbVan = be && retegAllapot[id]?.levagva > 0;
-    const cimke = [nev, szo, tobbVan ? 'ennél több van itt — nagyíts rá' : null]
+    const cimke = [nev, szo, tobbVan ? sz('terkep.tobbVan') : null]
       .filter(Boolean)
       .join(' — ');
     return (
@@ -485,15 +487,15 @@ export default function Terkep({
           A „keresés ezen a területen” megmaradt gombnak, mert az nem
           állapot, hanem teendő — csak ikonná fogyott. */}
       <EszkozRudba>
-        <div className="eszkozsor" role="group" aria-label="Mit mutasson a térkép">
+        <div className="eszkozsor" role="group" aria-label={sz('tervezo.retegek')}>
           {Object.keys(RETEGEK).map(gomb)}
 
           {keresesKell && (
             <button
               className="reteg-gomb reteg-gomb--ujra"
               onClick={() => Object.entries(retegek).forEach(([id, be]) => be && retegetKer(id))}
-              title="Keresés ezen a területen"
-              aria-label="Keresés ezen a területen"
+              title={sz('tervezo.ujraKeres')}
+              aria-label={sz('tervezo.ujraKeres')}
             >
               <svg viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M20 12a8 8 0 1 1-2.34-5.66" />

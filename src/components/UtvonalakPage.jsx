@@ -5,6 +5,8 @@ import { tipusSzerint } from '../data/jelolesek.js';
 import Csillagok from './Csillagok.jsx';
 import { ertekelesSzerint } from '../data/ertekelesek.js';
 import { HOSSZ_SAVOK, NEHEZSEGEK, jellemzok, szur, tajegysegek } from '../data/szures.js';
+import { ut } from '../router.js';
+import { sz } from '../nyelv/index.js';
 
 /* Példák, szűrhetően.
 
@@ -36,22 +38,19 @@ export default function UtvonalakPage() {
   return (
     <section className="oldal">
       <header className="oldal__fej">
-        <p className="kalap">Példák</p>
+        <p className="kalap">{sz('peldak.kicsi')}</p>
         {/* Szám nélkül, hogy a példák bővítése ne írja át a címsort. A
             darabszám a szűrő alatt amúgy is ott van, és az magától számol. */}
-        <h1 className="oldal__cim">Kész vonalak, amikből kiindulhatsz.</h1>
-        <p className="oldal__bevezeto">
-          Nyisd meg bármelyiket, húzd arrébb a pontjait, tegyél rá saját jelöléseket —
-          és már a tiéd.
-        </p>
+        <h1 className="oldal__cim">{sz('peldak.cim')}</h1>
+        <p className="oldal__bevezeto">{sz('peldak.bevezeto')}</p>
       </header>
 
       <div className="szuro">
         <div className="szuro__sor">
           <label className="szuro__mezo">
-            <span>Tájegység</span>
+            <span>{sz('peldak.tajegyseg')}</span>
             <select value={tajegyseg} onChange={(e) => setTajegyseg(e.target.value)}>
-              <option value="">Mindegyik</option>
+              <option value="">{sz('peldak.mindegyik')}</option>
               {tajak.map((t) => (
                 <option key={t} value={t}>{t}</option>
               ))}
@@ -59,7 +58,7 @@ export default function UtvonalakPage() {
           </label>
 
           <div className="szuro__mezo">
-            <span>Hossz</span>
+            <span>{sz('peldak.hossz')}</span>
             <div className="szuro__pirulak">
               {HOSSZ_SAVOK.map((s) => (
                 <button
@@ -76,7 +75,7 @@ export default function UtvonalakPage() {
           </div>
 
           <div className="szuro__mezo">
-            <span>Nehézség</span>
+            <span>{sz('peldak.nehezseg')}</span>
             <div className="szuro__pirulak">
               {NEHEZSEGEK.map((n) => (
                 <button
@@ -93,10 +92,10 @@ export default function UtvonalakPage() {
         </div>
 
         <p className="szuro__eredmeny">
-          <strong>{talalatok.length}</strong> útvonal
+          <strong>{talalatok.length}</strong> {sz('peldak.utvonal')}
           {vanSzuro && (
             <button className="szuro__torol" onClick={torol}>
-              szűrők törlése
+              {sz('peldak.szurokTorol')}
             </button>
           )}
         </p>
@@ -122,7 +121,7 @@ export default function UtvonalakPage() {
                 {ertekeles && (
                   <p className="kartya__csillag">
                     <Csillagok ertek={ertekeles.csillag} meret={15} />
-                    <span>szerintünk</span>
+                    <span>{sz('fooldal.szerintunk')}</span>
                   </p>
                 )}
                 <p className="kartya__jegyzet">{p.jegyzet}</p>
@@ -144,7 +143,7 @@ export default function UtvonalakPage() {
                 </ul>
 
                 <div className="kartya__gombok">
-                  <a className="gomb gomb--halk" href={`/utvonalak/${p.id}`}>Megnézem</a>
+                  <a className="gomb gomb--halk" href={ut(`/utvonalak/${p.id}`)}>{sz('peldak.megnezem')}</a>
                   <a className="gomb gomb--fo" href={tervLinkje('/tervezo', p)}>
                     Megnyitás a tervezőben
                   </a>
@@ -156,9 +155,7 @@ export default function UtvonalakPage() {
       )}
 
       <p className="figyelmeztetes">
-        <strong>A vonalak a tényleges gyalogutakon futnak</strong>, nem két pont közé húzott
-        egyenesen — a táv és az emelkedő ezért igaz. A terepen ettől még a jelzett
-        turistautak és a hivatalos térképek a mérvadók.
+        <strong>{sz('peldak.gyalogut')}</strong>{sz('peldak.gyalogutUtan')}
       </p>
     </section>
   );

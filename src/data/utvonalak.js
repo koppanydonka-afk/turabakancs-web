@@ -1,3 +1,5 @@
+import { nyelv, sz } from '../nyelv/index.js';
+
 /* Útvonal: számolás és linkbe kódolás.
 
    Semmi nem kerül szerverre. Amit rajzolsz, az a böngésződben marad,
@@ -36,12 +38,14 @@ export const tempoSzerint = (id) => TEMPOK.find((t) => t.id === id) ?? TEMPOK[0]
 
 export function ido(km, tempoId = 'gyalog') {
   const perc = Math.round((km / tempoSzerint(tempoId).kmh) * 60);
-  if (perc < 60) return `${perc} perc`;
-  return `${Math.floor(perc / 60)} ó ${String(perc % 60).padStart(2, '0')} p`;
+  if (perc < 60) return sz('ido.rovidPerc', { p: perc });
+  return sz('ido.rovidOra', { o: Math.floor(perc / 60), p: String(perc % 60).padStart(2, '0') });
 }
 
+/* A tizedesjel nyelvfüggő: magyarul 8,0 km, angolul 8.0 km. Ezt a
+   böngésző tudja, nem kell kézzel intézni. */
 export const kmSzoveg = (km) =>
-  `${km.toLocaleString('hu-HU', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} km`;
+  `${km.toLocaleString(nyelv(), { minimumFractionDigits: 1, maximumFractionDigits: 1 })} km`;
 
 /* ---- Kódolás linkbe ----
    Öt tizedes ~1 méteres pontosság; ennél többre gyalogútnál nincs szükség. */

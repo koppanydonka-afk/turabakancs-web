@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { elsoTalalat } from '../data/helykereses.js';
 import { osvenyreHuz, ritkit } from '../data/utvonalkereso.js';
+import { sz } from '../nyelv/index.js';
 
 /* „Honnan hova” a tervező panelén.
 
@@ -44,7 +45,7 @@ export default function HonnanHova({ onUgras, onUtvonal }) {
         setHiba(null);
         onUgras(pont, { kozeli: true });
       },
-      () => setHiba('Nem kaptam meg a helyzetedet. Írd be a kiindulópontot kézzel.'),
+      () => setHiba(sz('hh.nincsHelyzet')),
       { enableHighAccuracy: true, timeout: 8000 },
     );
   };
@@ -84,29 +85,29 @@ export default function HonnanHova({ onUgras, onUtvonal }) {
   return (
     <form className="hh-panel" onSubmit={kuldes}>
       <label className="mezo">
-        <span>Honnan</span>
+        <span>{sz('hh.honnan')}</span>
         <input
           type="text"
           value={honnan}
           onChange={(e) => setHonnan(e.target.value)}
-          placeholder="Hely neve vagy koordináta"
+          placeholder={sz('hh.honnanHely')}
           autoComplete="off"
         />
       </label>
       <label className="mezo">
-        <span>Hova — ha üresen hagyod, csak odaugrunk</span>
+        <span>{sz('hh.hova')}</span>
         <input
           type="text"
           value={hova}
           onChange={(e) => setHova(e.target.value)}
-          placeholder="Például: Dobogókő"
+          placeholder={sz('hh.hovaHely')}
           autoComplete="off"
         />
       </label>
 
       <div className="hh-panel__gombok">
         <button className="gomb gomb--halk" type="button" onClick={sajatHelyzet}>
-          Innen indulok
+          {sz('hh.innen')}
         </button>
         <button
           className="gomb gomb--fo"
@@ -114,7 +115,7 @@ export default function HonnanHova({ onUgras, onUtvonal }) {
           disabled={fut || !honnan.trim()}
           aria-busy={fut}
         >
-          {fut ? 'Számolom…' : hova.trim() ? 'Útvonalat kérek' : 'Odaugrás'}
+          {fut ? sz('hh.szamolom') : hova.trim() ? sz('hh.utvonalat') : sz('hh.odaugras')}
         </button>
       </div>
 
