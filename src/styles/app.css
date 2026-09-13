@@ -1679,6 +1679,41 @@ input::placeholder { color: var(--muted); }
 /* ---------- „Honnan hova” a panelen ---------- */
 .hh-panel { display: flex; flex-direction: column; gap: var(--space-4); }
 .hh-panel__gombok { display: flex; gap: var(--space-3); margin-top: var(--space-1); }
+
+/* ---------- Javaslatok gépelés közben ----------
+   A lista a mező alatt lebeg, hogy ne tolja arrébb a gombokat minden
+   leütésnél. A tálca nem vág le semmit: a `z-index` a rúd fölé emeli. */
+.hely-mezo { position: relative; }
+.javaslatok {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  z-index: 30;
+  margin: var(--space-1) 0 0;
+  padding: var(--space-1);
+  list-style: none;
+  max-height: 240px;
+  overflow-y: auto;
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  box-shadow: var(--lap-keret), var(--lap-arnyek);
+}
+.javaslat {
+  display: block;
+  width: 100%;
+  border: 0;
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+  background: transparent;
+  color: var(--ink-2);
+  font: inherit;
+  font-size: var(--text-sm);
+  text-align: left;
+  cursor: pointer;
+}
+.javaslat:hover,
+.javaslat--kijelolt { background: var(--surface-2); color: var(--ink); }
 .hh-panel__gombok .gomb { flex: 1 1 auto; padding-inline: var(--space-3); }
 
 /* ---------- Közeli túrák a panelen ---------- */

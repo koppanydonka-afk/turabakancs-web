@@ -329,9 +329,56 @@ export const RETEGEK = {
 export const MIN_ZOOM = 12;
 const TERULET_MAX = 400;
 
-export async function teruleten({ del, nyugat, eszak, kelet }, retegId) {
+/* ---- Gyorsítótár ----
+
+   Eddig NEM volt: aki elpásztázott és visszajött, mindent újra lekérdezett
+   — az Overpass pedig nyolc-húsz másodperc, és néha el is esik. Ez volt a
+   lassúság legnagyobb egyedi forrása.
+
+   Amit tárolunk, az a MEGKÉRDEZETT terület, nem a képernyő. Ha a következő
+   kérés olyan területre szól, ami egy korábbi kérdésen BELÜL van (mert a
+   felhasználó ránagyított vagy kicsit arrébb húzta), akkor a meglévő
+   találatokból szűrünk, és nem kérdezünk újra.
+
+   Negyedóra után elévül: az OSM változik, és egy kiszáradt forrásról nem
+   szabad napokig azt állítani, hogy ott van. */
+const GYORSITO_MS = 15 * 60 * 1000;
+const GYORSITO_MAX = 24;
+const gyorsito = [];
+
+const tartalmazza = (kulso, belso) =>
+  kulso.del <= belso.del &&
+  kulso.nyugat <= belso.nyugat &&
+  kulso.eszak >= belso.eszak &&
+  kulso.kelet >= belso.kelet;
+
+function gyorsitobol(hatarok, retegId) {
+  const most = Date.now();
+  for (let i = gyorsito.length - 1; i >= 0; i -= 1) {
+    const t = gyorsito[i];
+    if (most - t.mikor > GYORSITO_MS) {
+      gyorsito.splice(i, 1);
+      continue;
+    }
+    if (t.retegId === retegId && tartalmazza(t.hatarok, hatarok)) return t;
+  }
+  return null;
+}
+
+/* A tárolt találatokból csak az látszik, ami a mostani kivágatban van. */
+const kivagat = (lista, h) =>
+  lista.filter((x) => x.lat >= h.del && x.lat <= h.eszak && x.lng >= h.nyugat && x.lng <= h.kelet);
+
+export async function teruleten(hatarok, retegId) {
+  const { del, nyugat, eszak, kelet } = hatarok;
   const reteg = RETEGEK[retegId];
   if (!reteg) throw new SzolgaltatasHiba(sz('hiba.ismeretlenReteg'));
+
+  const tarolt = gyorsitobol(hatarok, retegId);
+  if (tarolt) {
+    const lista = kivagat(tarolt.lista, hatarok);
+    return { lista, osszesen: lista.length, levagva: 0, tarolt: true };
+  }
 
   const doboz = `${del.toFixed(5)},${nyugat.toFixed(5)},${eszak.toFixed(5)},${kelet.toFixed(5)}`;
   const agak = reteg.szurok
@@ -351,8 +398,18 @@ export async function teruleten({ del, nyugat, eszak, kelet }, retegId) {
   );
 
   const osszes = feldolgoz(adat, reteg);
+  const lista = osszes.slice(0, TERULET_MAX);
+
+  /* Csak a TELJES választ tesszük el. Ha a kiszolgáló levágta a kimenetet,
+     akkor nem tudjuk, mi maradt ki — abból nem szabad később ránagyításkor
+     azt állítani, hogy ennyi van a területen. */
+  if (osszes.length <= TERULET_MAX) {
+    gyorsito.push({ retegId, hatarok, lista, mikor: Date.now() });
+    if (gyorsito.length > GYORSITO_MAX) gyorsito.shift();
+  }
+
   return {
-    lista: osszes.slice(0, TERULET_MAX),
+    lista,
     osszesen: osszes.length,
     levagva: Math.max(0, osszes.length - TERULET_MAX),
   };

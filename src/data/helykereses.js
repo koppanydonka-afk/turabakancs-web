@@ -61,3 +61,67 @@ export async function elsoTalalat(szoveg) {
   const talalatok = await keresHelyet(szoveg);
   return { valasztott: talalatok[0], tobbi: talalatok.slice(1) };
 }
+
+
+/* ---- Javaslatok gépelés közben ----
+
+   A Nominatim nem erre való: a használati feltétele kifejezetten tiltja a
+   gépelésenkénti lekérdezést, ezért futott eddig csak gombnyomásra. A
+   Photon viszont PONT erre készült (a komoot üzemelteti, kulcs nélkül),
+   és mérve 300 ezredmásodperc körül válaszol — ennyitől lesz olyan
+   érzése a keresőnek, mint a nagy térképeknél.
+
+   Az utolsó kérés nyer: gyors gépelésnél a korábbiakat megszakítjuk,
+   különben egy lassabb, régebbi válasz felülírná a frisset. */
+
+const PHOTON = 'https://photon.komoot.io/api/';
+let futoJavaslat = null;
+
+/* A Photon NÉGY nyelvet ismer; minden másra 400-at ad. A `default` a hely
+   saját nevét adja vissza — magyar helyeknél épp a magyart —, tehát a
+   maradék hat nyelvnek ez a jó válasz, nem az angol.
+
+   Ezt méréssel derítettük ki: `lang=hu` hibát adott, és mivel a hívást
+   `catch` védi, a javaslatok némán sosem jelentek volna meg. */
+const PHOTON_NYELVEK = new Set(['en', 'de', 'fr']);
+
+/* A Photon a nevet és a környezetét külön mezőkben adja. Egy sorba fűzzük
+   őket, de csak azt, ami tényleg hozzátesz — „Budapest, Budapest” nem. */
+function javaslatNeve(t) {
+  const reszek = [t.name, t.city ?? t.district, t.state, t.country];
+  const tiszta = [];
+  for (const r of reszek) {
+    if (r && !tiszta.includes(r)) tiszta.push(r);
+  }
+  return tiszta.slice(0, 3).join(', ');
+}
+
+export async function javaslatok(szoveg, { nyelv = 'hu', darab = 5 } = {}) {
+  const q = (szoveg ?? '').trim();
+  if (q.length < 3) return [];
+
+  futoJavaslat?.abort();
+  const megszakit = new AbortController();
+  futoJavaslat = megszakit;
+
+  const p = new URLSearchParams({
+    q,
+    limit: String(darab),
+    lang: PHOTON_NYELVEK.has(nyelv) ? nyelv : 'default',
+  });
+  try {
+    const valasz = await fetch(`${PHOTON}?${p}`, { signal: megszakit.signal });
+    if (!valasz.ok) return [];
+    const adat = await valasz.json();
+    return (adat.features ?? [])
+      .map((f) => ({
+        nev: javaslatNeve(f.properties ?? {}),
+        pont: [f.geometry?.coordinates?.[1], f.geometry?.coordinates?.[0]],
+      }))
+      .filter((x) => x.nev && Number.isFinite(x.pont[0]) && Number.isFinite(x.pont[1]));
+  } catch {
+    /* Megszakítás vagy hálózati hiba: javaslat nélkül is lehet keresni,
+       a gomb továbbra is a Nominatimot kérdezi. */
+    return [];
+  }
+}
