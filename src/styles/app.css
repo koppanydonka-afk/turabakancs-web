@@ -285,6 +285,38 @@ body.nincs-gorgetes { overflow: hidden; }
    visszaesik, ha a böngésző nem kéri. */
 .terkep[data-mod='ut'], .terkep[data-mod='jeloles'] { cursor: crosshair; }
 
+/* ---- A mozgó bakancs ----
+
+   A böngésző kurzorképe nem animálható: a beágyazott rajzot egyszer
+   kirajzolja, és onnantól kép. Ezért a gyári kurzor félreáll
+   (`cursor: none`, a Terkep.jsx állítja), és ez az elem jár a mutató
+   után — a Terkep.jsx teszi a térkép dobozába, nem a React.
+
+   A negatív margó a talp orrát viszi a mutató alá: ott van a fogópont,
+   és a lépés is e körül fordul. */
+.bakancs-kurzor {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 32px;
+  height: 32px;
+  margin: -26.6px 0 0 -2.1px;
+  /* Az egér menjen át rajta: a térkép kapja a kattintást, nem a rajz. */
+  pointer-events: none;
+  z-index: 2;
+  opacity: 0;
+  will-change: transform;
+}
+.bakancs-kurzor--lathato { opacity: 1; }
+.bakancs-kurzor__rajz {
+  display: block;
+  /* A talp orra a forgáspont: lépéskor a sarok emelkedik, a talpvég
+     marad a helyén — ahogy a járásban is. */
+  transform-origin: 2.1px 26.6px;
+  transition: transform 110ms var(--ease-out);
+}
+.bakancs-kurzor__rajz--lep { transform: rotate(-11deg); }
+
 .nezet__terkep { height: 62vh; min-height: 360px; border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--lap-keret), var(--lap-arnyek); }
 .nezet__terkep .terkep { border-radius: var(--radius-lg); }
 

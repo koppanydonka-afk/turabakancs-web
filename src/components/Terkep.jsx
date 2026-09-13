@@ -8,7 +8,7 @@ import { latvanyKepe } from '../data/kepek.js';
 import { nyelv, sz } from '../nyelv/index.js';
 import { useSotet } from '../data/tema.js';
 import { sotetreFest } from '../data/terkepStilus.js';
-import { BAKANCS_KURZOR } from '../data/kurzor.js';
+import { BAKANCS_KURZOR, PONT_FOGVA, PONT_KURZOR, bakancsKoveto } from '../data/kurzor.js';
 import EszkozRudba from './EszkozRudba.jsx';
 import { KEZDO_KOZEP, KEZDO_ZOOM } from '../data/terkepAlap.js';
 
@@ -171,6 +171,10 @@ export default function Terkep({
      témaváltásnál sem fog. */
   const tartalekon = useRef(false);
   const orszem = useRef(0);
+  /* A mozgó bakancs saját elem a térkép fölött — a böngésző kurzorképét
+     nem lehet animálni. Érintésen és kevesebb mozgásnál `null`: ott a
+     mozdulatlan rajz marad. */
+  const koveto = useRef(null);
   /* Melyik területre kérdeztünk le utoljára rétegenként — ebből tudjuk, hogy
      az elpásztázott térképhez kell-e új keresés. */
   const utolsoDoboz = useRef({});
@@ -240,15 +244,30 @@ export default function Terkep({
     const m = terkep.current;
     if (!m) return;
     const vaszon = m.getCanvas();
+
     if (ertek === 'bakancs') {
+      if (koveto.current) {
+        /* Van saját, mozgó bakancsunk: a gyári kurzor félreáll. */
+        koveto.current.mutat();
+        vaszon.style.cursor = 'none';
+        return;
+      }
       /* Mindkét alakot megpróbáljuk: a böngésző az elsőt biztosan érti,
          a másodikat csak ha tudja — és akkor az marad érvényben. */
       BAKANCS_KURZOR.forEach((alak) => { vaszon.style.cursor = alak; });
       return;
     }
-    vaszon.style.cursor = ertek;
+
+    koveto.current?.elrejt();
+    vaszon.style.cursor = ertek === 'pontFogva' ? PONT_FOGVA : ertek;
   };
   const alapKurzor = () => (friss.current.mod ? 'bakancs' : '');
+
+  /* Húzás közben a MapLibre kikapcsolja a jelölő egéreseményeit (hogy a
+     térkép kapja meg őket), tehát a mutató ilyenkor a VÁSZON fölött van
+     — a fogás kurzorát oda kell tenni, nem a jelölőre. */
+  const fogasKezd = () => kurzor('pontFogva');
+  const fogasVege = () => kurzor(alapKurzor());
 
   /* ---- Kép a látványosság buborékjába ----
 
@@ -569,6 +588,9 @@ export default function Terkep({
         clearTimeout(orszem.current);
       });
 
+      /* Csak a tervezőn: a nézetoldalakon nem rajzolsz, ott a MapLibre
+         fogó keze a helyes kurzor. */
+      if (friss.current.mod) koveto.current = bakancsKoveto(doboz.current);
       terkep.current = m;
       setTerkepKesz(true);
       return m;
@@ -576,6 +598,8 @@ export default function Terkep({
 
     return () => {
       eldobva = true;
+      koveto.current?.bont();
+      koveto.current = null;
       setTerkepKesz(false);
       clearTimeout(orszem.current);
       cancelAnimationFrame(rajzKeret.current);
@@ -696,6 +720,8 @@ export default function Terkep({
       elem.className = `ut-pont${elso ? ' ut-pont--rajt' : ''}${utolso ? ' ut-pont--cel' : ''}`;
       elem.title = elso ? sz('terkep.rajt') : utolso ? sz('terkep.cel') : sz('terkep.hanyadikPont', { n: i + 1 });
 
+      if (szerkeszt) elem.style.cursor = PONT_KURZOR;
+
       const jel = new Marker({ element: elem, draggable: szerkeszt })
         .setLngLat([lng, lat])
         .addTo(m);
@@ -703,9 +729,10 @@ export default function Terkep({
       /* A húzás végén a böngésző kattintást is küld. Enélkül az arrébb
          húzott pont rögtön törlődne. */
       let mozgott = false;
-      jel.on('dragstart', () => { mozgott = false; });
+      jel.on('dragstart', () => { mozgott = false; fogasKezd(); });
       jel.on('drag', () => { mozgott = true; });
       jel.on('dragend', () => {
+        fogasVege();
         const { lat: y, lng: x } = jel.getLngLat();
         friss.current.onPontMozgat?.(i, [y, x]);
       });
@@ -741,6 +768,8 @@ export default function Terkep({
       elem.innerHTML = tuHtml(j.tipus);
       if (j.cimke) elem.title = j.cimke;
 
+      if (friss.current.mod) elem.style.cursor = PONT_KURZOR;
+
       const jel = new Marker({
         element: elem,
         anchor: 'bottom',
@@ -759,9 +788,10 @@ export default function Terkep({
       }
 
       let mozgott = false;
-      jel.on('dragstart', () => { mozgott = false; });
+      jel.on('dragstart', () => { mozgott = false; fogasKezd(); });
       jel.on('drag', () => { mozgott = true; });
       jel.on('dragend', () => {
+        fogasVege();
         const { lat, lng } = jel.getLngLat();
         friss.current.onJelolesMozgat?.(i, { lat, lng });
       });
