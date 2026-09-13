@@ -37,7 +37,9 @@ export default function UtvonalakPage() {
     <section className="oldal">
       <header className="oldal__fej">
         <p className="kalap">Példák</p>
-        <h1 className="oldal__cim">{peldaUtvonalak.length} vonal, amiből kiindulhatsz.</h1>
+        {/* Szám nélkül, hogy a példák bővítése ne írja át a címsort. A
+            darabszám a szűrő alatt amúgy is ott van, és az magától számol. */}
+        <h1 className="oldal__cim">Kész vonalak, amikből kiindulhatsz.</h1>
         <p className="oldal__bevezeto">
           Nyisd meg bármelyiket, húzd arrébb a pontjait, tegyél rá saját jelöléseket —
           és már a tiéd. Semmit nem kell hozzá regisztrálni.

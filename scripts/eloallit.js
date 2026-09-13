@@ -68,7 +68,7 @@ function oldalak() {
       cim: 'Példa útvonalak — Túrabakancs',
       leiras: `${peldaUtvonalak.length} kész túraútvonal a térképen, amit megnyithatsz és továbbrajzolhatsz.`,
       tartalom: `
-        <h1>${peldaUtvonalak.length} vonal, amiből kiindulhatsz.</h1>
+        <h1>Kész vonalak, amikből kiindulhatsz.</h1>
         <ul>${peldaUtvonalak
           .map((p) => `<li><a href="/utvonalak/${p.id}">${biztos(p.nev)}</a> — ${biztos(p.hol)}</li>`)
           .join('')}</ul>`,

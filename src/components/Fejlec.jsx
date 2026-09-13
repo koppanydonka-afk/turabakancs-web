@@ -11,7 +11,7 @@ import { useRoute } from '../router.js';
 const MENU = [
   { cim: '/', nev: 'Főoldal', leiras: 'Jelzések, példák és vélemények' },
   { cim: '/tervezo', nev: 'Tervező', leiras: 'Írd be a két helyet, vagy rajzolj a térképre' },
-  { cim: '/utvonalak', nev: 'Példák', leiras: 'Nyolc kész vonal, amiből kiindulhatsz' },
+  { cim: '/utvonalak', nev: 'Példák', leiras: 'Kész vonalak, amikből kiindulhatsz' },
 ];
 
 export default function Fejlec() {

@@ -1,6 +1,6 @@
 /* Szűrés a példa útvonalak között.
 
-   Tizennyolc útvonal fölött egy sima lista már használhatatlan. A szűrés
+   Egy tucat útvonal fölött a sima lista már használhatatlan. A szűrés
    a LEMÉRT adatokból dolgozik (hossz és emelkedő), nem becslésből — ezért
    a „nehéz” itt tényleg nehezet jelent. */
 
