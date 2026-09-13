@@ -394,6 +394,8 @@ export default function TervezoPage() {
               válasz (táv, menetidő, tanácsok) a térképre került. A felhúzható
               lapon már csak az eszközök maradtak. */}
 
+          <div className="widgetek-sor">
+
           <div className="widgetek widgetek--bal">
             <div className={`hh-widget${hhNyitva ? '' : ' hh-widget--csukva'}`}>
               <button
@@ -422,61 +424,6 @@ export default function TervezoPage() {
 
             {uzenet && <p className="uzenet">{uzenet}</p>}
 
-            {/* 2. A válasz */}
-            {vanUt && (
-              <details className="adat-widget" open>
-                <summary>
-                  <span className="adat-widget__osszeg">
-                    {kmSzoveg(km)} · {ido < 60 ? `${ido} perc` : `${Math.floor(ido / 60)} ó ${String(ido % 60).padStart(2, '0')} p`}
-                  </span>
-                </summary>
-                <div className="adat-widget__tartalom">
-                <div className="ertekek">
-                  <div className="ertekek__elem">
-                    <strong>{kmSzoveg(km)}</strong>
-                    <span>hossz</span>
-                  </div>
-                  <div className="ertekek__elem ertekek__elem--kiemelt">
-                    <strong>
-                      {ido < 60 ? `${ido} perc` : `${Math.floor(ido / 60)} ó ${String(ido % 60).padStart(2, '0')} p`}
-                    </strong>
-                    <span>
-                      <select
-                      className="tempo"
-                      value={tempo}
-                      onChange={(e) => setTempo(e.target.value)}
-                      aria-label="Haladási tempó"
-                      >
-                      {TEMPOK.map((t) => (
-                        <option key={t.id} value={t.id}>{t.nev}</option>
-                      ))}
-                      </select>
-                    </span>
-                  </div>
-                  <div className="ertekek__elem">
-                    <strong>{magassag ? `↑ ${magassag.fel} m` : '…'}</strong>
-                    <span>emelkedő</span>
-                  </div>
-                  <div className="ertekek__elem">
-                    <strong>{nehez.szo}</strong>
-                    <span>nehézség</span>
-                  </div>
-                </div>
-
-                <Tanacsok pontok={pontok} jelolesek={jelolesek} tempo={tempo} magassag={magassag} />
-
-                <div className="gombsor">
-                  <button className="gomb gomb--fo" onClick={linkMasol}>Megosztható link</button>
-                  <button
-                    className="gomb gomb--halk"
-                    onClick={() => gpxLetoltes({ nev: nev.trim() || 'Túrabakancs', pontok, jelolesek })}
-                  >
-                    GPX
-                  </button>
-                </div>
-                </div>
-              </details>
-            )}
 
             {/* Az eszközök: ami eddig az alulról felhúzható lapon volt. */}
             <details className="eszkoz-widget">
@@ -582,6 +529,68 @@ export default function TervezoPage() {
             <Labjegyzet tomor />
               </div>
             </details>
+          </div>
+
+          {/* A válasz: táv, menetidő, tanácsok. A térkép jobb felső
+              sarkában áll, a nagyítógombok mellett — a bal felső sarok
+              a kérdésé és az eszközöké. */}
+          <div className="widgetek widgetek--jobb">
+            {/* 2. A válasz */}
+            {vanUt && (
+              <details className="adat-widget" open>
+                <summary>
+                  <span className="adat-widget__osszeg">
+                    {kmSzoveg(km)} · {ido < 60 ? `${ido} perc` : `${Math.floor(ido / 60)} ó ${String(ido % 60).padStart(2, '0')} p`}
+                  </span>
+                </summary>
+                <div className="adat-widget__tartalom">
+                <div className="ertekek">
+                  <div className="ertekek__elem">
+                    <strong>{kmSzoveg(km)}</strong>
+                    <span>hossz</span>
+                  </div>
+                  <div className="ertekek__elem ertekek__elem--kiemelt">
+                    <strong>
+                      {ido < 60 ? `${ido} perc` : `${Math.floor(ido / 60)} ó ${String(ido % 60).padStart(2, '0')} p`}
+                    </strong>
+                    <span>
+                      <select
+                      className="tempo"
+                      value={tempo}
+                      onChange={(e) => setTempo(e.target.value)}
+                      aria-label="Haladási tempó"
+                      >
+                      {TEMPOK.map((t) => (
+                        <option key={t.id} value={t.id}>{t.nev}</option>
+                      ))}
+                      </select>
+                    </span>
+                  </div>
+                  <div className="ertekek__elem">
+                    <strong>{magassag ? `↑ ${magassag.fel} m` : '…'}</strong>
+                    <span>emelkedő</span>
+                  </div>
+                  <div className="ertekek__elem">
+                    <strong>{nehez.szo}</strong>
+                    <span>nehézség</span>
+                  </div>
+                </div>
+
+                <Tanacsok pontok={pontok} jelolesek={jelolesek} tempo={tempo} magassag={magassag} />
+
+                <div className="gombsor">
+                  <button className="gomb gomb--fo" onClick={linkMasol}>Megosztható link</button>
+                  <button
+                    className="gomb gomb--halk"
+                    onClick={() => gpxLetoltes({ nev: nev.trim() || 'Túrabakancs', pontok, jelolesek })}
+                  >
+                    GPX
+                  </button>
+                </div>
+                </div>
+              </details>
+            )}
+          </div>
           </div>
 
 

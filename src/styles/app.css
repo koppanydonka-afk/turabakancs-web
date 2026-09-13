@@ -299,7 +299,14 @@ body.nincs-gorgetes { overflow: hidden; }
   line-height: 1.5;
   padding: 1px 6px !important;
 }
-.leaflet-control-attribution a { color: var(--accent-ink); }
+/* A Leaflet saját szabálya azonos fajsúlyú a miénkkel, és a köteg végén
+   áll — így sötét módban ő nyert: a szöveg #333 maradt (1,28:1 a sötét
+   háttéren, gyakorlatilag olvashatatlan), a link meg Leaflet-kék. A
+   térképre hivatkozva egy szinttel feljebb vesszük a fajsúlyt.
+
+   A forrásmegjelölés licencfeltétel: olvashatónak kell lennie. */
+.leaflet-container .leaflet-control-attribution { color: var(--muted); }
+.leaflet-container .leaflet-control-attribution a { color: var(--accent-ink); }
 
 /* ---------- Oldalsó panel ---------- */
 .panel {
@@ -314,22 +321,8 @@ body.nincs-gorgetes { overflow: hidden; }
 }
 /* Oszlopos flexben a gyerekek alapból zsugorodnak. Az értékrács
    overflow:hidden-t kapott a lekerekítés miatt, így a zsugorodás
-   egyszerűen levágta a második sorát — ezért tiltjuk.
-
-   A .panel__tartalom (a telefonos felhúzható lap belseje) ugyanilyen
-   oszlopos flex, ezért annak a gyerekeire is kell. */
-.panel > *,
-.panel__tartalom > * { flex: 0 0 auto; }
-
-/* A panel tartalma külön dobozban él (a telefonos felhúzható lap miatt).
-   Az elrendezését korábban csak a mobilszabály adta meg, ezért asztali
-   gépen a blokkok térköz nélkül egymásra tapadtak. */
-.panel__tartalom {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-8);
-  min-width: 0;
-}
+   egyszerűen levágta a második sorát — ezért tiltjuk. */
+.panel > * { flex: 0 0 auto; }
 
 .nezet .panel { box-shadow: var(--lap-keret), var(--lap-arnyek); border-radius: var(--radius-lg); overflow: visible; }
 
@@ -1192,72 +1185,24 @@ input::placeholder { color: var(--muted); }
   cursor: pointer;
 }
 
-/* ---------- Fogantyú: asztali gépen nincs rá szükség ---------- */
-
 /* ==========================================================
-   A térkép a teljes felület, a panel alulról jön fel — gépen is.
-   Így nem kell elgörgetni a térképtől ahhoz, hogy lásd a számokat.
+   A tervezőben a térkép a teljes felület.
    ========================================================== */
 .tervezo__racs { grid-template-columns: 1fr; grid-template-rows: 1fr; height: 100%; }
 .tervezo__terkep-doboz { grid-row: 1; height: 100%; }
 
-.panel {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 1100;
-  max-height: 86vh;
-  max-height: 86dvh;
-  padding: 0;
-  gap: 0;
-  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-  box-shadow: 0 -2px 24px rgb(20 24 18 / .22);
-  /* Alaphelyzetben csak a fogantyú látszik; a többi lent vár. */
-  transform: translateY(calc(100% - var(--lapfogo-magassag, 62px)));
-  transition: transform 280ms var(--ease-out);
-  overflow: hidden;
-}
-.panel--nyitva { transform: translateY(0); }
+/* Itt állt az alulról felhúzható lap (.panel fixen az aljára ragasztva,
+   .lapfogo fogantyúval, .panel__tartalom belsővel). A lap megszűnt — a
+   szabályai viszont itt
+   maradtak, és mivel a `.panel` nem volt a tervezőre szűkítve, az
+   útvonal-oldalak oldalsó dobozát is lefixálták a képernyő alá: a hossz,
+   a menetidők, a „Megnyitás a tervezőben”, a GPX és a jelöléslista
+   egyszerűen nem látszott. */
 
-.lapfogo {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-1);
-  width: 100%;
-  padding: var(--space-2) var(--space-4) var(--space-3);
-  border: 0;
-  background: transparent;
-  color: var(--ink-2);
-  font: inherit;
-  font-size: var(--text-sm);
-  font-weight: 600;
-  cursor: pointer;
-  /* Kényelmes érintőfelület, ne kelljen célozni. */
-  min-height: 56px;
-}
-.lapfogo__csik {
-  width: 42px;
-  height: 4px;
-  border-radius: 2px;
-  background: var(--line);
-}
-.lapfogo__szoveg { font-variant-numeric: tabular-nums; }
-
-.panel__tartalom {
-  gap: var(--space-6);
-  padding: var(--space-2) var(--space-4) var(--space-8);
-  overflow-y: auto;
-  max-height: calc(86vh - 62px);
-  max-height: calc(86dvh - 62px);
-  overscroll-behavior: contain;
-}
-
-/* A térkép lebegő vezérlői ne kerüljenek a lap alá. */
-.terkep__sug { bottom: calc(62px + var(--space-3)); }
-.vissza-nyil { bottom: calc(62px + var(--space-3)); }
-.leaflet-control-attribution { margin-bottom: 62px !important; }
+/* Itt 62 képponttal feljebb tolta magát a visszalépő nyíl, a súgó és a
+   forrásmegjelölés: ennyi volt az alulról felhúzható lap sávja. A lap
+   megszűnt, a sáv helye viszont ottmaradt — a három elem azóta a semmi
+   fölött lebegett. Mennek le a sarkukba. */
 
 /* Nagyobb érintőfelületek a gyakori gomboknál. */
 .gombsor .gomb { min-height: 44px; }
@@ -1753,28 +1698,49 @@ input::placeholder { color: var(--muted); }
 
    Az oldalsáv megszűnt: a kérdés és a válasz a térképre került. A bal felső
    oszlopban ülnek; mellettük a rétegrács, a bal alsó a visszalépő nyílé. */
-/* A widgetek egy bal oldali oszlopban ülnek. A felső sorban mellettük áll a
-   rétegrács — külön elem, de ugyanabban a sávban. Ezért a honnan-hova fix
-   szélességű: erre épül a rács helye.
+/* Két oszlop a térkép tetején: balra a kérdés és az eszközök, jobbra a
+   válasz (táv, menetidő, tanácsok). Köztük, külön elemként, a rétegrács.
 
-   Az időjárás korábban itt volt a harmadik; átkerült a fejlécbe, egyetlen
-   számra fogyva. A térképen minden képpont a térképé. */
-.widgetek {
+   A sor a térkép teljes szélességét átéri, de csak keret: a széleit a
+   flexbox tartja a helyén, nem képpontra számolt eltolások. Jobbról a
+   nagyítógomboknak hagyunk helyet (34 képpont + hézag).
+
+   Telefonon a sor oszloppá fordul, és a jobb oszlop a bal ALÁ kerül —
+   így soha nem csúsznak egymásra, akármekkorára is nő a tartalom.
+
+   Az időjárás korábban itt volt a harmadik elem; átkerült a fejlécbe,
+   egyetlen számra fogyva. A térképen minden képpont a térképé. */
+.widgetek-sor {
   position: absolute;
   top: var(--space-3);
   left: var(--space-3);
+  right: calc(var(--space-3) + 34px + var(--space-2));
   z-index: 1000;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-2);
+  max-height: calc(100% - 2 * var(--space-3));
+  /* Az üres területen a térkép fogadja az érintést, nem a konténer. */
+  pointer-events: none;
+}
+
+.widgetek {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: var(--space-2);
-  width: min(340px, calc(100% - 2 * var(--space-3)));
-  max-height: calc(100% - 2 * var(--space-3));
+  width: min(340px, 100%);
+  max-height: calc(100vh - var(--fejlec) - 2 * var(--space-3));
   overflow-y: auto;
   overscroll-behavior: contain;
-  /* Az üres területen a térkép fogadja az érintést, nem a konténer. */
   pointer-events: none;
 }
+
+/* A jobb oszlop a nagyítógombok mellé kerül. Üresen (amíg nincs útvonal)
+   nem foglal helyet. */
+.widgetek--jobb { align-items: flex-end; }
+.widgetek--jobb > * { width: min(340px, 100%); }
 /* A flex-oszlop alapból ÖSSZENYOMJA a gyerekeit, ha nem férnek el — az
    időjárás-widget így nulla magasságú lett, tartalommal együtt. Ugyanez a
    csapda volt a panelnél is; az oszlop görgethető, a benne lévők nem
@@ -1811,15 +1777,17 @@ input::placeholder { color: var(--muted); }
 
 
 @media (max-width: 680px) {
-  .widgetek {
-    width: calc(100% - 2 * var(--space-3));
-    padding-top: 0;
-    /* Telefonon a nagyítógombok mellé nem fér el semmi, ezért alájuk
-       kerülnek — a rétegrács alatti sávba. */
+  /* Telefonon a nagyítógombok mellé nem fér el semmi, ezért a sor a
+     rétegrács ALÁ kezdődik. */
+  .widgetek-sor {
     top: calc(var(--space-3) + 44px);
-    max-height: calc(100% - 140px);
+    right: var(--space-3);
+    max-height: calc(100% - var(--space-3) - 44px - 60px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
   }
-  .hh-widget, .adat-widget { padding: var(--space-3); }
+  .widgetek { max-height: none; overflow: visible; }
+  .hh-widget { padding: var(--space-3); }
 }
 
 
@@ -1853,18 +1821,13 @@ input::placeholder { color: var(--muted); }
 .eszkoz-widget__tartalom > * { flex: 0 0 auto; }
 
 @media (max-width: 680px) {
-  /* Telefonon a két oszlop egymás alá kerül: a jobb a bal alá csúszik. */
-  .widgetek { width: calc(100% - 2 * var(--space-3)); }
-  .widgetek--bal { padding-top: 48px; max-height: 46%; }
-  .widgetek--jobb {
-    left: var(--space-3);
-    right: var(--space-3);
-    top: auto;
-    bottom: var(--space-3);
-    padding-top: 0;
-    align-items: stretch;
-    max-height: 46%;
-  }
+  /* Telefonon a két oszlop egymás alá kerül: a válasz a kérdés alá. Nem
+     eltolással, hanem normál elrendezéssel — így a magasságuk bármekkora
+     lehet, sosem takarják egymást. */
+  .widgetek-sor { flex-direction: column; align-items: stretch; }
+  .widgetek { width: 100%; }
+  .widgetek--jobb { align-items: stretch; }
+  .widgetek--jobb > * { width: 100%; }
 }
 
 
@@ -1899,5 +1862,6 @@ input::placeholder { color: var(--muted); }
      sorban — az kicsi —, a widgetoszlop pedig ALÁ kezdődik. Korábban
      egymásra csúsztak: a rács eltűnt a honnan-hova widget mögött. */
   .reteg-sor { left: var(--space-3); top: var(--space-3); }
-  .widgetek { padding-top: 52px; width: calc(100% - 2 * var(--space-3)); }
+  /* A rács a bal felső sarokba ült be, ezért a bal oszlop alácsúszik. */
+  .widgetek--bal { padding-top: 52px; }
 }
