@@ -132,21 +132,27 @@ export default function FooldalPage() {
               {/* A szöveg és az ikonok EGY rácssorban: így nem marad
                   fenntartott üres sáv azon a három kártyán, ahol nincs ikon. */}
               <div className="tud__test">
-              <p className="tud__szoveg">{sz(`fooldal.tud${n}`)}</p>
-              {n === 3 && (
+              {/* Két ízelítő ikon, a szöveg SORÁBAN. Külön sorban állva
+                  annyival megnövelték ezt a kártyát, hogy a másik három
+                  aljára negyven képpont üres sáv került; a bekezdés végén
+                  viszont nem visznek el semmi helyet. */}
+              <p className="tud__szoveg">
+                {sz(`fooldal.tud${n}`)}
+                {n === 3 && (
                 <ul className="tud__retegek">
-                  {Object.entries(RETEGEK).map(([id, r]) => (
-                    <li key={id} style={{ '--tu-szin': r.gombSzin }} title={sz(r.nevKulcs)}>
+                  {['viz', 'latvany'].map((id) => (
+                    <li key={id} style={{ '--tu-szin': RETEGEK[id].gombSzin }} title={sz(RETEGEK[id].nevKulcs)}>
                       <svg
                         viewBox="0 0 24 24"
                         aria-hidden="true"
-                        dangerouslySetInnerHTML={{ __html: tipusSzerint(r.tipus).rajz }}
+                        dangerouslySetInnerHTML={{ __html: tipusSzerint(RETEGEK[id].tipus).rajz }}
                       />
-                      <span className="csak-olvasonak">{sz(r.nevKulcs)}</span>
+                      <span className="csak-olvasonak">{sz(RETEGEK[id].nevKulcs)}</span>
                     </li>
                   ))}
                 </ul>
-              )}
+                )}
+              </p>
               </div>
             </article>
           ))}

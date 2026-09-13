@@ -1053,15 +1053,17 @@ input::placeholder { color: var(--muted); }
    külön sorba esett, és úgy nézett ki, mintha elromlott volna — így
    viszont a csempe a kártya szélességéhez zsugorodik, és a sor egyben
    marad minden méretnél. */
+/* Két ízelítő ikon a bekezdés végén, a szöveg sorában — így nem nő
+   tőlük a kártya, és nem marad üres sáv a másik három alján. */
 .tud__retegek {
   list-style: none;
-  margin: 0;
+  margin: 0 0 0 0.35em;
   padding: 0;
-  display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: var(--space-1);
-  max-width: 280px;
+  display: inline-flex;
+  gap: 5px;
+  vertical-align: -0.36em;
 }
+.tud__retegek li { width: 23px; }
 .tud__retegek li {
   aspect-ratio: 1;
   display: grid;
