@@ -49,6 +49,9 @@
      folyamból. Így a tálca a rúdhoz tud igazodni, nem fordítva — a
      kettő mindig pontosan egy magas. */
   max-height: calc(100% - 2 * var(--space-3));
+  /* A rúdból kinyíló dolgok szélessége — a tálcáé és a feliraté is. Egy
+     helyen kimondva, hogy a kettő jobb széle egy vonalban álljon. */
+  --kinyilo: min(360px, calc(100vw - 2 * var(--space-3) - 60px));
 }
 
 .eszkoz-rud {
@@ -113,7 +116,7 @@
   left: 100%;
   top: 0;
   bottom: 0;
-  width: min(360px, calc(100vw - 2 * var(--space-3) - 60px));
+  width: var(--kinyilo);
   overflow-y: auto;
   overscroll-behavior: contain;
   display: flex;
@@ -139,6 +142,46 @@
 /* Oszlopos flexben a gyerekek alapból zsugorodnak — az értékrács és a
    magassági profil ettől levágódna. Ez a csapda már negyedszer jön elő. */
 .eszkoz-talca > * { flex: 0 0 auto; }
+
+/* ---- Felirat az ikon mellett ----
+
+   Ugyanabból a rúdból nő ki, mint a tálca, és ugyanolyan széles — de
+   csak EGY IKONSORNYI magas: egy szónak nem kell akkora tábla. A
+   magasságát és a helyét a gomb adja, hogy pontosan a sorában üljön. */
+.reteg-cimke {
+  position: absolute;
+  left: 100%;
+  top: var(--cimke-teto);
+  height: var(--cimke-magas);
+  width: var(--kinyilo);
+  display: flex;
+  align-items: center;
+  padding: 0 var(--space-4);
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  background: color-mix(in srgb, var(--surface) 96%, transparent);
+  backdrop-filter: blur(12px) saturate(180%);
+  box-shadow: var(--lap-keret), var(--lap-arnyek);
+  /* A rúd árnyéka és a feliraté egymásra futna a találkozásnál — a bal
+     oldali szegélyt ezért a felirat nem rajzolja. */
+  clip-path: inset(-24px -24px -24px 0);
+  color: var(--ink);
+  font-size: var(--text-sm);
+  line-height: 1.2;
+  /* Az egér menjen át rajta: a felirat alatt is a térkép van. */
+  pointer-events: none;
+  animation: talca-ki 160ms var(--ease-out);
+  transform-origin: left center;
+}
+/* Hosszú állapotszöveg se törje szét a sort: egy sor, a végén pontokkal. */
+.reteg-cimke span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+@media (prefers-reduced-motion: reduce) {
+  .reteg-cimke { animation: none; }
+}
 
 /* Becsukódás: ugyanaz a mozdulat visszafelé. A tálca ilyenkor még ott
    van egy pillanatig, de már nem fogadja a kattintást — különben a

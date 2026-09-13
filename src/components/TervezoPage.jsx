@@ -121,6 +121,11 @@ export default function TervezoPage() {
 
   const lapDoboz = useRef(null);
   const oszlopDoboz = useRef(null);
+  const rudDoboz = useRef(null);
+  /* Az ikon melletti felirat: `{ szoveg, teto, magas }` vagy `null`. A
+     helyét a gomb adja, hogy pontosan a sorában üljön. */
+  const [cimke, setCimke] = useState(null);
+  const cimkeOra = useRef(0);
   /* Rögzített a tálca, ha KÉRTÉK: rákattintottak az ikonra, vagy épp
      beleírnak. Ilyenkor az egér elvitele nem csukja be — a legrosszabb,
      ami egy ráhúzásra nyíló tálcával történhet, hogy gépelés közben
@@ -224,6 +229,66 @@ export default function TervezoPage() {
 
   /* Az időzítők ne éljék túl a lapot. */
   useEffect(() => orakStop, []);
+
+  /* ---- Felirat az ikon mellé ----
+
+     A rétegikonok mellé eddig a gyári buboréksúgó írta ki, mi micsoda.
+     Most a tálcával egy stílusban nő ki a rúdból, egyetlen ikonsornyi
+     magasan — a tálca szélességében, hogy a kettő egy rendszer legyen.
+
+     NATÍV ESEMÉNYFIGYELŐ, nem React: a rétegikonok portálon át kerülnek
+     a rúdba, és a React a buborékolást a saját fájára számolja — így a
+     rúdra tett React-figyelő meg sem kapná őket. A DOM-é igen. */
+  useEffect(() => {
+    const rud = rudDoboz.current;
+    const oszlop = oszlopDoboz.current;
+    if (!rud || !oszlop) return undefined;
+
+    const CIMKE_MS = 160;
+    const allj = () => { clearTimeout(cimkeOra.current); setCimke(null); };
+
+    const mutasd = (gomb) => {
+      const g = gomb.getBoundingClientRect();
+      const o = oszlop.getBoundingClientRect();
+      setCimke({
+        szoveg: gomb.dataset.cimke,
+        teto: Math.round(g.top - o.top),
+        magas: Math.round(g.height),
+      });
+    };
+
+    const ra = (e) => {
+      const gomb = e.target.closest?.('.reteg-gomb[data-cimke]');
+      clearTimeout(cimkeOra.current);
+      if (!gomb) { setCimke(null); return; }
+      /* Ujjal nincs ráhúzás, és a saját ujjad alá írt felirat úgyis
+         takarna. */
+      if (e.pointerType && e.pointerType !== 'mouse') return;
+      cimkeOra.current = setTimeout(() => mutasd(gomb), CIMKE_MS);
+    };
+
+    /* Billentyűzettel járva ne kelljen várni rá. */
+    const fokuszra = (e) => {
+      const gomb = e.target.closest?.('.reteg-gomb[data-cimke]');
+      clearTimeout(cimkeOra.current);
+      if (gomb) mutasd(gomb);
+      else setCimke(null);
+    };
+
+    rud.addEventListener('pointerover', ra);
+    rud.addEventListener('pointerleave', allj);
+    rud.addEventListener('focusin', fokuszra);
+    rud.addEventListener('focusout', allj);
+    rud.addEventListener('scroll', allj);
+    return () => {
+      clearTimeout(cimkeOra.current);
+      rud.removeEventListener('pointerover', ra);
+      rud.removeEventListener('pointerleave', allj);
+      rud.removeEventListener('focusin', fokuszra);
+      rud.removeEventListener('focusout', allj);
+      rud.removeEventListener('scroll', allj);
+    };
+  }, []);
 
   /* A fejléc hőmérséklete a túra helyét mutatja: az útvonal kezdőpontját,
      vagy amíg nincs útvonal, a térkép közepét. */
@@ -524,7 +589,7 @@ export default function TervezoPage() {
             onPointerEnter={oszlopraLep}
             onPointerLeave={oszloprolLe}
           >
-            <div className="eszkoz-rud">
+            <div className="eszkoz-rud" ref={rudDoboz}>
               <div id="terkep-eszkozok" />
 
               <div className="eszkozsor eszkozsor--lapok">
@@ -576,7 +641,7 @@ export default function TervezoPage() {
                 <button
                   className="reteg-gomb"
                   onClick={vissza}
-                  title={sz('tervezo.vissza')}
+                  data-cimke={sz('tervezo.vissza')}
                   aria-label={sz('tervezo.vissza')}
                 >
                   <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -587,6 +652,18 @@ export default function TervezoPage() {
               )}
               </div>
             </div>
+
+            {/* A felirat és a tálca ugyanazt a helyet foglalja — nyitott
+                tálca mellett nincs mit kiírni. */}
+            {cimke && !lap && (
+              <div
+                className="reteg-cimke"
+                style={{ '--cimke-teto': `${cimke.teto}px`, '--cimke-magas': `${cimke.magas}px` }}
+                aria-hidden="true"
+              >
+                <span>{cimke.szoveg}</span>
+              </div>
+            )}
 
             {lap && (
               <div

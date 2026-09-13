@@ -953,7 +953,10 @@ export default function Terkep({
           + (keres ? ' reteg-gomb--keres' : '') + (tobbVan ? ' reteg-gomb--tobb' : '')}
         style={{ '--tu-szin': gombSzin }}
         aria-pressed={be}
-        title={cimke}
+        /* `title` helyett `data-cimke`: a feliratot a tervező rajzolja ki a
+           rúd mellé, a tálcával egy stílusban (lásd `.reteg-cimke`). A
+           gyári buboréksúgó ott ülne rajta, ezért nincs. */
+        data-cimke={cimke}
         onClick={() => {
           const kovetkezo = !be;
           setRetegek((e) => ({ ...e, [id]: kovetkezo }));
@@ -1001,7 +1004,7 @@ export default function Terkep({
             <button
               className="reteg-gomb reteg-gomb--ujra"
               onClick={() => Object.entries(retegek).forEach(([id, be]) => be && retegetKer(id))}
-              title={sz('tervezo.ujraKeres')}
+              data-cimke={sz('tervezo.ujraKeres')}
               aria-label={sz('tervezo.ujraKeres')}
             >
               <svg viewBox="0 0 24 24" aria-hidden="true">
