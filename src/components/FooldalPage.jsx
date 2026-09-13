@@ -129,6 +129,9 @@ export default function FooldalPage() {
           {[1, 2, 3, 4].map((n) => (
             <article className="tud" key={n}>
               <h3 className="tud__cim">{sz(`fooldal.tud${n}Cim`)}</h3>
+              {/* A szöveg és az ikonok EGY rácssorban: így nem marad
+                  fenntartott üres sáv azon a három kártyán, ahol nincs ikon. */}
+              <div className="tud__test">
               <p className="tud__szoveg">{sz(`fooldal.tud${n}`)}</p>
               {n === 3 && (
                 <ul className="tud__retegek">
@@ -144,6 +147,7 @@ export default function FooldalPage() {
                   ))}
                 </ul>
               )}
+              </div>
             </article>
           ))}
         </div>
@@ -202,12 +206,17 @@ export default function FooldalPage() {
                   <a href={ut(`/utvonalak/${p.id}`)}>{p.nev}</a>
                 </h3>
                 <p className="kartya__hol">{p.hol}</p>
-                {ertekeles && (
-                  <p className="kartya__csillag">
-                    <Csillagok ertek={ertekeles.csillag} meret={15} />
-                    <span>{sz('fooldal.szerintunk')}</span>
-                  </p>
-                )}
+                {/* A csillagsor akkor is megjelenik, ha nincs értékelés —
+                    üresen. A rácssorok száma így állandó, és a kártyák
+                    egymáshoz igazodnak. */}
+                <p className="kartya__csillag">
+                  {ertekeles && (
+                    <>
+                      <Csillagok ertek={ertekeles.csillag} meret={15} />
+                      <span>{sz('fooldal.szerintunk')}</span>
+                    </>
+                  )}
+                </p>
                 <p className="kartya__jegyzet">{ertekeles?.verdikt ?? p.jegyzet}</p>
                 <ul className="cimkek">
                   <li>{kmSzoveg(km)}</li>
