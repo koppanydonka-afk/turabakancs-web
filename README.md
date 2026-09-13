@@ -101,23 +101,28 @@ külön döntés, nem programozási kérdés.
 
 A tervező kétoszlopos volt: térkép és mellette egy 380 képpontos oldalsáv.
 Aztán a tartalom egy része alulról felhúzható lapra került — de az a sáv
-mindig ott ült a térkép alján, és elrontotta az élményt. Most minden lebegő
-widget, két oszlopban.
+mindig ott ült a térkép alján. Most minden lebegő widget a térképen.
 
-**Bal oszlop** (a rétegrács alatt):
+**Felső sor:**
 
-| widget | megjegyzés |
-| --- | --- |
-| Honnan hova | összecsukható — 282 helyett 69 képpont |
-| Időjárás | **alapból betöltve**, nem gombnyomásra |
-| Mentés, kész útvonalak, GPX | összecsukva indul; benne a mentett tervek és a lábjegyzet is |
+```
+[ Honnan hova? + ]  [ 💧 ⛺ 🚏 🅿 👁 🍴 ]  [ 24° ]
+```
 
-**Jobb oszlop**: a válasz — táv, menetidő, emelkedő, nehézség, magassági
-szelvény, tanácsok. Ez **szándékosan nem csukható össze**: a menetidő és a
-nehézség az, amiért a tervező egyáltalán van.
+A honnan-hova szélessége fix (340 képpont) — erre épül a rétegrács és az
+időjárás helye. Az időjárás csukva csak a fokot mutatja; a leírás, az
+ötnapos előrejelzés és a figyelmeztetés kinyitva jön.
 
-Telefonon a két oszlop egymás alá kerül, és mindhárom bal oldali widget
-összecsukva indul — így a térkép szabad marad.
+**A felső sor alatt, balra**, lenyíló ablakokban:
+
+| widget | csukva | nyitva |
+| --- | --- | --- |
+| Útvonaladatok | `5,3 km · 1 ó 17 p` | táv, menetidő, emelkedő, nehézség, szelvény, tanácsok |
+| Mentés, kész útvonalak, GPX | egy sor | mentés, kész útvonalak, GPX, mentett tervek, lábjegyzet |
+
+Keskeny kijelzőn a rétegrács és az időjárás marad a felső sorban — azok
+kicsik —, a widgetoszlop pedig alájuk kezdődik. Az időjárás a nagyítógombok
+MELLÉ kerül, nem alájuk: egyszer már egymásra csúsztak.
 
 ### Az időjárás helye
 

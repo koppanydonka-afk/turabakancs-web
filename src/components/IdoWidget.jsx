@@ -69,9 +69,11 @@ export default function IdoWidget({ hely, helyNev }) {
         aria-expanded={nyitva}
         title={`${helyNev ?? 'A térkép közepén'} — ${kodSzerint(ma.kod).szo}`}
       >
+        {/* Csukva csak a fok látszik — a térképen minden képpont számít.
+            A leírás és a figyelmeztetés kinyitva jön. */}
         <strong>{ma.max}°</strong>
-        <span className="ido-widget__szo">{kodSzerint(ma.kod).szo}</span>
         {figy && <span className={`ido-widget__pont ido-widget__pont--${figy.szint}`} aria-hidden="true" />}
+        {nyitva && <span className="ido-widget__szo">{kodSzerint(ma.kod).szo}</span>}
       </button>
 
       {nyitva && (
