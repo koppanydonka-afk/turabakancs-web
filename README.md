@@ -25,9 +25,10 @@ npm run build    # dist/ mappába épít
 | `public/sw.js` | Offline működés — a service worker |
 | `src/data/naptar.js` | Napkelte/napnyugta — tiszta számítás, semmilyen szolgáltatás nélkül |
 | `src/data/turautak.js` | Jelzett turistautak az OpenStreetMapből (Overpass) |
+| `src/data/szolgaltatasok.js` | Víz, menedék és megálló az útvonal mentén (Overpass) |
 | `src/data/jelolesek.js` | A nyolc jelöléstípus: név, szín, rajz |
-| `src/data/peldak.js` | A hat példa útvonal |
-| `src/data/gpx.js` | GPX-fájl előállítása a böngészőben |
+| `src/data/peldak.js` | A 18 példa útvonal |
+| `src/data/gpx.js` | GPX mentése és betöltése — mindkettő a böngészőben |
 | `src/data/tarolo.js` | Mentés a localStorage-ba |
 | `src/components/Terkep.jsx` | A Leaflet-térkép (szerkesztéshez és nézegetéshez is) |
 | `src/components/Vedjegy.jsx` | A szóvédjegy: „Túraba[bakancs]ancs”, SVG-ből |
@@ -35,7 +36,6 @@ npm run build    # dist/ mappába épít
 | `src/components/FooldalPage.jsx` | A főoldal: mai adatok, jelzésrendszer, példák, vélemények |
 | `src/components/TervezoPage.jsx` | A tervező felület (`/tervezo`) |
 | `src/components/Velemenyek.jsx` | Név nélküli véleményfal |
-| `src/data/velemenyek.js` | **A vélemények tárolórétege — olvasd el a fájl tetejét** |
 | `src/data/erdekessegek.js` | A turistajelzés-rendszer, adatból ellenőrizve |
 | `src/data/ertekelesek.js` | **A „szerintünk” csillagok — ezek vázlatok, írd át** |
 | `src/data/szures.js` | Szűrés tájegység, hossz és nehézség szerint |
@@ -44,7 +44,7 @@ npm run build    # dist/ mappába épít
 | `src/components/Ertekeles.jsx` | Az értékelődoboz az útvonal oldalán |
 | `src/styles/tokens.css` | Az összes szín és méret; máshol ne legyen nyers érték |
 
-## A három fül
+## A tervező panelje
 
 - **Terv** — rajzolás, mentés, GPX, megosztás.
 - **Ajánló** — menetidő emelkedővel együtt (Naismith), nehézségi besorolás, magassági
@@ -71,7 +71,7 @@ forgalmi API-ért kulccsal és számlázási fiókkal. Egyik sem fér bele. Ráa
 | --- | --- |
 | `/` | Főoldal: mai napkelte/napnyugta, jelzésrendszer, három példa, véleményfal |
 | `/tervezo` | A tervező: beírás vagy rajzolás |
-| `/utvonalak` | A hat példa |
+| `/utvonalak` | A 18 példa |
 | `/utvonalak/:id` | Egy példa térképpel |
 | `/rolad` | Mit tudunk rólad (a lábjegyzetből érhető el, nem menüpont) |
 
@@ -96,6 +96,60 @@ véleményünk, nem mások értékeléseinek átlaga.”
 Volt egy név nélküli véleményfal is félkészen; kikerült. Nyilvános véleményfal
 tárhelyet, moderálást és tárhelyszolgáltatói kötelezettséget (Ekertv.) igényel — ez
 külön döntés, nem programozási kérdés.
+
+## Mi van az útvonalon? — víz, menedék, megálló
+
+A tanácsadó sokáig két dolgot kifogásolt, és mindkettőt a felhasználóra tolta:
+*„nincs vízvételi hely jelölve"* és *„nincs jelölve, hogyan jutsz a rajthoz"*.
+Közben az Overpass, amit a jelzett utakhoz amúgy is hívunk, tudja a választ.
+
+A tervező `Mi van az útvonalon?` fiókja megkérdezi — **csak nyitáskor, és csak
+egyszer**, mert az Overpass közös, ingyenes szolgáltatás.
+
+| amit keres | OSM-címke |
+| --- | --- |
+| ivóvíz | `amenity=drinking_water` |
+| forrás | `natural=spring` |
+| esőbeálló | `amenity=shelter` |
+| menedék-, turistaház | `tourism=wilderness_hut`, `tourism=alpine_hut` |
+| megálló, állomás | `highway=bus_stop`, `railway=station`, `railway=halt` |
+
+Minden találat megkapja, **hányadik kilométernél** éred el és **mennyire tér el**
+a vonaltól. Egy kattintással jelölésként bekerül a tervbe — onnantól a GPX-be és
+a megosztható linkbe is.
+
+### Amit itt nem szabad összemosni
+
+A `natural=spring` egy forrás a térképen. Attól még lehet **kiszáradva vagy
+szennyezett** — csak az `amenity=drinking_water` az, amit ivásra szántak. A modul
+ezért külön mezőben tartja (`ivasra: true | false | null`), és ez a mező nem is
+létezik esőbeállónál vagy megállónál, hogy a felület véletlenül se tehessen rá
+„iható" címkét.
+
+Ha az útvonalon csak forrás van és igazolt ivóvíz nincs, a fiók ezt külön
+kimondja. Egy nyári túrán ezen múlhat valami.
+
+### Sikertelen lekérés ≠ nincs találat
+
+Ha a megállók lekérdezése elhasal, a felület **nem** azt írja, hogy nincs megálló
+— azt írja, hogy nem tudja. A kettő összemosása korábban oda vezetett, hogy
+Budapest közepén azt állítottuk: „ide alighanem autóval érdemes jönni".
+
+## GPX betöltése
+
+Sokáig csak kifelé nyílt az ajtó: exportálni lehetett, betölteni nem. Aki kapott
+egy nyomvonalat egy ismerőstől vagy a régi GPS-éről, az nem tudta megnyitni,
+pedig minden más megvolt hozzá.
+
+A `gpxBeolvas` a `trkpt`-t részesíti előnyben a `rtept`-vel szemben (a bejárt nyom
+beszédesebb, mint a megtervezett), a `wpt`-kből jelölés lesz, a `sym` mezőből
+pedig típus — amit nem ismer fel, az „látnivaló", ami nem hazudik.
+
+**A betöltött nyomvonalat nem húzzuk ösvényre.** Ez a felhasználó saját adata;
+nem a mi dolgunk átrajzolni. Ezért kap üres horgonylistát.
+
+A több ezer pontos nyomvonalakat (másodpercenkénti GPS-rögzítés) 300 pontra
+ritkítjuk, különben szerkeszthetetlen lenne és a megosztható linkbe sem férne be.
 
 ## Ösvényre húzás
 
@@ -325,7 +379,7 @@ listát is bővítsd.**
 
 ## Példa útvonalak
 
-A hat példa koordinátái nem tippek: minden töréspont az OpenStreetMap névkeresőjéből
+A példák koordinátái nem tippek: minden töréspont az OpenStreetMap névkeresőjéből
 lekérdezett valódi hely, vagy két ilyen közti felezőpont. A Belső-tó köre magának a
 tónak a partvonala, 45 méterrel kifelé tolva. **Új példa felvételekor ugyanígy járj
 el** — ne írj be koordinátát ellenőrzés nélkül.

@@ -5,6 +5,7 @@ import KozeliTurak from './KozeliTurak.jsx';
 import TuraLista from './TuraLista.jsx';
 import JelolesLista from './JelolesLista.jsx';
 import Tanacsok from './Tanacsok.jsx';
+import Ellatas from './Ellatas.jsx';
 import Labjegyzet from './Labjegyzet.jsx';
 import { JELOLES_TIPUSOK, tipusSzerint } from '../data/jelolesek.js';
 import {
@@ -18,7 +19,7 @@ import {
 } from '../data/utvonalak.js';
 import { menetido, nehezseg } from '../data/ajanlo.js';
 import { magassagot } from '../data/magassag.js';
-import { gpxLetoltes } from '../data/gpx.js';
+import { GpxHiba, gpxBeolvas, gpxLetoltes } from '../data/gpx.js';
 import { UtvonalHiba, osvenyreHuz, ritkit as utatRitkit } from '../data/utvonalkereso.js';
 import { kozeliTurak } from '../data/kozeli.js';
 import { peldaUtvonalak } from '../data/peldak.js';
@@ -239,6 +240,37 @@ export default function TervezoPage() {
     );
   };
 
+  /* GPX betöltése. A fájl nem megy sehova: a böngésző olvassa be.
+
+     A betöltött nyomvonalat szándékosan NEM húzzuk ösvényre — ez a
+     felhasználó saját adata, egy rögzített nyom vagy egy máshonnan kapott
+     terv. Nem a mi dolgunk átrajzolni. Ezért kap üres horgonylistát. */
+  const gpxBetolt = async (fajl) => {
+    if (!fajl) return;
+    if (fajl.size > 5 * 1024 * 1024) {
+      setUzenet('Ez a fájl 5 MB-nál nagyobb. Ekkora nyomvonalat nem tudok értelmesen megnyitni.');
+      return;
+    }
+    try {
+      const t = gpxBeolvas(await fajl.text());
+      betolt({
+        nev: t.nev || fajl.name.replace(/\.gpx$/i, ''),
+        pontok: t.pontok,
+        jelolesek: t.jelolesek,
+        horgonyok: [],
+      });
+      const reszek = [];
+      if (t.pontok.length >= 2) reszek.push(`${t.pontok.length} pont`);
+      if (t.jelolesek.length > 0) reszek.push(`${t.jelolesek.length} jelölés`);
+      setUzenet(
+        `Betöltve: ${reszek.join(', ')}.` +
+          (t.ritkitva ? ` A ${t.eredetiPontok} pontos nyomvonalat ritkítottam, hogy szerkeszthető maradjon.` : ''),
+      );
+    } catch (e) {
+      setUzenet(e instanceof GpxHiba ? e.message : 'Ezt a fájlt nem sikerült beolvasni.');
+    }
+  };
+
   const linkMasol = async () => {
     const cim = tervLinkje(`${window.location.origin}/tervezo`, { pontok, jelolesek });
     try {
@@ -424,6 +456,13 @@ export default function TervezoPage() {
 
                 <Tanacsok pontok={pontok} jelolesek={jelolesek} tempo={tempo} magassag={magassag} />
 
+                <Ellatas
+                  key={vonalKulcs}
+                  pontok={pontok}
+                  onJelolesHozzaad={(j) => setJelolesek((e) => [...e, j])}
+                  onOdaugrik={(hely) => terkep.current?.setView(hely, 16)}
+                />
+
                 <div className="gombsor">
                   <button className="gomb gomb--fo" onClick={linkMasol}>Megosztható link</button>
                   <button
@@ -484,6 +523,22 @@ export default function TervezoPage() {
                 <a className="gomb gomb--halk gomb--szeles" href="/utvonalak">
                   Mind a {peldaUtvonalak.length} példa
                 </a>
+
+                <label className="gomb gomb--halk gomb--szeles gomb--fajl">
+                  GPX betöltése
+                  <input
+                    type="file"
+                    accept=".gpx,application/gpx+xml,application/xml,text/xml"
+                    onChange={(e) => {
+                      gpxBetolt(e.target.files?.[0]);
+                      e.target.value = '';
+                    }}
+                  />
+                </label>
+                <p className="apro">
+                  Saját nyomvonal a telefonodról vagy egy ismerőstől. A fájl a böngésződben
+                  marad, nem töltődik fel sehova.
+                </p>
               </div>
             </details>
 

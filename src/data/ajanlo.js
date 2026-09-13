@@ -91,7 +91,7 @@ export function ajanlasok({ pontok, jelolesek, tempo = 'gyalog', magassag = null
       id: 'viz',
       szint: 'figyelem',
       cimke: 'Nincs vízvételi hely jelölve',
-      szoveg: `${km.toFixed(1)} km-hez ez kevés. Vagy vigyél eleget indulásnál, vagy jelöld be, hol tudsz tölteni.`,
+      szoveg: `${km.toFixed(1)} km-hez ez kevés. Nyisd meg a „Mi van az útvonalon?” fiókot — megkeresem a forrásokat és az ivóvizet a vonalad mentén.`,
     });
   }
 
@@ -101,7 +101,7 @@ export function ajanlasok({ pontok, jelolesek, tempo = 'gyalog', magassag = null
       id: 'megkozelites',
       szint: 'figyelem',
       cimke: 'Nincs jelölve, hogyan jutsz a rajthoz',
-      szoveg: 'Tegyél ki egy parkoló vagy megálló jelölést — indulás előtt ez lesz az első kérdés.',
+      szoveg: 'Indulás előtt ez lesz az első kérdés. A „Mi van az útvonalon?” fiók megmutatja a rajthoz legközelebbi vasút- és buszmegállókat.',
     });
   }
 
