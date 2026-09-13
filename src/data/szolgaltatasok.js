@@ -17,23 +17,6 @@ import { overpass } from './overpass.js';
 
 export class SzolgaltatasHiba extends Error {}
 
-/* Overpass-címke → a saját jelöléstípusaink. Így a találatok ugyanazzal az
-   ikonnal jelennek meg, amit a felhasználó kézzel is kirakhat, és egy
-   kattintással beemelhetők a tervbe. */
-const KERESETT = [
-  { szuro: '["amenity"="drinking_water"]', tipus: 'forras', nev: 'Ivóvíz', ivasra: true },
-  { szuro: '["natural"="spring"]', tipus: 'forras', nev: 'Forrás', ivasra: null },
-  { szuro: '["amenity"="shelter"]', tipus: 'pihen', nev: 'Esőbeálló' },
-  { szuro: '["tourism"="wilderness_hut"]', tipus: 'pihen', nev: 'Menedékház' },
-  { szuro: '["tourism"="alpine_hut"]', tipus: 'pihen', nev: 'Turistaház' },
-];
-
-const MEGALLOK = [
-  { szuro: '["railway"="station"]', tipus: 'kozlekedes', nev: 'Vasútállomás' },
-  { szuro: '["railway"="halt"]', tipus: 'kozlekedes', nev: 'Megállóhely' },
-  { szuro: '["highway"="bus_stop"]', tipus: 'kozlekedes', nev: 'Buszmegálló' },
-];
-
 const kerdez = (lekerdezes) => overpass(lekerdezes, { cimke: 'szolgaltatasok' });
 
 /* ---- Geometria ---- */
@@ -50,47 +33,58 @@ function tavolsag(a, b) {
   return 2 * FOLD_SUGAR_KM * Math.asin(Math.sqrt(h));
 }
 
-function feldolgoz(adat, keresett) {
-  const szotar = new Map(keresett.map((k) => [k.szuro, k]));
+/* Egy réteg találatainak feldolgozása.
+
+   Rétegenként kérdezünk, tehát nem kell a címkékből kitalálni, melyik ágról
+   jött a találat — a hívó tudja. A címkék csak az ALFAJTÁT és a víznél az
+   ivhatóságot mondják meg. */
+
+const ALFAJTA = [
+  [(t) => t.amenity === 'drinking_water', 'Ivóvíz'],
+  [(t) => t.natural === 'spring', 'Forrás'],
+  [(t) => t.amenity === 'shelter', 'Esőbeálló'],
+  [(t) => t.tourism === 'wilderness_hut', 'Menedékház'],
+  [(t) => t.tourism === 'alpine_hut', 'Turistaház'],
+  [(t) => t.railway === 'station', 'Vasútállomás'],
+  [(t) => t.railway === 'halt', 'Megállóhely'],
+  [(t) => t.highway === 'bus_stop', 'Buszmegálló'],
+  [(t) => t.amenity === 'parking', 'Parkoló'],
+  [(t) => t.tourism === 'viewpoint', 'Kilátópont'],
+  [(t) => t.man_made === 'tower', 'Kilátótorony'],
+  [(t) => t.amenity === 'restaurant', 'Étterem'],
+  [(t) => t.amenity === 'cafe', 'Kávézó'],
+  [(t) => t.amenity === 'pub' || t.amenity === 'bar', 'Kocsma'],
+  [(t) => t.amenity === 'fast_food', 'Büfé'],
+];
+
+function feldolgoz(adat, reteg) {
   return (adat.elements ?? [])
     .map((e) => {
       const hely = [e.lat ?? e.center?.lat, e.lon ?? e.center?.lon];
       if (!Number.isFinite(hely[0]) || !Number.isFinite(hely[1])) return null;
-
-      /* Melyik szűrőre illik: a címkéiből döntjük el, mert az Overpass nem
-         mondja meg, a unió melyik ága találta. */
       const t = e.tags ?? {};
-      let fajta = null;
-      if (t.amenity === 'drinking_water') fajta = szotar.get('["amenity"="drinking_water"]');
-      else if (t.natural === 'spring') fajta = szotar.get('["natural"="spring"]');
-      else if (t.amenity === 'shelter') fajta = szotar.get('["amenity"="shelter"]');
-      else if (t.tourism === 'wilderness_hut') fajta = szotar.get('["tourism"="wilderness_hut"]');
-      else if (t.tourism === 'alpine_hut') fajta = szotar.get('["tourism"="alpine_hut"]');
-      else if (t.railway === 'station') fajta = szotar.get('["railway"="station"]');
-      else if (t.railway === 'halt') fajta = szotar.get('["railway"="halt"]');
-      else if (t.highway === 'bus_stop') fajta = szotar.get('["highway"="bus_stop"]');
-      if (!fajta) return null;
+      const fajta = ALFAJTA.find(([ill]) => ill(t))?.[1] ?? reteg.nev;
 
-      /* Ivhatóság CSAK víznél értelmes, és ott is óvatosan:
+      /* Ivhatóság CSAK a víznél értelmes, és ott is óvatosan:
            igen  – ivásra szánták, vagy az OSM külön kimondja
            nem   – az OSM kimondja, hogy nem iható
            null  – forrás, amiről nincs adat: lehet jó, lehet kiszáradt
-         Esőbeállónál, megállónál ez a mező nem létezik, hogy a felület
-         véletlenül se tehessen rá „iható” címkét. */
+         Más rétegnél a mező nem is létezik, hogy a felület véletlenül se
+         tehessen rá „iható” címkét. */
       const ivasra =
-        fajta.tipus !== 'forras'
+        reteg.tipus !== 'forras'
           ? undefined
           : t.drinking_water === 'no'
             ? false
-            : t.drinking_water === 'yes'
+            : t.drinking_water === 'yes' || t.amenity === 'drinking_water'
               ? true
-              : (fajta.ivasra ?? null);
+              : null;
 
       return {
         id: `${e.type}/${e.id}`,
-        tipus: fajta.tipus,
-        fajta: fajta.nev,
-        nev: t.name || fajta.nev,
+        tipus: reteg.tipus,
+        fajta,
+        nev: t.name || fajta,
         ivasra,
         szezonos: t.seasonal === 'yes',
         lat: hely[0],
@@ -99,12 +93,9 @@ function feldolgoz(adat, keresett) {
     })
     .filter(Boolean)
     /* Ugyanannak a dolognak néha két bejegyzése van az OSM-ben (külön csap
-       és külön kút ugyanarra a kútra). Ami azonos fajta és ötven méteren
-       belül van, azt egynek vesszük. */
+       és külön kút ugyanarra a kútra). Ami ötven méteren belül van, egy. */
     .filter((x, i, lista) =>
-      !lista.some(
-        (y, j) => j < i && y.tipus === x.tipus && tavolsag([y.lat, y.lng], [x.lat, x.lng]) < 0.05,
-      ),
+      !lista.some((y, j) => j < i && tavolsag([y.lat, y.lng], [x.lat, x.lng]) < 0.05),
     );
 }
 
@@ -127,33 +118,87 @@ function feldolgoz(adat, keresett) {
    Nagyítási alsó határ is van: fél országnyi területre nincs értelme
    lekérdezni, se a felhasználónak, se az Overpassnak. */
 
-/* A rétegek SAJÁT színt kapnak, nem a jelöléstípusokét.
+/* ---- A hat réteg ----
 
-   A jelölőknél a forrás #0E7490, a megálló #0F766E — ezek fehér tűben, egymás
-   mellett jól elválnak, de hatpixeles pöttyként a térképen nem: a két szín
-   világosságkontrasztja egymáshoz képest 1,02:1, gyakorlatilag ugyanaz.
+   A rétegek SAJÁT színt kapnak, nem a jelöléstípusokét: a jelölők fehér
+   tűben, egymás mellett jól elválnak, hatpixeles pöttyként a térképen nem.
 
-   Helyette kék–borostyán pár, mérve:
-     víz     #075985  fehér kerethez 7,56:1
-     megálló #D97706  fehér kerethez 3,19:1
-     egymáshoz világosságban 2,37:1
-   A kék–sárga tengely a vörös-zöld színtévesztésnek is a legbiztosabb párja;
-   szimulálva 201 egységre esnek egymástól. A méret is eltér (6 és 5 képpont),
-   hogy ne csak a szín különböztesse meg őket. */
+   Hat szín nem elég. Megmérve: a legjobb hatos színkombináció is csak 59
+   egységnyi elválást ad vörös-zöld színtévesztéssel szimulálva (a
+   biztonságos küszöb 90 fölött van). Ezért nem hat színt használunk, hanem
+   HÁRMAT, mindegyiket két változatban — tömör és üreges körrel. A tömör és
+   az üreges nem szín, hanem forma: az mindenkinek elválik.
+
+   A három szín kereséssel állt elő, három feltétel mellett:
+     - legalább 3:1 a fehér kerethez (hogy a pötty elváljon a térképtől),
+     - legalább 2,2:1 a térkép jellemző hátteréhez (erdő, mező, út, víz),
+     - a zöld árnyalatok kizárva, mert a térkép háttere maga is zöld.
+
+   Az eredmény 133 egységnyi minimális elválás. Összehasonlításul: a szokásos
+   Tailwind-paletták ugyanerre 45 és 62 egységet adtak, a korábbi kék-borostyán
+   páros lilával kiegészítve 90-et — de az a térképháttérhez csak 1,88:1-et.
+
+   A csoportosítás szándékos: egy szín egy kérdésre válaszol.
+     sötétkék  – mi van innivaló és menedék dolgában
+     rozsda    – hogyan jutok oda
+     bíbor     – miért érdemes odamenni */
+
+const SZINEK = {
+  ellatas: '#000066',
+  megkozelites: '#8C2E0E',
+  celpont: '#991F99',
+};
+
 export const RETEGEK = {
   viz: {
     nev: 'Ivóvíz, forrás',
     tipus: 'forras',
-    szin: '#075985',
+    szin: SZINEK.ellatas,
+    tomor: true,
     sugar: 6,
     szurok: ['["amenity"="drinking_water"]', '["natural"="spring"]'],
+  },
+  menedek: {
+    nev: 'Menedék, esőbeálló',
+    tipus: 'pihen',
+    szin: SZINEK.ellatas,
+    tomor: false,
+    sugar: 7,
+    szurok: ['["amenity"="shelter"]', '["tourism"="wilderness_hut"]', '["tourism"="alpine_hut"]'],
   },
   kozlekedes: {
     nev: 'Megálló, állomás',
     tipus: 'kozlekedes',
-    szin: '#D97706',
+    szin: SZINEK.megkozelites,
+    tomor: true,
     sugar: 5,
     szurok: ['["highway"="bus_stop"]', '["railway"="station"]', '["railway"="halt"]'],
+  },
+  parkolo: {
+    nev: 'Parkoló',
+    tipus: 'parkolo',
+    szin: SZINEK.megkozelites,
+    tomor: false,
+    sugar: 7,
+    szurok: ['["amenity"="parking"]'],
+    /* A parkolók többsége felület, nem pont — azoknak a középpontja kell. */
+    utakIs: true,
+  },
+  kilato: {
+    nev: 'Kilátó',
+    tipus: 'kilato',
+    szin: SZINEK.celpont,
+    tomor: true,
+    sugar: 6,
+    szurok: ['["tourism"="viewpoint"]', '["man_made"="tower"]["tower:type"="observation"]'],
+  },
+  vendeglatas: {
+    nev: 'Büfé, kocsma',
+    tipus: 'vendeglatas',
+    szin: SZINEK.celpont,
+    tomor: false,
+    sugar: 7,
+    szurok: ['["amenity"~"^(restaurant|cafe|pub|fast_food|bar)$"]'],
   },
 };
 
@@ -165,10 +210,12 @@ export async function teruleten({ del, nyugat, eszak, kelet }, retegId) {
   if (!reteg) throw new SzolgaltatasHiba('Ismeretlen réteg.');
 
   const doboz = `${del.toFixed(5)},${nyugat.toFixed(5)},${eszak.toFixed(5)},${kelet.toFixed(5)}`;
-  const agak = reteg.szurok.map((sz) => `node(${doboz})${sz};`).join('');
+  const agak = reteg.szurok
+    .map((sz) => `node(${doboz})${sz};` + (reteg.utakIs ? `way(${doboz})${sz};` : ''))
+    .join('');
   const adat = await kerdez(`[out:json][timeout:40];(${agak});out tags center;`);
 
-  const osszes = feldolgoz(adat, KERESETT.concat(MEGALLOK));
+  const osszes = feldolgoz(adat, reteg);
   return {
     lista: osszes.slice(0, TERULET_MAX),
     osszesen: osszes.length,

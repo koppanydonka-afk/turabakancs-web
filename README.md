@@ -97,115 +97,81 @@ Volt egy név nélküli véleményfal is félkészen; kikerült. Nyilvános vél
 tárhelyet, moderálást és tárhelyszolgáltatói kötelezettséget (Ekertv.) igényel — ez
 külön döntés, nem programozási kérdés.
 
-## Ivóvíz és megállók a térképen
+## Hat réteg a térkép bal felső sarkában
 
-A térkép jobb alsó sarkában két kapcsoló: **ivóvíz/forrás** és **megálló/állomás**.
-Bekapcsolva kirajzolja, ami a látható területen van.
+A jelöléstípusokból rétegek lettek: amit eddig kézzel kellett a térképre
+rakni, azt most megkeressük.
 
-Volt ebből egy korábbi változat az oldalsávban, fiókként, az útvonal menti
-találatokkal és „hányadik kilométernél éred el" adattal. A felhasználó
-elvetette — a térkép a jó helye ennek, nem egy lista. A régi kód a
-git-előzményben megvan (`Ellatas.jsx`, `utMentiek`, `megallok`).
+| réteg | OSM-címkék | Pilis | Budapest |
+| --- | --- | --- | --- |
+| Ivóvíz, forrás | `amenity=drinking_water`, `natural=spring` | 112 | 393 |
+| Menedék, esőbeálló | `amenity=shelter`, `tourism=wilderness_hut\|alpine_hut` | 30 | 126 |
+| Megálló, állomás | `highway=bus_stop`, `railway=station\|halt` | 63 | 863 |
+| Parkoló | `amenity=parking` (pont és felület) | 86 | 701 |
+| Kilátó | `tourism=viewpoint`, `man_made=tower`+`tower:type=observation` | 83 | 68 |
+| Büfé, kocsma | `amenity=restaurant\|cafe\|pub\|fast_food\|bar` | 20 | 3099 |
 
-### Miért vászon, és nem jelölő
+A **pihenő/pad** kimaradt: `amenity=bench` a belvárosban 4525 találat, és egy
+pad nem döntési adat.
 
-Mért adat (Overpass, 2026 szeptember):
+### Hat szín nem működik — ezért három szín, két alakban
 
-| terület | ivóvíz | megálló |
-| --- | --- | --- |
-| Budapest belváros | 393 | 863 |
-| Budai-hegység | 143 | 485 |
-| Pilis | 115 | 82 |
+Megmérve: a legjobb hatos színkombináció is csak **59 egységnyi** elválást ad
+vörös-zöld színtévesztéssel szimulálva (a biztonságos küszöb 90 fölött van).
+Hat réteget színnel megkülönböztetni nem lehet.
+
+Ezért három szín van, mindegyik **tömör és üreges** körrel. A tömör/üreges nem
+szín, hanem forma — az mindenkinek elválik.
+
+A három szín kereséssel állt elő, három feltétel mellett: legalább 3:1 a fehér
+kerethez, legalább 2,2:1 a térkép jellemző hátteréhez (erdő, mező, út, víz), és
+a zöld árnyalatok kizárva, mert a térkép háttere maga is zöld.
+
+| szín | mire válaszol | fehérhez | térképhez |
+| --- | --- | --- | --- |
+| `#000066` | mi van innivaló és menedék dolgában | 17,6:1 | 10,4:1 |
+| `#8C2E0E` | hogyan jutok oda | 8,4:1 | 4,9:1 |
+| `#991F99` | miért érdemes odamenni | 7,0:1 | 4,1:1 |
+
+Minimális elválás színtévesztéssel: **133 egység**. Összehasonlításul a szokásos
+Tailwind-paletták ugyanerre 45 és 62 egységet adtak; az első nekifutásom
+(kék-borostyán lilával) 90-et, de a térképháttérhez csak 1,88:1-et.
+
+A bekapcsolt gomb ugyanúgy néz ki, ahogy a pöttyei a térképen — a rács így
+egyben jelmagyarázat.
+
+### Teljesítmény
 
 A projekt korábbi mérése szerint **266 hagyományos Leaflet-jelölő már érezhetően
 akasztja a pásztázást telefonon**. Ezért ezek `circleMarker`-ek `L.canvas`
-felületen: nyolcszáz kör is egyetlen vászonelem, a DOM-jelölők száma változatlan
-marad. Élesben mérve: 1039 víz + 2339 megálló találat mellett a DOM 15 jelölőnél
-maradt.
-
-Korlátok: rétegenként 400 kirajzolt pont, és 12-es nagyítás alatt nem kérdezünk.
+felületen. Élesben mérve: 1039 víz + 2339 megálló találat mellett a DOM 15
+jelölőnél maradt, egyetlen vászonelemmel. Rétegenként 400 pont a korlát, 12-es
+nagyítás alatt nem kérdezünk.
 
 ### Két szabály, amit a felület betart
 
 **Elavult adat nem látszhat frissnek.** Ha a nagyítás a küszöb alá megy, a
-korábbi találatokat töröljük, és a gomb kiírja, hogy nagyítani kell. Ha
-elpásztáznak a lekérdezett területről, megjelenik a „Keresés ezen a területen"
-gomb — magától nem kérdez újra, mert az Overpass közös erőforrás.
+korábbi találatokat töröljük, és a gomb kiírja, hogy nagyítani kell.
+Elpásztázásnál „Keresés ezen a területen" gomb jelenik meg — magától nem
+kérdez újra, mert az Overpass közös erőforrás.
 
 **A forrás nem ivóvíz.** A `natural=spring` lehet kiszáradva vagy szennyezett;
 csak az `amenity=drinking_water` az, amit ivásra szántak. A buborék ezt
 kimondja: „iható", „NEM iható" vagy „nincs adat róla, hogy iható-e".
 
-### A rétegek színe
+## A jelölőpaletta megszűnt
 
-A jelöléstípusok színei (forrás `#0E7490`, megálló `#0F766E`) fehér tűben jól
-elválnak, hatpixeles pöttyként viszont nem: egymáshoz mért világosságkontrasztjuk
-**1,02:1**. A rétegek ezért saját, mért színt kapnak:
+A kézi jelölés-kirakás kikerült a felületről. Ami **megmaradt**:
 
-| réteg | szín | fehér kerethez | megjegyzés |
-| --- | --- | --- | --- |
-| ivóvíz | `#075985` | 7,56:1 | |
-| megálló | `#D97706` | 3,19:1 | |
+- a GPX-ből betöltött jelölések megjelennek a térképen (ellenőrizve: a `sym`
+  mezőből típus lesz, a parkoló és a veszély pont betöltődik);
+- a megosztható link `j=` része továbbra is működik;
+- a mentett tervek jelölései megjelennek;
+- a „Szerkesztés és mentés" fiókban átnevezhetők és törölhetők.
 
-Egymáshoz világosságban 2,37:1. A kék–sárga tengely a vörös-zöld színtévesztésnek
-is a legbiztosabb párja. A méret is eltér (6 és 5 képpont), hogy ne csak a szín
-különböztesse meg őket.
-
-### Mobilon
-
-A rétegek nevét elhagyjuk (az ikon és a szín elmondja), de az **állapotot soha**:
-a „keresem…" és a „nagyíts rá" utasítás, nem díszítés. Ezért van külön span a
-névnek és az állapotnak.
-
-A gombsor a felhúzható lap fölé kerül, ugyanarra a magasságra, mint a visszalépő
-nyíl. Vízszintesen nem ütközik a súgósávval: az középen ül, ezek a jobb szélen.
-
-## A térképre írt súgó
-
-Felugrik, öt másodperc után elhalványul. Állandóan kint hagyva eltakarja a
-térképet, és aki már tudja, mit kell csinálni, annak fölösleges.
-
-Nem vész el: valahányszor **más mondanivalója** lesz — módváltáskor, az első
-pont után, ösvényre húzás közben —, újra megjelenik. Az effektus a szövegre
-figyel, nem időzítőre.
-
-Csak az átlátszóság animálódik. A `transform` itt a középre igazítást végzi
-(`translateX(-50%)`), azt animálva elcsúszna a sáv.
-
-## A forrásmegjelölés mérete
-
-Kisebb lett, mert zavaró volt telefonon és gépen is. Három lépésben:
-
-- a **„Leaflet" előtag** elhagyva (`setPrefix(false)`) — az a könyvtár
-  udvariassági megjelölése, nem licencfeltétel;
-- a **„Térkép:" előtag** elhagyva — az a mi kiegészítésünk volt;
-- a betűméret **10 képpontra** csökkentve.
-
-Ami **marad, és nem is rövidíthető**: `© OpenStreetMap közreműködői`. Ez az
-OpenStreetMap licencének feltétele, nem díszítés. A „közreműködői" szó is
-része — a puszta „© OpenStreetMap" hiányos megjelölés lenne.
-
-Tíz képpont alá ezért nem megyünk: egy olvashatatlanná zsugorított
-forrásmegjelölés ugyanaz, mintha nem lenne ott.
-
-## A halk gomb kerete
-
-A `.gomb--halk` háttere ugyanaz a `--surface-2`, mint a `.fiok`-é. Fiókon belül
-ezért **teljesen eltűnt**: a kettő kontrasztja pontosan **1,00:1** volt, a „Mind a
-18 példa" és a „GPX betöltése" sima szövegnek látszott sötét módban.
-
-A megoldás keret, nem háttérszín: így a gomb bármilyen felületen gombnak látszik.
-A `--gomb-keret` külön token a `--line`-tól, mert annak halk elválasztóként
-kevesebb is elég, egy gomb határa viszont a WCAG 1.4.11 szerint **3:1**-et kíván
-a saját hátteréhez képest:
-
-| mód | keret | kontraszt a gomb hátteréhez |
-| --- | --- | --- |
-| világos | `#888276` | 3,04:1 |
-| sötét | `#6F746B` | 3,01:1 |
-
-Az első nekifutás `--line`-t használt: az 1,29:1-et adott. Képernyőképen jónak
-látszott, mérve nem volt elég.
+Ami **elveszett**: új jelölést kézzel már nem lehet kirakni. A „Veszély, nehéz
+szakasz" típusnak nincs OSM-megfelelője — azt, hogy hol volt csúszós vagy hol
+fordultál vissza, senki nem térképezi. Ez tudatos döntés volt, nem mulasztás.
 
 ## Overpass: tartaléktükör
 

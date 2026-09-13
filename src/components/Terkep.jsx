@@ -353,15 +353,18 @@ export default function Terkep({
       if (!be) return;
       const allapot = retegAllapot[id];
       if (allapot?.allapot !== 'kesz') return;
-      const { szin, sugar } = RETEGEK[id];
+      const { szin, sugar, tomor } = RETEGEK[id];
 
       allapot.lista.forEach((x) => {
+        /* Három szín, két változat. A tömör és az üreges kör nem szín,
+           hanem forma — színtévesztéssel is elválik, márpedig hat színt
+           megkülönböztethetően nem lehetett kiosztani. */
         const kor = L.circleMarker([x.lat, x.lng], {
           renderer: vaszon.current,
           radius: sugar,
-          weight: 2,
-          color: '#fff',
-          fillColor: szin,
+          weight: tomor ? 2 : 3,
+          color: tomor ? '#fff' : szin,
+          fillColor: tomor ? szin : '#fff',
           fillOpacity: 1,
         });
         /* Az ivhatóságot itt is ki kell mondani: a forrás lehet kiszáradva
@@ -394,33 +397,40 @@ export default function Terkep({
 
   if (!retegGombok) return <div className="terkep" ref={doboz} />;
 
+  /* A rács ikonjai mellé nem fér felirat, ezért a nevet a `title` és egy
+     képernyőolvasónak szánt szöveg hordozza, az állapotot pedig a rács alatti
+     sor — ott van hely arra, hogy „keresem…” vagy „nagyíts rá” kiférjen. */
+  const allapotSzava = (id) => {
+    const a = retegAllapot[id]?.allapot;
+    return a === 'keres' ? 'keresem…'
+      : a === 'kesz' ? String(retegAllapot[id].db)
+        : a === 'tavol' ? 'nagyíts rá'
+          : a === 'hiba' ? 'nem sikerült'
+            : null;
+  };
+
   const gomb = (id) => {
-    const a = retegAllapot[id] ?? {};
     const be = retegek[id];
+    const { nev, szin, tomor } = RETEGEK[id];
+    const szo = be ? allapotSzava(id) : null;
     return (
       <button
         key={id}
-        className={`reteg-gomb${be ? ' reteg-gomb--aktiv' : ''}`}
-        style={{ '--tu-szin': RETEGEK[id].szin }}
+        className={`reteg-gomb${be ? ' reteg-gomb--aktiv' : ''}${tomor ? '' : ' reteg-gomb--ureges'}`}
+        style={{ '--tu-szin': szin }}
         aria-pressed={be}
-        title={RETEGEK[id].nev}
+        title={szo ? `${nev} — ${szo}` : nev}
         onClick={() => {
-          const uj = !be;
-          setRetegek((e) => ({ ...e, [id]: uj }));
-          if (uj && (retegAllapot[id]?.allapot ?? null) === null) retegetKer(id);
-          if (uj && retegAllapot[id]?.allapot === 'tavol') retegetKer(id);
+          const kovetkezo = !be;
+          setRetegek((e) => ({ ...e, [id]: kovetkezo }));
+          const allapot = retegAllapot[id]?.allapot ?? null;
+          if (kovetkezo && (allapot === null || allapot === 'tavol' || allapot === 'hiba')) {
+            retegetKer(id);
+          }
         }}
       >
-        <span className="reteg-gomb__jel" aria-hidden="true">
-          <svg viewBox="0 0 24 24" dangerouslySetInnerHTML={{ __html: tipusSzerint(RETEGEK[id].tipus).rajz }} />
-        </span>
-{/* A nevet telefonon elrejtjük — az ikon elmondja —, de az állapotot
-            soha: a „keresem…” és a „nagyíts rá” utasítás, nem díszítés. */}
-        <span className="reteg-gomb__nev">{RETEGEK[id].nev}</span>
-        {be && a.allapot === 'keres' && <span className="reteg-gomb__allapot">keresem…</span>}
-        {be && a.allapot === 'kesz' && <span className="reteg-gomb__allapot">{a.db}</span>}
-        {be && a.allapot === 'tavol' && <span className="reteg-gomb__allapot">nagyíts rá</span>}
-        {be && a.allapot === 'hiba' && <span className="reteg-gomb__allapot">nem sikerült</span>}
+        <svg viewBox="0 0 24 24" aria-hidden="true" dangerouslySetInnerHTML={{ __html: tipusSzerint(RETEGEK[id].tipus).rajz }} />
+        <span className="csak-olvasonak">{nev}</span>
       </button>
     );
   };
@@ -445,7 +455,21 @@ export default function Terkep({
   return (
     <>
       <div className="terkep" ref={doboz} />
-      <div className="reteg-sor" role="group" aria-label="Mit mutasson a térkép">
+      <div className="reteg-sor">
+        <div className="reteg-racs" role="group" aria-label="Mit mutasson a térkép">
+          {Object.keys(RETEGEK).map(gomb)}
+        </div>
+
+        {/* Az állapotok egy sorban, a rács alatt: csak a bekapcsolt rétegek. */}
+        {vanBekapcsolt && (
+          <p className="reteg-allapot">
+            {Object.keys(RETEGEK)
+              .filter((id) => retegek[id])
+              .map((id) => `${RETEGEK[id].nev}: ${allapotSzava(id) ?? '…'}`)
+              .join(' · ')}
+          </p>
+        )}
+
         {keresesKell && (
           <button
             className="reteg-gomb reteg-gomb--ujra"
@@ -459,7 +483,6 @@ export default function Terkep({
             Ennél több van a területen — nagyíts rá, hogy mind látszódjon.
           </p>
         )}
-        {Object.keys(RETEGEK).map(gomb)}
       </div>
     </>
   );

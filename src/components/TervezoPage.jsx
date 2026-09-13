@@ -6,7 +6,7 @@ import TuraLista from './TuraLista.jsx';
 import JelolesLista from './JelolesLista.jsx';
 import Tanacsok from './Tanacsok.jsx';
 import Labjegyzet from './Labjegyzet.jsx';
-import { JELOLES_TIPUSOK, tipusSzerint } from '../data/jelolesek.js';
+
 import {
   TEMPOK,
   dekodol,
@@ -59,8 +59,6 @@ export default function TervezoPage() {
   const [horgonyok, setHorgonyok] = useState(() => horgonynak(dekodol(params.get('ut'))));
   const [jelolesek, setJelolesek] = useState(() => jeloleseketDekodol(params.get('j')));
   const [nev, setNev] = useState('');
-  const [mod, setMod] = useState('ut');
-  const [ujTipus, setUjTipus] = useState('kilato');
   const [tempo, setTempo] = useState('gyalog');
   const [uzenet, setUzenet] = useState(null);
   const [illeszt, setIlleszt] = useState(0);
@@ -298,13 +296,11 @@ export default function TervezoPage() {
      ott örökké. */
   const sugSzoveg = huzas
     ? 'Ráigazítom a vonalat a valódi gyalogutakra…'
-    : mod === 'jeloles'
-      ? `Érintsd oda, ahová a(z) „${tipusSzerint(ujTipus).nev}” jelölés kerüljön. A meglévőre koppintva törlöd.`
-      : horgonyok.length === 1
-        ? 'Jelöld be a második pontot — a vonal magától az ösvényre kerül.'
-        : horgonyok.length === 0 && pontok.length > 1
-          ? 'Kész útvonal. Érints a térképre, ha újat kezdenél.'
-          : 'Érintsd a térképet a pontokért. A pontok húzhatók; rájuk koppintva törlődnek.';
+    : horgonyok.length === 1
+      ? 'Jelöld be a második pontot — a vonal magától az ösvényre kerül.'
+      : horgonyok.length === 0 && pontok.length > 1
+        ? 'Kész útvonal. Érints a térképre, ha újat kezdenél.'
+        : 'Érintsd a térképet a pontokért. A pontok húzhatók; rájuk koppintva törlődnek.';
 
   const [sugLathato, setSugLathato] = useState(true);
   useEffect(() => {
@@ -326,8 +322,8 @@ export default function TervezoPage() {
             pontok={pontok}
             horgonyok={horgonyok.length > 0 ? horgonyok : null}
             jelolesek={jelolesek}
-            mod={mod}
-            ujTipus={ujTipus}
+            mod="ut"
+
             illeszt={illeszt}
             latvanyok
             retegGombok
@@ -364,38 +360,15 @@ export default function TervezoPage() {
             </button>
           )}
 
-          <div className="modvalto" role="group" aria-label="Mit tesz az érintés">
-            <button
-              className={`modvalto__gomb${mod === 'ut' ? ' modvalto__gomb--aktiv' : ''}`}
-              onClick={() => setMod('ut')}
-            >
-              Útvonal
-            </button>
-            <button
-              className={`modvalto__gomb${mod === 'jeloles' ? ' modvalto__gomb--aktiv' : ''}`}
-              onClick={() => setMod('jeloles')}
-            >
-              Jelölés
-            </button>
-          </div>
+          {/* Itt volt a módváltó és a jelölőpaletta. A jelöléstípusokból
+              réteg lett: amit eddig kézzel kellett kirakni, azt most
+              megkeressük. A térkép bal felső sarkát a rétegrács kapta meg
+              (a Terkep.jsx rajzolja).
 
-          {mod === 'jeloles' && (
-            <div className="paletta" role="group" aria-label="Jelölés típusa">
-              {JELOLES_TIPUSOK.map((t) => (
-                <button
-                  key={t.id}
-                  className={`paletta__gomb${ujTipus === t.id ? ' paletta__gomb--aktiv' : ''}`}
-                  style={{ '--tu-szin': t.szin }}
-                  onClick={() => setUjTipus(t.id)}
-                  title={t.nev}
-                  aria-label={t.nev}
-                  aria-pressed={ujTipus === t.id}
-                >
-                  <svg viewBox="0 0 24 24" aria-hidden="true" dangerouslySetInnerHTML={{ __html: t.rajz }} />
-                </button>
-              ))}
-            </div>
-          )}
+              A jelölések maguk nem tűntek el: a GPX-ből betöltött és a
+              megosztható linkben érkező jelölések továbbra is megjelennek,
+              és a „Szerkesztés és mentés” fiókban átnevezhetők, törölhetők.
+              Új jelölést viszont már nem lehet kézzel kirakni. */}
 
           <p className={`terkep__sug${sugLathato ? '' : ' terkep__sug--rejtve'}`}>{sugSzoveg}</p>
         </div>
