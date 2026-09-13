@@ -5,7 +5,6 @@ import KozeliTurak from './KozeliTurak.jsx';
 import TuraLista from './TuraLista.jsx';
 import JelolesLista from './JelolesLista.jsx';
 import Tanacsok from './Tanacsok.jsx';
-import IdoWidget from './IdoWidget.jsx';
 import Labjegyzet from './Labjegyzet.jsx';
 
 import {
@@ -21,6 +20,7 @@ import { menetido, nehezseg } from '../data/ajanlo.js';
 import { magassagot } from '../data/magassag.js';
 import { GpxHiba, gpxBeolvas, gpxLetoltes } from '../data/gpx.js';
 import { UtvonalHiba, osvenyreHuz, ritkit as utatRitkit } from '../data/utvonalkereso.js';
+import { idoHelyBeallit } from '../data/idoHely.js';
 import { kozeliTurak } from '../data/kozeli.js';
 import { peldaUtvonalak } from '../data/peldak.js';
 import { tervMentes, tervTorles, useTervek } from '../data/tarolo.js';
@@ -58,7 +58,9 @@ export default function TervezoPage() {
   const [terkepKesz, setTerkepKesz] = useState(false);
   /* Az időjárás helye. Alapból a térkép közepe (betöltéskor egyszer), utána
      az útvonal kezdőpontja. Pásztázásra NEM követ: az Open-Meteo ingyenes
-     szolgáltatás, nem kérdezzük minden térképmozdulatra. */
+     szolgáltatás, nem kérdezzük minden térképmozdulatra.
+
+     Maga a hőmérséklet a fejlécben látszik, ezért a helyet oda adjuk át. */
   const [terkepKozep, setTerkepKozep] = useState(null);
 
   const [pontok, setPontok] = useState(() => dekodol(params.get('ut')));
@@ -94,6 +96,12 @@ export default function TervezoPage() {
   /* Van-e olyan horgonysor, amit még nem húztunk ösvényre. Rendereléskor
      pontos: a horgonyok változása és a `huzas` billenése is újrarendel. */
   const huzasVar = horgonyok.length >= 2 && horgonyKulcs !== huzottKulcs.current;
+
+  /* A fejléc hőmérséklete a túra helyét mutatja: az útvonal kezdőpontját,
+     vagy amíg nincs útvonal, a térkép közepét. */
+  useEffect(() => {
+    idoHelyBeallit(pontok.length > 0 ? pontok[0] : terkepKozep);
+  }, [pontok, terkepKozep]);
 
   /* Megosztott link akkor is töltsön be, ha az oldalon belül navigálunk rá. */
   useEffect(() => {
@@ -575,9 +583,6 @@ export default function TervezoPage() {
               </div>
             </details>
           </div>
-
-          {/* Az időjárás a rétegrács mellett, a felső sorban. */}
-          <IdoWidget hely={pontok.length > 0 ? pontok[0] : terkepKozep} />
 
 
           <p className={`terkep__sug${sugLathato ? '' : ' terkep__sug--rejtve'}`}>{sugSzoveg}</p>

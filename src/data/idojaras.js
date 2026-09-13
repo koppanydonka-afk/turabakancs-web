@@ -85,3 +85,25 @@ export function figyelmeztetes(nap) {
   }
   return null;
 }
+
+/* Hány fok van most.
+
+   Az öt napos előrejelzés a térképen ült, saját ablakkal. A fejlécbe ebből
+   egyetlen szám kerül, ezért külön kérdés: a napi bontás nem kell hozzá,
+   és így a válasz is töredéke. */
+export async function mostaniFok([lat, lng]) {
+  const p = new URLSearchParams({
+    latitude: lat.toFixed(4),
+    longitude: lng.toFixed(4),
+    current: 'temperature_2m,weather_code',
+    timezone: 'auto',
+  });
+
+  const valasz = await fetch(`${VEGPONT}?${p}`);
+  if (!valasz.ok) throw new Error('A hőmérséklet most nem érhető el.');
+  const adat = await valasz.json();
+  const m = adat.current;
+  if (m?.temperature_2m == null) throw new Error('A hőmérséklet most nem érhető el.');
+
+  return { fok: Math.round(m.temperature_2m), kod: m.weather_code };
+}

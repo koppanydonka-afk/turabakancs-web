@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
+import IdoFok from './IdoFok.jsx';
 import Vedjegy from './Vedjegy.jsx';
 import { temaValt, useTema } from '../data/tema.js';
 import { useRoute } from '../router.js';
 
-/* Fejléc: hamburger balra, szóvédjegy középen, sötét mód jobbra.
+/* Fejléc: hamburger balra, szóvédjegy középen, jobbra a hőmérséklet
+   és a sötét mód.
 
    Az impresszum szándékosan nincs a menüben — az oldal alján,
    apró betűvel van a helye, ahogy az ilyesmit keresni szokás. */
@@ -53,11 +55,16 @@ export default function Fejlec() {
           <Vedjegy magassag={26} />
         </a>
 
-        <button className="tema-gomb" onClick={temaValt} aria-label="Sötét mód váltása">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M20 13.4A8.2 8.2 0 0 1 10.6 4a8.4 8.4 0 1 0 9.4 9.4z" fill="currentColor" />
-          </svg>
-        </button>
+        <div className="fejlec__jobb">
+          {/* Hány fok van most — ennyi az időjárás, panel és részletek nélkül. */}
+          <IdoFok />
+
+          <button className="tema-gomb" onClick={temaValt} aria-label="Sötét mód váltása">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M20 13.4A8.2 8.2 0 0 1 10.6 4a8.4 8.4 0 1 0 9.4 9.4z" fill="currentColor" />
+            </svg>
+          </button>
+        </div>
       </header>
 
       {nyitva && (

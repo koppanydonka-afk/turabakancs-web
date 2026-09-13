@@ -113,6 +113,24 @@ body.nincs-gorgetes { overflow: hidden; }
 .tema-gomb:hover { background: var(--surface-2); }
 .tema-gomb svg { width: 19px; height: 19px; }
 
+/* ---------- Hőmérséklet a fejlécben ----------
+   A sötét mód mellett áll, és ugyanúgy egy sorban marad vele. Nem gomb:
+   nincs mögötte se ablak, se panel — az egész mondanivalója az, hogy hány
+   fok van most. */
+.fejlec__jobb {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.ido-fok {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  cursor: default;
+}
+
 /* ---------- Törzs ---------- */
 .fo { display: block; }
 /* A dvh-t nem minden böngésző ismeri. Tartalék nélkül az egész deklaráció
@@ -147,7 +165,6 @@ body.nincs-gorgetes { overflow: hidden; }
 .reteg-gomb,
 .vissza-nyil,
 .hh-widget,
-.ido-widget,
 .adat-widget { touch-action: manipulation; }
 
 /* Visszalépés a térkép bal alsó sarkában. A bal felső a rétegrácsé, a jobb
@@ -1734,12 +1751,14 @@ input::placeholder { color: var(--muted); }
 
 /* ---------- Lebegő widgetek a térképen ----------
 
-   Az oldalsáv megszűnt: a kérdés, az időjárás és a válasz a térképre került.
-   A jobb felső oszlopban ülnek, a nagyítógombok alatt; a bal felső a
-   rétegrácsé, a bal alsó a visszalépő nyílé. */
+   Az oldalsáv megszűnt: a kérdés és a válasz a térképre került. A bal felső
+   oszlopban ülnek; mellettük a rétegrács, a bal alsó a visszalépő nyílé. */
 /* A widgetek egy bal oldali oszlopban ülnek. A felső sorban mellettük áll a
-   rétegrács és az időjárás — azok külön elemek, de ugyanabban a sávban.
-   Ezért a honnan-hova fix szélességű: erre épül a másik kettő helye. */
+   rétegrács — külön elem, de ugyanabban a sávban. Ezért a honnan-hova fix
+   szélességű: erre épül a rács helye.
+
+   Az időjárás korábban itt volt a harmadik; átkerült a fejlécbe, egyetlen
+   számra fogyva. A térképen minden képpont a térképé. */
 .widgetek {
   position: absolute;
   top: var(--space-3);
@@ -1763,8 +1782,7 @@ input::placeholder { color: var(--muted); }
 .widgetek > * { pointer-events: auto; width: 100%; flex: 0 0 auto; }
 
 .hh-widget,
-.adat-widget,
-.ido-widget {
+.adat-widget {
   border-radius: var(--radius-md);
   background: color-mix(in srgb, var(--surface) 94%, transparent);
   backdrop-filter: blur(10px) saturate(180%);
@@ -1791,64 +1809,6 @@ input::placeholder { color: var(--muted); }
 .hh-widget--csukva > .hh-panel { display: none; }
 .adat-widget { padding: var(--space-4); display: flex; flex-direction: column; gap: var(--space-4); }
 
-/* ---- Időjárás ---- */
-/* Az időjárás a felső sorban, a rétegrács jobb oldalán. A rács hat
-   36 képpontos gombja + rács-belsőmargó = 248 képpont. */
-.ido-widget {
-  position: absolute;
-  top: var(--space-3);
-  left: calc(var(--space-3) + 340px + var(--space-2) + 248px + var(--space-2));
-  z-index: 1000;
-  overflow: hidden;
-  border-radius: var(--radius-md);
-  background: color-mix(in srgb, var(--surface) 94%, transparent);
-  backdrop-filter: blur(10px) saturate(180%);
-  box-shadow: var(--lap-keret), var(--lap-arnyek);
-  width: auto;
-  min-width: 72px;
-  max-width: 260px;
-}
-.ido-widget__fej {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  width: 100%;
-  border: 0;
-  padding: var(--space-2) var(--space-4);
-  background: transparent;
-  color: var(--ink-2);
-  font: inherit;
-  cursor: pointer;
-  text-align: left;
-}
-.ido-widget__fej strong { font-size: var(--text-lg); color: var(--ink); }
-.ido-widget__szo { flex: 1 1 auto; font-size: var(--text-sm); color: var(--muted); }
-.ido-widget__pont { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
-.ido-widget__pont--figyelem { background: #B45309; }
-.ido-widget__pont--fontos { background: #B91C1C; }
-.ido-widget__tolt,
-.ido-widget--hiba {
-  display: block;
-  width: 100%;
-  border: 0;
-  padding: var(--space-2) var(--space-4);
-  background: transparent;
-  font: inherit;
-  font-size: var(--text-sm);
-  color: var(--muted);
-  text-align: left;
-}
-.ido-widget--hiba { cursor: pointer; }
-
-.ido-widget__tartalom { padding: 0 var(--space-4) var(--space-3); display: flex; flex-direction: column; gap: var(--space-2); }
-.ido-widget__hol { margin: 0; font-size: var(--text-xs); color: var(--muted); }
-.ido-widget__napok { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
-.ido-widget__napok li { display: flex; align-items: baseline; gap: var(--space-2); font-size: var(--text-sm); }
-.ido-widget__nev { width: 2.4em; color: var(--muted); text-transform: capitalize; }
-.ido-widget__ertek { color: var(--ink-2); font-variant-numeric: tabular-nums; }
-.ido-widget__csap { color: var(--accent-ink); font-size: var(--text-xs); }
-.ido-widget__figy { margin: 0; font-size: var(--text-xs); color: var(--ink-2); }
-.ido-widget__figy--fontos { font-weight: 600; }
 
 @media (max-width: 680px) {
   .widgetek {
@@ -1935,12 +1895,9 @@ input::placeholder { color: var(--muted); }
 .adat-widget__tartalom > * { flex: 0 0 auto; }
 
 @media (max-width: 900px) {
-  /* Keskeny kijelzőn a három elem nem fér egy sorba. A rács és az időjárás
-     marad a felső sorban — azok kicsik —, a widgetoszlop pedig ALÁJUK
-     kezdődik. Korábban egymásra csúsztak: a rács eltűnt a honnan-hova
-     widget mögött. */
+  /* Keskeny kijelzőn a kettő nem fér egy sorba. A rétegrács marad a felső
+     sorban — az kicsi —, a widgetoszlop pedig ALÁ kezdődik. Korábban
+     egymásra csúsztak: a rács eltűnt a honnan-hova widget mögött. */
   .reteg-sor { left: var(--space-3); top: var(--space-3); }
-  /* A nagyítógombok MELLÉ, nem alájuk: a jobb felső sarok az övék. */
-  .ido-widget { left: auto; right: calc(var(--space-3) + 46px); top: var(--space-3); }
   .widgetek { padding-top: 52px; width: calc(100% - 2 * var(--space-3)); }
 }
