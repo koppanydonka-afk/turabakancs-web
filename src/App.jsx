@@ -55,7 +55,7 @@ export default function App() {
     }
     const [title, description] = oldalak[path] ?? [
       'Túrabakancs — túraútvonalak, jelzések, vélemények',
-      'Útvonaltervező térkép, a magyar turistajelzések magyarázata és név nélküli vélemények. Fiók nélkül, adatgyűjtés nélkül.',
+      'Útvonaltervező térkép, a magyar turistajelzések magyarázata és név nélküli vélemények.',
     ];
     return { title, description };
   })();

@@ -42,7 +42,7 @@ export default function UtvonalakPage() {
         <h1 className="oldal__cim">Kész vonalak, amikből kiindulhatsz.</h1>
         <p className="oldal__bevezeto">
           Nyisd meg bármelyiket, húzd arrébb a pontjait, tegyél rá saját jelöléseket —
-          és már a tiéd. Semmit nem kell hozzá regisztrálni.
+          és már a tiéd.
         </p>
       </header>
 

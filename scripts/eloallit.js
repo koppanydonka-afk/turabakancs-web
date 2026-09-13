@@ -42,12 +42,12 @@ function oldalak() {
       ut: '/',
       cim: 'Túrabakancs — túraútvonalak, jelzések, vélemények',
       leiras:
-        'Útvonaltervező térkép, a magyar turistajelzések magyarázata és kész túraútvonalak. Fiók nélkül, adatgyűjtés nélkül.',
+        'Útvonaltervező térkép, a magyar turistajelzések magyarázata és kész túraútvonalak.',
       tartalom: `
         <h1>Túrabakancs — túraútvonal-tervező térkép</h1>
         <p>Térkép, amire rajzolhatsz. Kész túrák, amikből kiindulhatsz. Menetidő, ami az
            emelkedővel is számol. Rajzolj útvonalat, tegyél ki jelöléseket, és oszd meg
-           egy linkkel — fiók nélkül.</p>
+           egy linkkel.</p>
         <h2>Mit jelent a festék a fán?</h2>
         <p>A magyar turistajelzés két dolgot mond meg egyszerre. A szín azt, mekkora út,
            az alak pedig azt, mire való.</p>`,
