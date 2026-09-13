@@ -332,27 +332,63 @@ el** — ne írj be koordinátát ellenőrzés nélkül.
 
 ## Élesítés — turabakancs.com
 
-A domain megvan (Rackhost, dns24.hu névszerverek), HTTPS-en válaszol, jelenleg
-parkoló oldal van rajta. Ami az élesítéshez elkészült:
+**Az oldal él.** Cloudflare Workers szolgálja ki, a domain a Rackhostnál van
+bejegyezve, de a DNS-t a Cloudflare kezeli (`art.ns.cloudflare.com`,
+`luciane.ns.cloudflare.com`).
+
+### Telepítés: pusholás
+
+Nincs kézi lépés, nincs zip, nincs FTP. Amit a `main` ágra pusholsz, azt a
+Cloudflare megépíti és kiteszi:
+
+```
+git push        →  npm ci  →  npm run build  →  dist/  →  él
+```
+
+A build beállításai a Cloudflare vezérlőpultján: build parancs `npm run build`,
+kimeneti mappa `dist`. A Node verzióját a `.node-version` fájl rögzíti (22.16.0),
+a Worker viselkedését a `wrangler.jsonc`.
+
+### Mielőtt pusholsz
+
+```
+npm run eles
+```
+
+Ez felépíti az oldalt, és **a Cloudflare valódi motorjával** (`workerd`) futtatja
+helyben. Nem ugyanaz, mint a `npm run dev`: itt a 404-kezelés, az átirányítások és
+a perjelkezelés is úgy viselkedik, ahogy élesben fog. Egy soft-404-hibát pont ez
+fogott meg, amit a fejlesztői szerver elrejtett.
+
+### Amiből az élesítés áll
 
 | Fájl | Mire jó |
 | --- | --- |
-| `public/megoszto.jpg` | Megosztási kártya (1200×630) — enélkül csupasz a link Messengerben |
-| `public/sitemap.xml` | 12 cím, benne mind a nyolc útvonaloldal |
+| `wrangler.jsonc` | A Worker konfigurációja: 404-kezelés, perjelkezelés |
+| `.node-version` | A build Node-verziója |
+| `public/_redirects` | Két 301 (Cloudflare, Netlify) |
+| `vercel.json`, `public/.htaccess` | Ugyanaz a két 301 más platformokra |
+| `public/megoszto.jpg` | Megosztási kártya (1200×630) |
 | `public/robots.txt` | A sitemapre mutat |
-| `public/.htaccess` | Apache-átirányítás + gyorsítótárazás |
-| `szerver.md` | Caddy és nginx beállítás, ha nem Apache van |
+| `szerver.md` | Kiszolgálóbeállítás, ha valaha másik tárhelyre kerül |
 
-A teendő: `npm run build`, majd a **`dist` mappa tartalmát** feltölteni a tárhely
-gyökerébe. A `dist/.htaccess` rejtett fájl — FTP-nél kapcsold be a rejtett fájlok
-mutatását, különben kimarad, és minden aloldal 404 lesz.
+A `sitemap.xml` és a `404.html` **nem fájl a repóban** — a `scripts/eloallit.js`
+állítja elő ugyanabból a listából, amiből az oldalak. Így nem tudnak szétcsúszni.
 
-**HTTPS kötelező**, mert az offline működés csak azon indul el. Ez megvan.
+### Google Search Console
+
+Az ellenőrzés **DNS TXT-rekordon** áll, nem a `googled…html` fájlon. Utóbbi a
+Cloudflare perjelkezelése miatt átirányít, és a Google az ellenőrzésnél nem követi
+az átirányítást. A TXT-rekord viszont a tárhelytől független — egy esetleges
+későbbi költözés nem töri el.
 
 ## Üzemeltetés
 
-Statikus oldal, bármelyik ingyenes tárhelyen elfut (Netlify, Vercel, Cloudflare
-Pages). A `public/_redirects` és a `vercel.json` gondoskodik róla, hogy minden cím az
-`index.html`-re menjen — e nélkül a `/utvonalak/tihany-belso-to` 404 lenne.
+Statikus oldal, nincs szerveroldali kód, nincs adatbázis, nincs API-kulcs.
 
-Költség: a domain. Más nincs — nincs adatbázis, nincs API-kulcs, nincs havidíj.
+Minden cím valódi fájlként áll elő (22 db), ezért nincs szükség „mindent az
+index.html-re" típusú visszaesésre. Ami nincs meg, az a `404.html`-t kapja, valódi
+404-es státusszal.
+
+Költség: a domain. Más nincs — se havidíj, se telepítési keret.
+

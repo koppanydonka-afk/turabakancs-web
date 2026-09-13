@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build && node scripts/eloallit.js",
     "preview": "vite preview",
-    "kiad": "npm run build && npx netlify deploy --prod --dir=dist"
+    "eles": "npm run build && npx --yes wrangler@latest dev"
   },
   "dependencies": {
     "leaflet": "^1.9.4",
