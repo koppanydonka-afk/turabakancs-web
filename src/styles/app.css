@@ -2358,27 +2358,176 @@ input::placeholder { color: var(--muted); }
 
    A kezdőállapot a `.mozgas` osztályhoz van kötve (a kód teszi ki): ha a
    JavaScript nem fut le, a lapok egyszerűen látszanak. */
-.mozgas .tura__allomas {
-  opacity: 0;
-  transform: scale(.94) translateY(14px);
-  clip-path: circle(10% at 50% 50%);
+.mozgas .tura__allomas,
+.mozgas .tura__szabad {
   transition:
     opacity 460ms var(--ease-out),
     transform 460ms var(--ease-out),
     clip-path 640ms var(--ease-out);
+}
+.mozgas .tura__allomas {
+  opacity: 0;
+  transform: scale(.94) translateY(14px);
+  clip-path: circle(10% at 50% 50%);
 }
 .mozgas .tura__allomas[data-feltun='kesz'] {
   opacity: 1;
   transform: none;
   clip-path: circle(150% at 50% 50%);
 }
-.mozgas .tura__allomas[data-tunik='el'] {
+.mozgas .tura__allomas[data-tunik='el'],
+.mozgas .tura__szabad[data-tunik='el'] {
   opacity: 0;
   transform: scale(.97) translateY(-12px);
 }
 @media (prefers-reduced-motion: reduce) {
   /* A vágás sem maradhat rajta: a lap egyszerűen ott van. */
   .mozgas .tura__allomas { clip-path: none !important; }
+  /* A buborékok sem pattannak: egyszerűen ott vannak. (A globális szabály
+     amúgy is 1 ezredmásodpercre vágja az animációkat — ez csak kimondja.) */
+  .mozgas .tura__szabad .bubor,
+  .mozgas .tura__szabad .szabad__fej,
+  .mozgas .tura__szabad .szabad__apro { animation: none !important; opacity: 1 !important; }
+}
+
+/* ---- Szabad állomás: nem egy lap, hanem különálló buborékok ----
+
+   Egy nagy lap eltakarja a hátteret, és ami rajta van, azt egyben kell
+   végigolvasni. A szabad állomásnak nincs saját felülete: a szakaszcím egy
+   lágy folton ül, a tételek pedig külön buborékokba kerültek, egymáshoz
+   képest eltolva — a köztük maradó réseken át is látszik az út.
+
+   Minden buborék KÜLÖN pattan be, egymás után. A körablak itt nem való:
+   ott egy lap nyílik ki, itt sok apró elem érkezik. */
+.tura__szabad {
+  width: clamp(250px, 38%, 430px);
+  align-self: flex-start;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.tura__szabad[data-allomas='jobb'] { align-self: flex-end; }
+
+.bubor--lap {
+  padding: var(--space-4);
+  border-radius: clamp(18px, 3vw, 28px);
+  background: color-mix(in srgb, var(--surface) 93%, transparent);
+  box-shadow: var(--lap-keret), var(--lap-arnyek);
+}
+/* Eltolás: a buborékok nem egy vonalban állnak, hanem lépcsősen — így néz
+   ki úgy, mintha az út mellé lennének kirakva, nem egy hasábba rendezve. */
+.tura__szabad .bubor:nth-child(2n) { margin-inline-start: clamp(10px, 4%, 38px); }
+.tura__szabad .bubor:nth-child(3n) { margin-inline-start: clamp(18px, 7%, 66px); }
+
+@keyframes bubor-fel {
+  0%   { opacity: 0; transform: scale(.6) translateY(12px); }
+  62%  { opacity: 1; transform: scale(1.035) translateY(0); }
+  100% { opacity: 1; transform: scale(1); }
+}
+.mozgas .tura__szabad .bubor,
+.mozgas .tura__szabad .szabad__fej,
+.mozgas .tura__szabad .szabad__apro { opacity: 0; }
+.mozgas .tura__szabad[data-feltun='kesz'] .szabad__fej,
+.mozgas .tura__szabad[data-feltun='kesz'] .szabad__apro {
+  opacity: 1;
+  animation: bubor-fel 440ms var(--ease-out) backwards;
+}
+.mozgas .tura__szabad[data-feltun='kesz'] .bubor {
+  opacity: 1;
+  animation: bubor-fel 520ms var(--ease-out) backwards;
+  /* Egymás után, nem egyszerre: a sorrend maga is mondja, mit olvass. */
+  animation-delay: calc((var(--i, 0) + 1) * 85ms);
+}
+
+/* ---- Lágy folt a lap nélküli szöveg mögé ----
+
+   A védjegy és a szakaszcímek nem kapnak kártyát — a keret ott csak elvenne
+   az erdőből. Helyette egy folt áll mögöttük: sötét módban feketés,
+   VILÁGOSBAN VILÁGOS, mert ott a tinta a sötét, és egy fekete folt épp az
+   olvashatóságot vinné el. */
+.fooldal { --folt-szin: 246 244 239; }
+:root[data-tema='sotet'] .fooldal,
+:root:not([data-tema='vilagos']) .fooldal { --folt-szin: 4 7 4; }
+@media (prefers-color-scheme: light) {
+  :root:not([data-tema='sotet']) .fooldal { --folt-szin: 246 244 239; }
+}
+
+.hos--folt,
+.szabad__fej,
+.szabad__apro {
+  position: relative;
+  /* Saját rétegsor, különben a −1 a lap háttere MÖGÉ vinné a foltot. */
+  isolation: isolate;
+}
+.hos--folt::before,
+.szabad__fej::before,
+.szabad__apro::before {
+  content: '';
+  position: absolute;
+  inset: var(--folt-y, -14px) var(--folt-x, -20px);
+  z-index: -1;
+  background: radial-gradient(
+    56% 58% at 50% 50%,
+    rgb(var(--folt-szin) / .92),
+    rgb(var(--folt-szin) / .72) 52%,
+    rgb(var(--folt-szin) / .3) 74%,
+    rgb(var(--folt-szin) / 0) 88%
+  );
+  pointer-events: none;
+}
+/* A folt önmagában a nagy betűnek elég, az apró szürkének nem: a
+   betűárnyék pont a betű körül sűríti a sötétet, ahol kell. */
+.szabad__fej,
+.szabad__apro,
+.hos--folt { text-shadow: 0 1px 4px rgb(var(--folt-szin) / .9); }
+.szabad__apro { --folt-y: -10px; --folt-x: -14px; }
+
+/* ---- Értesítés: a kiemelt példa ----
+
+   Kicsi, majdnem kocka lap a jobb szélen, és úgy érkezik, ahogy egy
+   értesítés: oldalról beúszik, túllendül, visszaáll. */
+@keyframes ertesites {
+  0%   { opacity: 0; transform: translateX(46px) scale(.92); }
+  55%  { opacity: 1; transform: translateX(-8px) scale(1.02); }
+  78%  { transform: translateX(3px) scale(.995); }
+  100% { opacity: 1; transform: none; }
+}
+.tura__allomas--ertesites {
+  width: clamp(215px, 24%, 300px);
+  padding: var(--space-4);
+}
+.pelda-sav.tura__allomas--ertesites { grid-template-columns: minmax(0, 1fr); gap: var(--space-3); }
+.tura__allomas--ertesites .ut-rajz { max-height: 92px; }
+/* Négy adat rácsban túl magas lenne egy ekkora lapon: pöttyökbe kerülnek,
+   két sorba. Ugyanaz a négy szám, feleakkora helyen. */
+.tura__allomas--ertesites .ertekek {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  background: none;
+  box-shadow: none;
+  border-radius: 0;
+  overflow: visible;
+}
+.tura__allomas--ertesites .ertekek__elem {
+  flex-direction: row;
+  align-items: baseline;
+  gap: 5px;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-pill);
+  background: var(--surface-2);
+}
+.tura__allomas--ertesites .ertekek__elem strong { font-size: var(--text-sm); }
+.tura__allomas--ertesites .pelda-sav__cim { font-size: var(--text-lg); }
+.tura__allomas--ertesites .ertekek__elem { padding: var(--space-2) var(--space-3); }
+/* A körablak itt nem való: ez nem kinyílik, hanem beúszik. */
+.mozgas .tura__allomas--ertesites { clip-path: none; transform: translateX(46px) scale(.92); }
+.mozgas .tura__allomas--ertesites[data-feltun='kesz'] {
+  clip-path: none;
+  animation: ertesites 620ms var(--ease-out) backwards;
+}
+@media (prefers-reduced-motion: reduce) {
+  .mozgas .tura__allomas--ertesites { animation: none !important; }
 }
 
 /* A LAP. Erdei háttéren a csupasz szöveg nem olvasható: ami nem kártyán
@@ -2386,7 +2535,6 @@ input::placeholder { color: var(--muted); }
    ugyanúgy nézzen ki — a kezdőlap állomásai és a többi lap fejlécei,
    szövegtörzsei is. */
 .tura__allomas,
-.hos.tura__teljes,
 .szekcio.tura__teljes,
 .oldal__fej,
 .oldal .szoveg,
@@ -2409,59 +2557,82 @@ input::placeholder { color: var(--muted); }
    ÁLLOMÁSON BELÜL húzzuk össze — ugyanezek az elemek a többi oldalon a
    régi méretükben maradnak. */
 .tura__allomas { padding: var(--space-4); }
-.tura__allomas .szekcio,
+:is(.tura__allomas, .tura__szabad) .szekcio,
 .szekcio.tura__allomas { gap: var(--space-4); }
-.tura__allomas .szekcio__cim { font-size: var(--text-lg); }
-.tura__allomas .szekcio__lead { font-size: var(--text-sm); }
-.tura__allomas .apro { font-size: var(--text-xs); }
+:is(.tura__allomas, .tura__szabad) .szekcio__cim { font-size: var(--text-lg); }
+:is(.tura__allomas, .tura__szabad) .szekcio__lead { font-size: var(--text-sm); }
+:is(.tura__allomas, .tura__szabad) .apro { font-size: var(--text-xs); }
 
 /* A kiemelt példa: rajz és szöveg egymás alatt. */
 .pelda-sav.tura__allomas { grid-template-columns: minmax(0, 1fr); gap: var(--space-4); }
-.tura__allomas .pelda-sav__cim { font-size: var(--text-xl); }
-.tura__allomas .pelda-sav__rajz { padding: var(--space-2); }
-.tura__allomas .kalap { font-size: var(--text-xs); }
+:is(.tura__allomas, .tura__szabad) .pelda-sav__cim { font-size: var(--text-xl); }
+:is(.tura__allomas, .tura__szabad) .pelda-sav__rajz { padding: var(--space-2); }
+:is(.tura__allomas, .tura__szabad) .kalap { font-size: var(--text-xs); }
 
 /* A mai adat. */
 /* Három adat egy keskeny lapon: a szám nagy marad, de nem 2xl — úgy
    egymásba érne. A `--space-5` NEM LÉTEZIK a skálán; egy ilyen elgépelés
    nem hibát ad, hanem csendben nullát (érvénytelen a számított értéknél),
    és a három adat összeragadt. */
-.tura__allomas .ma__adatok { gap: var(--space-4); }
-.tura__allomas .ma__elem strong { font-size: var(--text-xl); }
-.tura__allomas .ma__cim { font-size: var(--text-base); }
+:is(.tura__allomas, .tura__szabad) .ma__adatok { gap: var(--space-4); }
+:is(.tura__allomas, .tura__szabad) .ma__elem strong { font-size: var(--text-xl); }
+:is(.tura__allomas, .tura__szabad) .ma__cim { font-size: var(--text-base); }
 
-/* A négy tudnivaló. */
-.tura__allomas .tud { gap: var(--space-3); padding-block: var(--space-3); }
-.tura__allomas .tud__cim { font-size: var(--text-base); margin-bottom: var(--space-1); }
-.tura__allomas .tud__szoveg { font-size: var(--text-sm); }
+/* A négy tudnivaló. Szabad állomáson külön buborékokba kerül: ott nem
+   elválasztó vonal választja el őket, hanem a köztük maradó rés. */
+/* A lista SAJÁT lapja itt felesleges — a felületet a buborékok viszik.
+   Enélkül egy nagy kártya vette körül a négy buborékot. */
+.tura__szabad .tud-lista {
+  padding: 0;
+  background: none;
+  box-shadow: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.tura__szabad .tud + .tud { box-shadow: none; }
+.tura__szabad .tud { padding-block: var(--space-4); }
+.tura__szabad .jelzesek { grid-template-columns: minmax(0, 1fr); gap: var(--space-3); }
+.tura__szabad .jelzes { padding: var(--space-4); border-radius: clamp(18px, 3vw, 28px); }
+.tura__szabad .kartyak { grid-template-columns: minmax(0, 1fr); gap: var(--space-4); }
+.tura__szabad .kartya { border-radius: clamp(18px, 3vw, 28px); }
+
+:is(.tura__allomas, .tura__szabad) .tud { gap: var(--space-3); padding-block: var(--space-3); }
+:is(.tura__allomas, .tura__szabad) .tud__cim { font-size: var(--text-base); margin-bottom: var(--space-1); }
+:is(.tura__allomas, .tura__szabad) .tud__szoveg { font-size: var(--text-sm); }
 
 /* A jelzések: egy hasáb, apróbb ábrákkal. A szinsor kétoszlopos marad —
    négy rövid tétel, és így nem lesz belőle oszlopnyi lista. */
-.tura__allomas .szinsor { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-2); }
-.tura__allomas .jelzesek { grid-template-columns: minmax(0, 1fr); gap: var(--space-2); }
-.tura__allomas .jelzes { padding: var(--space-3); gap: var(--space-1); }
-.tura__allomas .jelzes__abra { width: 28px; height: 28px; }
-.tura__allomas .jelzes__cim { font-size: var(--text-sm); }
-.tura__allomas .jelzes__leiras { font-size: var(--text-xs); }
+:is(.tura__allomas, .tura__szabad) .szinsor { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-2); }
+:is(.tura__allomas, .tura__szabad) .jelzesek { grid-template-columns: minmax(0, 1fr); gap: var(--space-2); }
+:is(.tura__allomas, .tura__szabad) .jelzes { padding: var(--space-3); gap: var(--space-1); }
+:is(.tura__allomas, .tura__szabad) .jelzes__abra { width: 28px; height: 28px; }
+:is(.tura__allomas, .tura__szabad) .jelzes__cim { font-size: var(--text-sm); }
+:is(.tura__allomas, .tura__szabad) .jelzes__leiras { font-size: var(--text-xs); }
 
 /* A példák: alacsonyabb kártyák, kisebb rajzzal. */
-.tura__allomas .kartyak { grid-template-columns: minmax(0, 1fr); gap: var(--space-3); }
-.tura__allomas .kartya { padding: var(--space-4); gap: var(--space-2); }
-.tura__allomas .kartya__rajz { height: 100px; margin-bottom: 0; }
-.tura__allomas .kartya__cim { font-size: var(--text-base); }
-.tura__allomas .kartya__jegyzet { font-size: var(--text-xs); }
-.tura__allomas .gomb { font-size: var(--text-sm); }
+:is(.tura__allomas, .tura__szabad) .kartyak { grid-template-columns: minmax(0, 1fr); gap: var(--space-3); }
+:is(.tura__allomas, .tura__szabad) .kartya { padding: var(--space-4); gap: var(--space-2); }
+:is(.tura__allomas, .tura__szabad) .kartya__rajz { height: 100px; margin-bottom: 0; }
+:is(.tura__allomas, .tura__szabad) .kartya__cim { font-size: var(--text-base); }
+:is(.tura__allomas, .tura__szabad) .kartya__jegyzet { font-size: var(--text-xs); }
+:is(.tura__allomas, .tura__szabad) .gomb { font-size: var(--text-sm); }
 
-/* A fejléc alatti első lap a védjegyé: átlátszóbb, hogy az erdő látszódjon
-   mögötte — ott még nincs mit olvasni, csak a név. */
+/* A védjegy nem kap lapot: ott még nincs mit olvasni, csak a név — és egy
+   keret csak elvenne az erdőből. Helyette egy lágy folt áll mögötte (lásd
+   `.hos--folt`), ami épp annyit sötétít, hogy a betű megálljon. */
 .hos.tura__teljes {
-  background: color-mix(in srgb, var(--surface) 78%, transparent);
-  padding-block: var(--space-12);
+  padding-block: var(--space-16);
+  --folt-x: -3%;
+  --folt-y: -6%;
 }
 
 @media (max-width: 900px) {
   .tura { gap: var(--space-8); }
-  .tura__allomas { width: 100%; align-self: stretch; }
+  .tura__allomas,
+  .tura__szabad { width: 100%; align-self: stretch; }
+  .tura__allomas--ertesites { width: 100%; }
+  .tura__szabad .bubor { margin-inline-start: 0; }
   .tura__allomas,
   .hos.tura__teljes,
   .szekcio.tura__teljes { padding: var(--space-4); }

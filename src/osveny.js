@@ -50,7 +50,9 @@ const FEJ_SULYA = 10;
 export function useAllomasOldalak(kulcs) {
   useEffect(() => {
     const ut = document.querySelector('.erdo-szin__ut-elore');
-    const allomasok = Array.from(document.querySelectorAll('[data-allomas]'));
+    /* Amelyik állomásnak KÉZZEL adtunk oldalt, ahhoz nem nyúlunk: a
+       tervezés néha erősebb szempont, mint az, hol jár épp a vonal. */
+    const allomasok = Array.from(document.querySelectorAll('[data-allomas]:not([data-allomas-fix])'));
     if (!ut || allomasok.length === 0) return undefined;
 
     /* Negatív: a vonal inkább balra jár. Pozitív: inkább jobbra. */

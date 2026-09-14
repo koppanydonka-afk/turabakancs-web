@@ -47,7 +47,7 @@ export default function FooldalPage() {
           pedig állomásokként áll mellette — hol jobbra, hol balra. A
           csupasz szöveg mind lapra került: erdei háttéren csak úgy
           olvasható. Keskeny képernyőn az egész egy hasáb marad. */}
-      <section className="hos tura__teljes">
+      <section className="hos tura__teljes hos--folt">
         {/* Eddig egyáltalán nem volt h1 az oldalon. A védjegy a cím: a nevet
             ő maga mondja ki (a bakancs `aria-label`-je a hiányzó „k”), ezért
             ide csak a leíró farok kerül — különben kétszer hangzana el. */}
@@ -70,7 +70,13 @@ export default function FooldalPage() {
           hanem az, ami tényleg kijön belőle. Térképkönyvtár nélkül, pár
           száz bájtból: a főoldalnak gyorsan kell betöltenie. */}
       {kiemelt && (
-        <section className="pelda-sav tura__allomas" data-feltun data-allomas="bal" data-tunik>
+        <section
+          className="pelda-sav tura__allomas tura__allomas--ertesites"
+          data-feltun
+          data-tunik
+          data-allomas="jobb"
+          data-allomas-fix
+        >
           <div className="pelda-sav__rajz">
             <UtvonalRajz pontok={kiemelt.pontok} cimke={kiemelt.nev} />
           </div>
@@ -134,14 +140,14 @@ export default function FooldalPage() {
 
           A sorszám nem dísz: négyet ígér a bevezető, és így meg is
           számolható. */}
-      <section className="szekcio tura__allomas" data-feltun data-allomas="bal" data-tunik>
-        <header className="szekcio__fej">
+      <section className="szekcio tura__szabad" data-feltun data-tunik data-allomas="bal" data-allomas-fix>
+        <header className="szekcio__fej szabad__fej">
           <h2 className="szekcio__cim">{sz('fooldal.mitTud')}</h2>
           <p className="szekcio__lead">{sz('fooldal.mitTudLead')}</p>
         </header>
         <ol className="tud-lista">
           {[1, 2, 3, 4].map((n) => (
-            <li className="tud" key={n}>
+            <li className="tud bubor bubor--lap" key={n} style={{ '--i': n - 1 }}>
               <span className="tud__szam" aria-hidden="true">{`0${n}`}</span>
               <div className="tud__test">
                 <h3 className="tud__cim">{sz(`fooldal.tud${n}Cim`)}</h3>
@@ -174,15 +180,15 @@ export default function FooldalPage() {
         </ol>
       </section>
 
-      <section className="szekcio tura__allomas" data-feltun data-allomas="jobb" data-tunik>
-        <header className="szekcio__fej">
+      <section className="szekcio tura__szabad" data-feltun data-tunik data-allomas="jobb">
+        <header className="szekcio__fej szabad__fej">
           <h2 className="szekcio__cim">{sz('fooldal.jelzesCim')}</h2>
           <p className="szekcio__lead">
             {sz('fooldal.jelzesLead')}
           </p>
         </header>
 
-        <div className="szinsor">
+        <div className="szinsor bubor bubor--lap" style={{ '--i': 0 }}>
           {SZINEK.map((sz) => (
             <div className="szinsor__elem" key={sz.id} style={{ '--jel-szin': sz.szin }}>
               <span className="szinsor__folt" aria-hidden="true" />
@@ -193,8 +199,8 @@ export default function FooldalPage() {
         </div>
 
         <div className="jelzesek">
-          {JELZESEK.map((j) => (
-            <article className="jelzes" key={j.id}>
+          {JELZESEK.map((j, i) => (
+            <article className="jelzes bubor" key={j.id} style={{ '--i': i + 1 }}>
               <span className="jelzes__abra" aria-hidden="true">
                 <Alak alak={j.alak} />
               </span>
@@ -204,25 +210,22 @@ export default function FooldalPage() {
           ))}
         </div>
 
-        <p className="apro">{sz('fooldal.jelzesApro')}</p>
+        <p className="apro szabad__apro">{sz('fooldal.jelzesApro')}</p>
       </section>
 
-      {/* Ez a szakasz eddig teljes szélességű volt, és három kártyát tett
-          egymás mellé — velük együtt eltakarta a hátteret. Most ő is
-          állomás: egy hasáb, a többivel váltakozva, mellette végig
-          látszik az út. A kártyarács fél szélességen magától egy
-          oszlopba rendeződik. */}
-      <section className="szekcio tura__allomas" data-feltun data-allomas="bal" data-tunik>
-        <header className="szekcio__fej">
+      {/* A három példa nem egy nagy lapon ül, hanem külön-külön, eltolva —
+          így a közöttük maradó résekben is látszik az út. */}
+      <section className="szekcio tura__szabad" data-feltun data-tunik data-allomas="bal" data-allomas-fix>
+        <header className="szekcio__fej szabad__fej">
           <h2 className="szekcio__cim">{sz('fooldal.keszVonal')}</h2>
           <p className="szekcio__lead">{sz('fooldal.keszVonalLead')}</p>
         </header>
         <div className="kartyak">
-          {peldaUtvonalak.slice(0, 3).map((p) => {
+          {peldaUtvonalak.slice(0, 3).map((p, i) => {
             const km = hossz(p.pontok);
             const ertekeles = ertekelesSzerint(p.id);
             return (
-              <article className="kartya" key={p.id}>
+              <article className="kartya bubor" key={p.id} style={{ '--i': i }}>
                 {/* A vonal alakja: ennyiből is látszik, hogy kör-e vagy
                     átmenő, és hogy mennyire kanyarog. */}
                 <a className="kartya__rajz" href={ut(`/utvonalak/${p.id}`)} tabIndex={-1} aria-hidden="true">
@@ -259,7 +262,7 @@ export default function FooldalPage() {
         </div>
         {/* Szám nélkül: a kézzel beírt darabszám elavul, és el is avult —
             „nyolc” állt itt, miközben tizennyolc útvonal van. */}
-        <a className="vissza-link" href={ut('/utvonalak')}>{sz('fooldal.osszesPelda')}</a>
+        <a className="vissza-link szabad__apro" href={ut('/utvonalak')}>{sz('fooldal.osszesPelda')}</a>
       </section>
     </div>
   );
