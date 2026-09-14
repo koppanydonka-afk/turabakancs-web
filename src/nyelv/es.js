@@ -332,9 +332,6 @@ export default {
   /* ---- Főoldal: mit tud, kiemelt példa ---- */
   'fooldal.peldaKalap': 'Así es lo que obtienes',
   'fooldal.peldaNyisd': 'Abrir en el planificador',
-  'fooldal.osvenyCim': 'Un sendero, mientras te desplazas',
-  'fooldal.osvenyLead': 'No es una ilustración: una de las excursiones clásicas de un día en los montes Pilis, dibujada con sus propios puntos. Las marcas se encienden donde realmente están.',
-  'fooldal.osvenyGomb': 'Ver esta ruta',
   'fooldal.mitTud': 'Qué hace este mapa',
   'fooldal.mitTudLead': 'Cuatro razones para planificar aquí y no en un mapa general.',
   'fooldal.tud1Cim': 'La línea sigue senderos reales',

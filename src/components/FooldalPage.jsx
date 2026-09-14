@@ -1,7 +1,7 @@
 import Vedjegy from './Vedjegy.jsx';
 import Csillagok from './Csillagok.jsx';
 import UtvonalRajz from './UtvonalRajz.jsx';
-import OsvenyGorgetve from './OsvenyGorgetve.jsx';
+import ErdoHatter from './ErdoHatter.jsx';
 import { ertekelesSzerint } from '../data/ertekelesek.js';
 import { JELZESEK, SZINEK } from '../data/erdekessegek.js';
 import { RETEGEK } from '../data/szolgaltatasok.js';
@@ -39,6 +39,10 @@ export default function FooldalPage() {
 
   return (
     <div className="fooldal">
+      {/* Az erdő és az ösvény a tartalom MÖGÖTT: a kártyák a helyükön
+          maradnak, a vonal köztük fut végig. */}
+      <ErdoHatter />
+
       <section className="hos">
         {/* Eddig egyáltalán nem volt h1 az oldalon. A védjegy a cím: a nevet
             ő maga mondja ki (a bakancs `aria-label`-je a hiányzó „k”), ezért
@@ -165,10 +169,6 @@ export default function FooldalPage() {
           ))}
         </ol>
       </section>
-
-      {/* Az ösvény a „mit tud" állítások után jön: ott már tudod, mire
-          való, és itt látod egyben, egy valódi túrán. */}
-      <OsvenyGorgetve />
 
       <section className="szekcio" data-feltun>
         <header className="szekcio__fej">

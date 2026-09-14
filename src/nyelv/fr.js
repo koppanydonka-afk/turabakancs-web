@@ -332,9 +332,6 @@ export default {
   /* ---- Főoldal: mit tud, kiemelt példa ---- */
   'fooldal.peldaKalap': 'Voilà ce que tu obtiens',
   'fooldal.peldaNyisd': 'Ouvrir dans le planificateur',
-  'fooldal.osvenyCim': 'Un sentier, au fil du défilement',
-  'fooldal.osvenyLead': 'Ce n’est pas une illustration : l’une des randonnées classiques d’une journée dans les monts Pilis, tracée à partir de ses propres points. Les repères s’allument là où ils se trouvent vraiment.',
-  'fooldal.osvenyGomb': 'Voir cette randonnée',
   'fooldal.mitTud': 'Ce que fait cette carte',
   'fooldal.mitTudLead': 'Quatre raisons de planifier ici plutôt que sur une carte généraliste.',
   'fooldal.tud1Cim': 'Le tracé suit de vrais sentiers',

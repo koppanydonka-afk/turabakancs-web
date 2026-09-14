@@ -332,9 +332,6 @@ export default {
   /* ---- Főoldal: mit tud, kiemelt példa ---- */
   'fooldal.peldaKalap': 'Takhle vypadá, co dostaneš',
   'fooldal.peldaNyisd': 'Otevřít v plánovači',
-  'fooldal.osvenyCim': 'Stezka, jak posouváš',
-  'fooldal.osvenyLead': 'Není to ilustrace: jedna z klasických jednodenních tras v pohoří Pilis, nakreslená z vlastních bodů. Značky se rozsvítí tam, kde skutečně jsou.',
-  'fooldal.osvenyGomb': 'Prohlédnout tuto trasu',
   'fooldal.mitTud': 'Co tahle mapa umí',
   'fooldal.mitTudLead': 'Čtyři důvody plánovat tady, a ne na obecné mapě.',
   'fooldal.tud1Cim': 'Linie vede po skutečných pěšinách',

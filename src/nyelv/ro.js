@@ -332,9 +332,6 @@ export default {
   /* ---- Főoldal: mit tud, kiemelt példa ---- */
   'fooldal.peldaKalap': 'Așa arată ce primești',
   'fooldal.peldaNyisd': 'Deschide în planificator',
-  'fooldal.osvenyCim': 'O potecă, pe măsură ce derulezi',
-  'fooldal.osvenyLead': 'Nu este o ilustrație: una dintre drumețiile clasice de o zi din munții Pilis, desenată din propriile ei puncte. Marcajele se aprind acolo unde chiar se află.',
-  'fooldal.osvenyGomb': 'Vezi acest traseu',
   'fooldal.mitTud': 'Ce poate harta asta',
   'fooldal.mitTudLead': 'Patru motive să planifici aici, nu pe o hartă generală.',
   'fooldal.tud1Cim': 'Linia urmează poteci reale',
