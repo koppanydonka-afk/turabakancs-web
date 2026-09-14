@@ -869,8 +869,7 @@ input::placeholder { color: var(--muted); }
    OpenStreetMap megjelölése licencfeltétel, olvashatónak KELL maradnia.
    A sáv ezért saját felületet kap, a lap teljes szélességében. */
 .labjegyzet:not(.labjegyzet--tomor) {
-  background: color-mix(in srgb, var(--surface) 90%, transparent);
-  backdrop-filter: blur(10px) saturate(150%);
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
 }
 
 /* A tervező panel alján nincs külön sáv: csak egy sor apróbetű, balra zárva.
@@ -2241,12 +2240,14 @@ input::placeholder { color: var(--muted); }
   stroke-dasharray: 1;
   stroke-dashoffset: calc(1 - var(--halad));
 }
-/* Fény: nem a vonal, hanem a ragyogása. Ettől ül a képen, nem rajta. */
+/* Fény: nem a vonal, hanem a ragyogása. Ettől ül a képen, nem rajta.
+   Elmosás NÉLKÜL, széles halvány vonással: a szaggatás képkockánként
+   változik, tehát egy `blur()` itt minden képkockán újra lefutna — a
+   teljes vászon méretében. */
 .erdo-szin__ut-feny {
   stroke: var(--nyom);
-  stroke-width: 30;
-  opacity: .3;
-  filter: blur(9px);
+  stroke-width: 34;
+  opacity: .15;
 }
 /* Talp: világos kíséret, mint a térkép útvonalán — enélkül a narancs
    beleolvadna a világosabb útfelületbe. */
@@ -2270,37 +2271,43 @@ input::placeholder { color: var(--muted); }
 }
 
 /* A fej: ugyanaz a korong, amivel a térkép a pontokat jelöli. */
-.erdo-szin__fej-udvar { fill: var(--nyom); opacity: .28; filter: blur(8px); }
+/* A fej udvara színátmenettel lágyul, nem szűrővel: a jelölő minden
+   képkockán arrébb kerül, egy `blur()` tehát újra és újra kiszámolna. */
+.erdo-szin__fej-udvar { fill: url(#erdoUdvar); }
 .erdo-szin__fej-talp { fill: #fff; opacity: .9; }
 .erdo-szin__fej-mag { fill: var(--nyom); }
 
-/* A két szél elmosása: ott ülnek a kártyák. A közép marad az úté. A `mask`
-   teszi, hogy az elmosás a széleken teljes, a közép felé pedig elfogy:
-   nincs látható vágóél. */
-.erdo-szin__oldal {
+/* A két szél lágyítása: ott ülnek a lapok, és így a betű nem a lombok közé
+   vész. A közép éles marad — az az út.
+
+   NEM `backdrop-filter`: az a mozgó kép fölött minden képkockán újra
+   elvégezné az elmosást, két képernyő-magas sávon. Helyette a képnek fut
+   egy ELMOSOTT MÁSOLATA ugyanott, és csak a széleken látszik. Az elmosás
+   így egyszer készül el, utána a réteg már csak tolódik.
+
+   A maszk a KÉPERNYŐHÖZ tartozik, nem a képhez: ezért ül külön burkolaton,
+   ami nem mozdul a kísérővel. */
+.erdo-szin__oldalak {
   position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 34%;
-  backdrop-filter: blur(5px) saturate(0.92);
+  inset: 0;
+  overflow: hidden;
+  mask-image: linear-gradient(to right, #000 6%, transparent 38%, transparent 62%, #000 94%);
 }
-.erdo-szin__oldal--bal {
-  left: 0;
-  mask-image: linear-gradient(to right, #000 55%, transparent);
-}
-.erdo-szin__oldal--jobb {
-  right: 0;
-  mask-image: linear-gradient(to left, #000 55%, transparent);
-}
+.erdo-szin__kep--lagy { filter: saturate(0.88) blur(6px); }
 
 @media (max-width: 860px) {
   /* Keskeny lapon a szöveg a teljes szélességet elfoglalja, a kivágat
-     pedig alig harmada a képnek: ott az elmosás végig kell. Nem
-     `backdrop-filter`-rel — az minden képkockán újrarajzolná a mozgó
-     képet —, hanem magán a képen, ami így egyszer készül el. */
-  .erdo-szin__oldal { display: none; }
-  .erdo-szin__kep { filter: saturate(0.95) blur(3px); }
-  .erdo-szin__ut-feny { opacity: .22; }
+     pedig alig harmada a képnek: ott a lágyítás végig kell — a lágy
+     másolat tehát maszk nélkül, teljes képernyőn fut.
+
+     És ha úgyis az takar mindent, az éles réteg kimaradhat. Ez nem
+     kozmetika: minden mozgó réteget külön rajzol a böngésző, telefonon
+     a képpontsűrűséggel szorozva — egy teljes képernyős réteg elhagyása
+     több tíz megabájt. */
+  .erdo-szin__oldalak { mask-image: none; }
+  .erdo-szin__vaszon--eles { display: none; }
+  .erdo-szin__kep--lagy { filter: saturate(0.9) blur(4px); }
+  .erdo-szin__ut-feny { opacity: .1; }
   .erdo-szin__ut-elore { opacity: .22; }
 }
 
@@ -2314,19 +2321,22 @@ input::placeholder { color: var(--muted); }
    Keskeny képernyőn nincs két oldal: az egész egy hasáb lesz, a
    sorrend marad. */
 .tura {
+  /* A közép szélessége: ennyi marad az útnak a két lapsáv között. */
+  --osveny: clamp(90px, 13vw, 190px);
   max-width: 1340px;
-  display: grid;
-  grid-template-columns:
-    minmax(0, 1fr)
-    clamp(90px, 13vw, 190px)
-    minmax(0, 1fr);
-  column-gap: var(--space-6);
-  row-gap: var(--space-12);
-  align-items: start;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
 }
-.tura__teljes { grid-column: 1 / -1; }
-.tura__allomas { grid-column: 1; }
-.tura__allomas--jobb { grid-column: 3; }
+/* SORONKÉNT EGY LAP. Korábban kettő fért el egymás mellett, és ketten
+   együtt eltakarták a közepet — épp azt, amiért a háttér van: a vonalat.
+   Most minden állomás a saját sorában áll, hol balra, hol jobbra, és a
+   másik fél mindig szabadon hagyja az utat. */
+.tura__allomas {
+  width: calc(50% - var(--osveny) / 2);
+}
+.tura__allomas--jobb { align-self: flex-end; }
+.tura__teljes { width: 100%; }
 
 /* A LAP. Erdei háttéren a csupasz szöveg nem olvasható: ami nem kártyán
    ül, annak sajátot adunk. Egy helyen kimondva, hogy minden oldal
@@ -2341,25 +2351,24 @@ input::placeholder { color: var(--muted); }
   position: relative;
   padding: var(--space-6);
   border-radius: var(--radius-lg);
-  background: color-mix(in srgb, var(--surface) 88%, transparent);
-  backdrop-filter: blur(10px) saturate(150%);
+  /* NINCS `backdrop-filter`. A háttér görgetésre mozog, tehát minden
+     lap alatt minden képkockán újra kellett volna számolni az elmosást —
+     egyszerre nyolc-tíz nagy felületen. Ez volt az akadás java. Helyette
+     a lap tömörebb: olvashatóbb is lett, és nem kerül semmibe. */
+  background: color-mix(in srgb, var(--surface) 93%, transparent);
   box-shadow: var(--lap-keret), var(--lap-arnyek);
 }
 /* A fejléc alatti első lap a védjegyé: átlátszóbb, hogy az erdő látszódjon
    mögötte — ott még nincs mit olvasni, csak a név. */
 .hos.tura__teljes {
-  background: color-mix(in srgb, var(--surface) 66%, transparent);
+  background: color-mix(in srgb, var(--surface) 78%, transparent);
   padding-block: var(--space-12);
 }
 
 @media (max-width: 900px) {
-  .tura {
-    grid-template-columns: minmax(0, 1fr);
-    row-gap: var(--space-8);
-  }
+  .tura { gap: var(--space-8); }
   .tura__allomas,
-  .tura__allomas--jobb,
-  .tura__teljes { grid-column: 1; }
+  .tura__allomas--jobb { width: 100%; align-self: stretch; }
   .tura__allomas,
   .hos.tura__teljes,
   .szekcio.tura__teljes { padding: var(--space-4); }

@@ -202,7 +202,12 @@ export default function FooldalPage() {
         <p className="apro">{sz('fooldal.jelzesApro')}</p>
       </section>
 
-      <section className="szekcio tura__teljes" data-feltun>
+      {/* Ez a szakasz eddig teljes szélességű volt, és három kártyát tett
+          egymás mellé — velük együtt eltakarta a hátteret. Most ő is
+          állomás: egy hasáb, a többivel váltakozva, mellette végig
+          látszik az út. A kártyarács fél szélességen magától egy
+          oszlopba rendeződik. */}
+      <section className="szekcio tura__allomas tura__allomas--bal" data-feltun>
         <header className="szekcio__fej">
           <h2 className="szekcio__cim">{sz('fooldal.keszVonal')}</h2>
           <p className="szekcio__lead">{sz('fooldal.keszVonalLead')}</p>
