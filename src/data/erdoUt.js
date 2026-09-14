@@ -1,0 +1,27 @@
+/* A háttérfotó útja — lekövetve.
+
+   A fotó madártávlatból mutat egy kanyargó erdei utat. A lap háttere ez a
+   kép, és ahogy görgetsz, egy vonal HALAD VÉGIG RAJTA: nem díszítés a kép
+   mellett, hanem ugyanazon az úton jár, amit a fotó mutat.
+
+   Ezért kell a nyomvonal a kép SAJÁT koordinátáiban: a vonal és a fotó egy
+   rétegben, közös `viewBox`-ban ül, így minden képernyőméreten fedik
+   egymást. (A `background-size: cover` kivágását egy különálló rajz nem
+   tudná követni.)
+
+   A pontokat nem kézzel raktam ki: a kép kékesszürke útfelülete elválik a
+   zöld lombtól, és erre a „úttalansági” költségre futott egy Dijkstra
+   néhány horgonypont között. A sor a kép FELSŐ széléről indul és a bal
+   alsó sarokban ér véget — lefelé görgetve tehát lefelé is haladsz. */
+
+export const KEP_SZELES = 2000;
+export const KEP_MAGAS = 1125;
+
+/* Töröttvonal, nem görbe: a pontok huszonhat képpontonként követik egymást,
+   ami a háttér méretében húsz képpont alatti szakasz — kerek csatlakozással
+   a szem nem látja a törést, a fájl viszont a negyede egy görbesornak. */
+export const UT = 'M744 8L761 25L780 44L800 64L820 84L842 100L868 109L896 114L922 121L945 135L967 154L990 170L1016 175L1044 173L1072 170L1100 165L1127 158L1153 151L1180 149L1208 151L1236 155L1263 158L1289 155L1316 151L1343 152L1367 162L1388 180L1408 200L1428 220L1444 242L1451 268L1452 296L1452 324L1450 352L1443 379L1435 405L1435 431L1443 457L1452 484L1462 511L1477 535L1496 556L1516 576L1536 596L1556 616L1578 632L1604 639L1632 641L1660 644L1687 651L1711 665L1734 680L1759 691L1782 706L1798 729L1813 751L1822 762L1808 764L1781 769L1757 784L1735 803L1712 820L1687 831L1660 831L1632 828L1604 829L1576 829L1548 828L1520 828L1492 828L1465 825L1439 816L1412 807L1384 802L1357 795L1332 782L1309 764L1288 744L1268 724L1250 702L1235 677L1217 658L1194 647L1172 632L1151 613L1127 600L1100 597L1072 600L1044 603L1016 605L989 610L964 620L939 631L912 641L884 650L856 653L828 647L800 636L773 622L749 604L728 584L707 565L685 547L663 529L641 511L619 492L595 477L568 472L540 472L514 477L494 494L483 520L485 547L498 572L514 595L531 617L548 640L564 664L579 688L593 712L607 736L620 761L634 786L652 808L671 829L689 851L709 872L732 890L756 905L780 919L804 932L828 945L852 959L875 974L896 992L914 1013L925 1037L923 1062L906 1079L881 1081L856 1071L832 1056L808 1041L783 1030L757 1021L732 1009L708 996L683 985L656 976L628 968L601 958L575 948L548 944L520 941L493 930L467 917L441 909L415 903L388 900L360 900L332 901L304 905L276 911L248 917L220 924L193 934L168 948L143 959L116 961L88 962L60 968L32 974L4 976';
+
+/* Az út eleje. Előrenderelt lapon a jelölő enélkül a bal felső sarokban
+   villanna fel, amíg a kód a helyére teszi. */
+export const KEZDET = [744, 8];

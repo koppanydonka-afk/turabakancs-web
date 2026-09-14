@@ -15,6 +15,11 @@
     <link rel="apple-touch-icon" href="/ikon-192.png" />
     <link rel="manifest" href="/manifest.json" />
     <meta name="theme-color" content="#2F5D3A" />
+    <!-- Az erdei háttér. Az előrenderelt HTML a lap SZÖVEGÉT tartalmazza,
+         a háttérréteget nem — a kép így csak a kód lefutása után indulna
+         el. Ezért itt kérjük előre: a böngésző már az első bájtoknál
+         látja, és a felület nem üresen villan fel. -->
+    <link rel="preload" as="image" href="/erdo.jpg" />
     <title>Túrabakancs — rajzolj útvonalat a térképre</title>
     <meta
       name="description"

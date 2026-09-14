@@ -9,7 +9,7 @@
    a tömeges letöltésük tilos — jogos okból. Csak azt tartjuk meg, amit a
    böngésződ amúgy is lekért, amikor nézted. */
 
-const VERZIO = 'v7';
+const VERZIO = 'v8';   // az erdo.jpg tartalma cserélődött: a régi tárat el kell dobni
 const VAZ = `turabakancs-vaz-${VERZIO}`;
 const CSEMPE = `turabakancs-csempe-${VERZIO}`;
 /* A stíluslap, a jelkészlet és a betűk nem csempék: kicsik, és NÉLKÜLÜK a
