@@ -332,6 +332,9 @@ export default {
   /* ---- Főoldal: mit tud, kiemelt példa ---- */
   'fooldal.peldaKalap': 'Tak wygląda to, co dostajesz',
   'fooldal.peldaNyisd': 'Otwórz w planerze',
+  'fooldal.osvenyCim': 'Ścieżka, gdy przewijasz',
+  'fooldal.osvenyLead': 'To nie ilustracja: jedna z klasycznych jednodniowych wycieczek w górach Pilis, narysowana z jej własnych punktów. Oznaczenia zapalają się tam, gdzie naprawdę są.',
+  'fooldal.osvenyGomb': 'Zobacz tę wycieczkę',
   'fooldal.mitTud': 'Co potrafi ta mapa',
   'fooldal.mitTudLead': 'Cztery powody, żeby planować tutaj, a nie na zwykłej mapie.',
   'fooldal.tud1Cim': 'Linia biegnie prawdziwymi ścieżkami',

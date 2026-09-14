@@ -1,6 +1,7 @@
 import Vedjegy from './Vedjegy.jsx';
 import Csillagok from './Csillagok.jsx';
 import UtvonalRajz from './UtvonalRajz.jsx';
+import OsvenyGorgetve from './OsvenyGorgetve.jsx';
 import { ertekelesSzerint } from '../data/ertekelesek.js';
 import { JELZESEK, SZINEK } from '../data/erdekessegek.js';
 import { RETEGEK } from '../data/szolgaltatasok.js';
@@ -164,6 +165,10 @@ export default function FooldalPage() {
           ))}
         </ol>
       </section>
+
+      {/* Az ösvény a „mit tud" állítások után jön: ott már tudod, mire
+          való, és itt látod egyben, egy valódi túrán. */}
+      <OsvenyGorgetve />
 
       <section className="szekcio" data-feltun>
         <header className="szekcio__fej">

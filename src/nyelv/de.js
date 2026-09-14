@@ -332,6 +332,9 @@ export default {
   /* ---- Főoldal: mit tud, kiemelt példa ---- */
   'fooldal.peldaKalap': 'So sieht aus, was du bekommst',
   'fooldal.peldaNyisd': 'Im Planer öffnen',
+  'fooldal.osvenyCim': 'Ein Pfad, während du scrollst',
+  'fooldal.osvenyLead': 'Keine Illustration: eine der klassischen Tageswanderungen im Pilisgebirge, aus ihren eigenen Punkten gezeichnet. Die Markierungen leuchten dort auf, wo sie wirklich sind.',
+  'fooldal.osvenyGomb': 'Diese Tour ansehen',
   'fooldal.mitTud': 'Was diese Karte kann',
   'fooldal.mitTudLead': 'Vier Gründe, hier zu planen statt auf einer Allzweckkarte.',
   'fooldal.tud1Cim': 'Die Linie folgt echten Fußwegen',

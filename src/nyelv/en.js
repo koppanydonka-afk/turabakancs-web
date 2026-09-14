@@ -332,6 +332,9 @@ export default {
   /* ---- Főoldal: mit tud, kiemelt példa ---- */
   'fooldal.peldaKalap': 'This is what you get',
   'fooldal.peldaNyisd': 'Open it in the planner',
+  'fooldal.osvenyCim': 'A trail, as you scroll',
+  'fooldal.osvenyLead': 'Not an illustration: one of the classic day hikes in the Pilis hills, drawn from its own points. The markers light up where they really are.',
+  'fooldal.osvenyGomb': 'See this hike',
   'fooldal.mitTud': 'What this map does',
   'fooldal.mitTudLead': 'Four reasons to plan here rather than on a general-purpose map.',
   'fooldal.tud1Cim': 'The line follows real footpaths',

@@ -351,6 +351,9 @@ export default {
   /* ---- Főoldal: mit tud, kiemelt példa ---- */
   'fooldal.peldaKalap': 'Így néz ki, amit kapsz',
   'fooldal.peldaNyisd': 'Nyisd meg a tervezőben',
+  'fooldal.osvenyCim': 'Egy ösvény, ahogy görgetsz',
+  'fooldal.osvenyLead': 'Ez nem illusztráció: a Pilis egyik klasszikus napi túrája, a saját pontjaiból rajzolva. A jelölések ott gyulladnak ki, ahol tényleg vannak.',
+  'fooldal.osvenyGomb': 'Nézd meg ezt a túrát',
   'fooldal.mitTud': 'Mit tud ez a térkép',
   'fooldal.mitTudLead': 'Négy dolog, amiért érdemesebb itt tervezni, mint egy általános térképen.',
   'fooldal.tud1Cim': 'A vonal a gyalogutakon fut',
