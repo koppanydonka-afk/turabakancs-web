@@ -141,18 +141,22 @@ export default function FooldalPage() {
                   {/* Két ízelítő ikon a mondat végén, a szöveg sorában. A
                       hét réteg teljes jelmagyarázata a tervezőben van. */}
                   {n === 3 && (
-                    <ul className="tud__retegek">
+                    /* `span`, nem `ul`: a mondat közepén állnak, a `<p>` pedig
+                       nem tűr listát — a böngésző HTML-elemzője ilyenkor
+                       lezárná a bekezdést, és szétesne a szerkezet. Nem is
+                       lista: két ízelítő ikon, nem végigolvasható felsorolás. */
+                    <span className="tud__retegek">
                       {['viz', 'latvany'].map((id) => (
-                        <li key={id} style={{ '--tu-szin': RETEGEK[id].gombSzin }} title={sz(RETEGEK[id].nevKulcs)}>
+                        <span key={id} style={{ '--tu-szin': RETEGEK[id].gombSzin }} title={sz(RETEGEK[id].nevKulcs)}>
                           <svg
                             viewBox="0 0 24 24"
                             aria-hidden="true"
                             dangerouslySetInnerHTML={{ __html: tipusSzerint(RETEGEK[id].tipus).rajz }}
                           />
                           <span className="csak-olvasonak">{sz(RETEGEK[id].nevKulcs)}</span>
-                        </li>
+                        </span>
                       ))}
-                    </ul>
+                    </span>
                   )}
                 </p>
               </div>

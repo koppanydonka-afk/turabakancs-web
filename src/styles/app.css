@@ -1149,14 +1149,12 @@ input::placeholder { color: var(--muted); }
 
 /* Két ízelítő ikon a mondat végén, a szöveg sorában. */
 .tud__retegek {
-  list-style: none;
-  margin: 0 0 0 0.35em;
-  padding: 0;
+  margin-left: 0.35em;
   display: inline-flex;
   gap: 5px;
   vertical-align: -0.36em;
 }
-.tud__retegek li {
+.tud__retegek > span {
   width: 24px;
   aspect-ratio: 1;
   display: grid;
