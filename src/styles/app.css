@@ -334,11 +334,11 @@ body.nincs-gorgetes { overflow: hidden; }
 }
 .tervezo__terkep-doboz { position: relative; height: 100%; min-height: 0; }
 .terkep { height: 100%; width: 100%; background: var(--surface-2); }
-/* A bakancs-kurzort a Terkep.jsx teszi a vászonra (kurzor.js) — oda a
-   CSS nem ér el, mert a MapLibre maga állítja. Ez a sor a doboz
-   szélének szól, és tartalék: ugyanaz a kereszt, amire a bakancs is
-   visszaesik, ha a böngésző nem kéri. */
-.terkep[data-mod='ut'], .terkep[data-mod='jeloles'] { cursor: crosshair; }
+/* A kurzort mindenhol a Terkep.jsx állítja (kurzor.js): a vászonra a
+   MapLibre miatt nem ér el a CSS, a dobozra pedig azért nem innen megy,
+   mert a rajz kódból készül. Itt korábban `crosshair` állt tartalékul —
+   az viszont látszott is, amíg a térkép betöltött, és nem illett a
+   bakancshoz. */
 
 /* ---- A mozgó bakancs ----
 
@@ -348,7 +348,13 @@ body.nincs-gorgetes { overflow: hidden; }
    után — a Terkep.jsx teszi a térkép dobozába, nem a React.
 
    A negatív margó a talp orrát viszi a mutató alá: ott van a fogópont,
-   és a lépés is e körül fordul. */
+   és a lépés is e körül fordul.
+
+   HÁROM TESTTARTÁS. Talpon a térkép fölött jársz; fogható pont fölött a
+   bakancs felemelkedik; húzás közben még feljebb. A fogópont jele viszont
+   HELYBEN MARAD mindhárom állapotban — az mutatja, hová esik a kattintás
+   —, és ő maga vált alakot: pötty, gyűrű, tömör korong. Harminckét
+   képponton ez olvasható el a legjobban. */
 .bakancs-kurzor {
   position: absolute;
   left: 0;
@@ -363,14 +369,38 @@ body.nincs-gorgetes { overflow: hidden; }
   will-change: transform;
 }
 .bakancs-kurzor--lathato { opacity: 1; }
-.bakancs-kurzor__rajz {
+.bakancs-kurzor > svg {
+  position: absolute;
+  inset: 0;
   display: block;
-  /* A talp orra a forgáspont: lépéskor a sarok emelkedik, a talpvég
-     marad a helyén — ahogy a járásban is. */
+  overflow: visible;
+}
+
+/* A talp orra a forgáspont: emeléskor és lépéskor a sarok emelkedik, a
+   talpvég marad a helyén — ahogy a járásban is. */
+.bakancs-kurzor__rajz {
   transform-origin: 2.1px 26.6px;
-  transition: transform 110ms var(--ease-out);
+  transition: transform 140ms var(--ease-out);
 }
 .bakancs-kurzor__rajz--lep { transform: rotate(-11deg); }
+.bakancs-kurzor--emelt .bakancs-kurzor__rajz { transform: translateY(-2.6px) rotate(-4deg); }
+.bakancs-kurzor--visz .bakancs-kurzor__rajz { transform: translateY(-3.4px) rotate(-7deg); }
+
+/* A földön maradó jel. A `fill-box` kell hozzá: enélkül a kör a teljes
+   rajzlap közepe körül nagyobbodna, nem a sajátja körül. */
+.bakancs-kurzor__hatter,
+.bakancs-kurzor__mag,
+.bakancs-kurzor__gyuru {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: transform 140ms var(--ease-out), opacity 140ms var(--ease-out);
+}
+.bakancs-kurzor__gyuru { opacity: 0; }
+.bakancs-kurzor--emelt .bakancs-kurzor__hatter,
+.bakancs-kurzor--visz .bakancs-kurzor__hatter { transform: scale(1.75); }
+.bakancs-kurzor--emelt .bakancs-kurzor__mag { opacity: 0; }
+.bakancs-kurzor--emelt .bakancs-kurzor__gyuru { opacity: 1; }
+.bakancs-kurzor--visz .bakancs-kurzor__mag { transform: scale(2.43); }
 
 .nezet__terkep { height: 62vh; min-height: 360px; border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--lap-keret), var(--lap-arnyek); }
 .nezet__terkep .terkep { border-radius: var(--radius-lg); }

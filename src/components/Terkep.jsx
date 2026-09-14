@@ -9,7 +9,7 @@ import { nyelv, sz } from '../nyelv/index.js';
 import { useSotet } from '../data/tema.js';
 import { sotetreFest } from '../data/terkepStilus.js';
 import { stilustKer } from '../data/terkepForras.js';
-import { BAKANCS_KURZOR, PONT_FOGVA, PONT_KURZOR, bakancsKoveto } from '../data/kurzor.js';
+import { BAKANCS_EMELT, BAKANCS_KURZOR, BAKANCS_VISZ, bakancsKoveto } from '../data/kurzor.js';
 import EszkozRudba from './EszkozRudba.jsx';
 import { KEZDO_KOZEP, KEZDO_ZOOM } from '../data/terkepAlap.js';
 
@@ -234,34 +234,51 @@ export default function Terkep({
   /* ---- Kurzor ----
      A MapLibre a vásznon tartja a kurzort, ezért CSS-ből nem lehet
      átírni: onnan kell, ahol ő is állítja. */
+  /* A kurzorkép két alakban megy ki: a böngésző az elsőt biztosan érti, a
+     másodikat (retinára élesítve) csak ha tudja — és akkor az marad
+     érvényben. */
+  const kepetRa = (elem, alakok) => alakok.forEach((alak) => { elem.style.cursor = alak; });
+
+  const BAKANCSOK = { alap: BAKANCS_KURZOR, emelt: BAKANCS_EMELT, visz: BAKANCS_VISZ };
+
   const kurzor = (ertek) => {
     const m = terkep.current;
     if (!m) return;
     const vaszon = m.getCanvas();
+    const kep = BAKANCSOK[ertek];
 
-    if (ertek === 'bakancs') {
+    if (kep) {
       if (koveto.current) {
         /* Van saját, mozgó bakancsunk: a gyári kurzor félreáll. */
         koveto.current.mutat();
+        koveto.current.allasra(ertek);
         vaszon.style.cursor = 'none';
         return;
       }
-      /* Mindkét alakot megpróbáljuk: a böngésző az elsőt biztosan érti,
-         a másodikat csak ha tudja — és akkor az marad érvényben. */
-      BAKANCS_KURZOR.forEach((alak) => { vaszon.style.cursor = alak; });
+      kepetRa(vaszon, kep);
       return;
     }
 
     koveto.current?.elrejt();
-    vaszon.style.cursor = ertek === 'pontFogva' ? PONT_FOGVA : ertek;
+    vaszon.style.cursor = ertek;
   };
-  const alapKurzor = () => (friss.current.mod ? 'bakancs' : '');
+  const alapKurzor = () => (friss.current.mod ? 'alap' : '');
 
   /* Húzás közben a MapLibre kikapcsolja a jelölő egéreseményeit (hogy a
      térkép kapja meg őket), tehát a mutató ilyenkor a VÁSZON fölött van
-     — a fogás kurzorát oda kell tenni, nem a jelölőre. */
-  const fogasKezd = () => kurzor('pontFogva');
-  const fogasVege = () => kurzor(alapKurzor());
+     — a fogás állapotát oda kell tenni, nem a jelölőre. */
+  const fogasKezd = () => kurzor('visz');
+  /* Elengedés után a mutató még a ledobott ponton áll, tehát nem talpra
+     állunk, hanem emelt bakancsra — különben egy pillanatra lecsapódna,
+     és csak a következő egérmozdulatra emelkedne vissza. */
+  const fogasVege = () => kurzor(friss.current.mod ? 'emelt' : '');
+
+  /* A fogható jelölők fölött a bakancs felemelkedik. Ha van követőnk, ő
+     rajzolja — akkor a jelölőn nem kell gyári kurzor. */
+  const jelolotKurzoroz = (elem) => {
+    if (koveto.current) elem.style.cursor = 'none';
+    else kepetRa(elem, BAKANCS_EMELT);
+  };
 
   /* ---- Kép a látványosság buborékjába ----
 
@@ -621,7 +638,14 @@ export default function Terkep({
 
   /* A kurzor jelzi, hogy a kattintás most csinál-e valamit. */
   useEffect(() => {
-    if (doboz.current) doboz.current.dataset.mod = mod ?? 'nezet';
+    if (doboz.current) {
+      doboz.current.dataset.mod = mod ?? 'nezet';
+      /* A dobozra is rákerül az álló bakancs: amíg a térkép betölt, a
+         vászon még nincs meg, és addig ez látszik. Korábban itt a gyári
+         kereszt állt. */
+      if (mod) kepetRa(doboz.current, BAKANCS_KURZOR);
+      else doboz.current.style.cursor = '';
+    }
     kurzor(alapKurzor());
   }, [mod, terkepKesz]);
 
@@ -723,7 +747,7 @@ export default function Terkep({
       elem.className = `ut-pont${elso ? ' ut-pont--rajt' : ''}${utolso ? ' ut-pont--cel' : ''}`;
       elem.title = elso ? sz('terkep.rajt') : utolso ? sz('terkep.cel') : sz('terkep.hanyadikPont', { n: i + 1 });
 
-      if (szerkeszt) elem.style.cursor = PONT_KURZOR;
+      if (szerkeszt) jelolotKurzoroz(elem);
 
       const jel = new Marker({ element: elem, draggable: szerkeszt })
         .setLngLat([lng, lat])
@@ -771,7 +795,7 @@ export default function Terkep({
       elem.innerHTML = tuHtml(j.tipus);
       if (j.cimke) elem.title = j.cimke;
 
-      if (friss.current.mod) elem.style.cursor = PONT_KURZOR;
+      if (friss.current.mod) jelolotKurzoroz(elem);
 
       const jel = new Marker({
         element: elem,

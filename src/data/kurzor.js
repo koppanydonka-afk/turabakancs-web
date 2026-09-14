@@ -1,23 +1,28 @@
-/* A térkép kurzorai.
+/* A térkép kurzorai — mind bakancs.
 
-   A tervezőn eddig a böngésző gyári keresztje állt a térkép fölött, a
-   pontok fölött pedig a gyári kéz. Az oldal neve Túrabakancs — a kurzor
-   legyen bakancs, ami odalép, ahová a következő pont kerül, a pontok
-   fölött pedig legyen látszódjon, hogy meg lehet fogni őket.
+   Az oldal neve Túrabakancs; a kurzor bakancs, ami odalép, ahová a
+   következő pont kerül. Korábban a pontok fölött célkereszt-szerű
+   jel állt (korong és négy nyíl) — az más képi nyelv volt, mint a
+   bakancs. Most a bakancs marad, és a TESTTARTÁSA mondja meg, mi
+   történik:
 
-   A PONTOSSÁG NEM VESZHET EL: a bakancs önmagában nem mutat pontos
-   helyet, ezért a talp orra alatt ott a fogópont, apró narancs koronggal
-   jelölve — a kurzor töve pontosan ott van, ahová kattintasz. */
+     talpon    — a térkép fölött jársz; mozgásra lép
+     emelve    — fogható pont fölött vagy: a bakancs felemelkedik
+     viszi     — húzod a pontot: a bakancs fent van, a pont nála
+
+   A PONTOSSÁG NEM VESZHET EL: a fogópontot nem a bakancs jelöli, hanem
+   egy külön, HELYBEN MARADÓ jel a talp orra alatt. Amikor a bakancs
+   felemelkedik, a jel ott marad, ahová a kattintás esik — és árnyék
+   kerül alá, hogy látszódjon az emelés. */
 
 const VISZONT = '#F4F2ED';   // fűzővonalak
 const TEST = '#2F5D3A';      // szár és lábfej — ugyanaz a zöld, mint a gombokon
 const TALP = '#9B6B15';      // talp — a védjegy célpontjának sárgája
 const NYOM = '#D94F1E';      // a megrajzolt vonal színe
-const SOTET = '#1C2119';
 
 const cim = (svg) => `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
 
-/* ---------- A bakancs ---------- */
+/* ---------- A bakancs teste ---------- */
 
 const FELSO =
   'M3.2 22.6 C3.2 20.4 3.4 19 4.4 18.2 C6.4 17 10.4 16.6 15.4 15.8 '
@@ -30,56 +35,68 @@ const TALP_UT =
 
 /* A fehér kontúr nem díszítés: enélkül a sötét zöld szár eltűnne az
    erdőfoltokon, a sárga talp pedig a mezőkön. */
-export const bakancsRajz = (meret) => `<svg xmlns="http://www.w3.org/2000/svg" width="${meret}" height="${meret}" viewBox="0 0 32 32">
+export const bakancsTest = `
 <g fill="none" stroke="#fff" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"><path d="${FELSO}"/><path d="${TALP_UT}"/></g>
 <path d="${FELSO}" fill="${TEST}"/><path d="${TALP_UT}" fill="${TALP}"/>
 <g stroke="${VISZONT}" stroke-width="1.35" stroke-linecap="round" opacity=".92"><path d="M20 9.6h6"/><path d="M20 13h6.2"/></g>
-<path d="M6.4 19.4C8.6 18.4 11.4 18 14.4 17.4" fill="none" stroke="${VISZONT}" stroke-width="1.2" stroke-linecap="round" opacity=".7"/>
-<circle cx="2.1" cy="26.6" r="2.4" fill="#fff"/><circle cx="2.1" cy="26.6" r="1.15" fill="${NYOM}"/></svg>`;
+<path d="M6.4 19.4C8.6 18.4 11.4 18 14.4 17.4" fill="none" stroke="${VISZONT}" stroke-width="1.2" stroke-linecap="round" opacity=".7"/>`;
 
-/* A fogópont a talp orra: 2 képpont jobbra, 27 lefelé. */
+/* ---------- A földön maradó jel ----------
+
+   A fogópont a talp orra alatt: 2 képpont jobbra, 27 lefelé. Ez a jel
+   akkor sem mozdul, amikor a bakancs felemelkedik — így mindig látszik,
+   hova esik a kattintás. */
+export const FOGO_X = 2.1;
+export const FOGO_Y = 26.6;
 const FOGO = '2 27';
 
-/* MIÉRT KÉT MÉRET: a böngésző a kurzort a kép saját méretében rajzolja
+/* `allas`: 'alap' | 'emelt' | 'visz'
+
+   A jel maga mondja meg az állapotot, mert harminckét képponton ez
+   olvasható el a legjobban: pötty → gyűrű → tömör korong. A bakancs
+   emelése ezt kíséri, nem helyettesíti. */
+export const foldJel = (allas = 'alap') => {
+  const hatter = allas === 'alap' ? 2.4 : 4.2;
+  const belso = allas === 'emelt'
+    ? `<circle cx="${FOGO_X}" cy="${FOGO_Y}" r="2.6" fill="none" stroke="${NYOM}" stroke-width="1.9"/>`
+    : `<circle cx="${FOGO_X}" cy="${FOGO_Y}" r="${allas === 'visz' ? 2.8 : 1.15}" fill="${NYOM}"/>`;
+  return `<circle cx="${FOGO_X}" cy="${FOGO_Y}" r="${hatter}" fill="#fff"/>${belso}`;
+};
+
+/* A testtartások. A bakancs a fogópont körül fordul: a sarok emelkedik,
+   a talpvég marad a helyén — ahogy a járásban is. Az emelés mértékét a
+   doboz teteje szabja meg: a szár fölött alig öt képpont van. */
+export const TARTAS = {
+  alap: 'translate(0,0)',
+  emelt: `translate(0,-2.6) rotate(-4 ${FOGO_X} ${FOGO_Y})`,
+  visz: `translate(0,-3.4) rotate(-7 ${FOGO_X} ${FOGO_Y})`,
+};
+
+/* A jel a bakancs FÖLÉ kerül: talpon állva a talp orra eltakarná, és épp
+   az veszne el, ami a pontosságot mutatja. */
+const egeszRajz = (meret, allas) => `<svg xmlns="http://www.w3.org/2000/svg" width="${meret}" height="${meret}" viewBox="0 0 32 32">
+<g transform="${TARTAS[allas]}">${bakancsTest}</g>${foldJel(allas)}</svg>`;
+
+/* ---------- Kész kurzorképek ----------
+
+   MIÉRT KÉT MÉRET: a böngésző a kurzort a kép saját méretében rajzolja
    ki, tehát egy 32 képpontos rajz retinán 32 ESZKÖZ-képpontra kerül, és
    elmosódik. Az `image-set` a kétszeres változatot adja ilyenkor. Ahol
    az `image-set` nem megy, ott az alatta lévő egyszerű `url()` marad
-   érvényben; ahol az sem, ott a kereszt. */
-export const BAKANCS_KURZOR = [
-  `${cim(bakancsRajz(32))} ${FOGO}, crosshair`,
-  `image-set(${cim(bakancsRajz(32))} 1x, ${cim(bakancsRajz(64))} 2x) ${FOGO}, crosshair`,
+   érvényben; ahol az sem, ott a tartalék kulcsszó.
+
+   Ezek akkor kellenek, ha nincs mozgó bakancsunk (érintés, vagy aki
+   kevesebb mozgást kért) — egyébként a követő elem rajzol. */
+const kurzorPar = (allas, tartalek) => [
+  `${cim(egeszRajz(32, allas))} ${FOGO}, ${tartalek}`,
+  `image-set(${cim(egeszRajz(32, allas))} 1x, ${cim(egeszRajz(64, allas))} 2x) ${FOGO}, ${tartalek}`,
 ];
 
-/* ---------- A pontok kurzora ----------
+export const BAKANCS_KURZOR = kurzorPar('alap', 'default');
+export const BAKANCS_EMELT = kurzorPar('emelt', 'grab');
+export const BAKANCS_VISZ = kurzorPar('visz', 'grabbing');
 
-   A vonal pontja fölött eddig a gyári kéz állt. Az nem mond semmit arról,
-   MI fogható meg — ez viszont magát a pontot mutatja, körülötte a négy
-   iránnyal. Fogás közben a nyilak befelé húzódnak, a korong betelik:
-   ugyanaz a jel, más állapotban. */
-const pontRajz = (fogva) => {
-  const t = fogva ? 9.4 : 12.5;      // a nyílhegyek távolsága a középponttól
-  const hegy = {
-    fel: `M16 ${16 - t - 3.4} L${16 - 3.2} ${16 - t + 0.6} L${16 + 3.2} ${16 - t + 0.6} Z`,
-    le: `M16 ${16 + t + 3.4} L${16 - 3.2} ${16 + t - 0.6} L${16 + 3.2} ${16 + t - 0.6} Z`,
-    bal: `M${16 - t - 3.4} 16 L${16 - t + 0.6} ${16 - 3.2} L${16 - t + 0.6} ${16 + 3.2} Z`,
-    jobb: `M${16 + t + 3.4} 16 L${16 + t - 0.6} ${16 - 3.2} L${16 + t - 0.6} ${16 + 3.2} Z`,
-  };
-  const hegyek = Object.values(hegy).map((d) => `<path d="${d}"/>`).join('');
-  const sugar = fogva ? 5.6 : 4.6;
-  /* Fehér kontúr itt is: a sötét nyílhegyek eltűnnének a sötét térképen,
-     a narancs korong pedig az őszi lomb fölött. */
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
-<g fill="#fff" stroke="#fff" stroke-width="2.8" stroke-linejoin="round">${hegyek}</g>
-<circle cx="16" cy="16" r="${sugar + 2}" fill="#fff"/>
-<g fill="${SOTET}">${hegyek}</g>
-<circle cx="16" cy="16" r="${sugar}" fill="${fogva ? NYOM : '#fff'}" stroke="${NYOM}" stroke-width="2.4"/></svg>`;
-};
-
-/* A fogópont a korong közepe. A gyári `grab`/`grabbing` a tartalék. */
-export const PONT_KURZOR = `${cim(pontRajz(false))} 16 16, grab`;
-export const PONT_FOGVA = `${cim(pontRajz(true))} 16 16, grabbing`;
-
-/* ---------- Az animált bakancs ----------
+/* ---------- A mozgó bakancs ----------
 
    A böngésző kurzorképe NEM animálható: a beágyazott SVG-t egyszer
    kirajzolja, és onnantól kép. Ezért mozgó kurzorhoz el kell rejteni a
@@ -105,16 +122,24 @@ export function bakancsKoveto(doboz) {
   const elem = document.createElement('div');
   elem.className = 'bakancs-kurzor';
   elem.setAttribute('aria-hidden', 'true');
-  elem.innerHTML = `<span class="bakancs-kurzor__rajz">${bakancsRajz(32)}</span>`;
-  const rajz = elem.firstElementChild;
+  /* Két réteg: a földön maradó jel, és fölötte a mozgó bakancs. */
+  elem.innerHTML = `
+    <svg class="bakancs-kurzor__rajz" viewBox="0 0 32 32" width="32" height="32">${bakancsTest}</svg>
+    <svg class="bakancs-kurzor__fold" viewBox="0 0 32 32" width="32" height="32">
+      <circle class="bakancs-kurzor__hatter" cx="${FOGO_X}" cy="${FOGO_Y}" r="2.4" fill="#fff"/>
+      <circle class="bakancs-kurzor__mag" cx="${FOGO_X}" cy="${FOGO_Y}" r="1.15" fill="${NYOM}"/>
+      <circle class="bakancs-kurzor__gyuru" cx="${FOGO_X}" cy="${FOGO_Y}" r="2.6" fill="none" stroke="${NYOM}" stroke-width="1.9"/>
+    </svg>`;
+  const rajz = elem.querySelector('.bakancs-kurzor__rajz');
   doboz.appendChild(elem);
 
   let megtett = 0;
   let elozoX = null;
   let elozoY = null;
   let ora = 0;
-  /* Három külön ok a rejtésre: kint az egér, idegen elem fölött van (a
-     jelölőknek saját kurzoruk van), vagy a térkép kérte. */
+  let allas = 'alap';
+  /* Három külön ok a rejtésre: kint az egér, a térkép saját vezérlője
+     fölött van, vagy a térkép kérte. */
   let bent = false;
   let idegen = false;
   let kertRejtes = false;
@@ -123,6 +148,15 @@ export function bakancsKoveto(doboz) {
     elem.classList.toggle('bakancs-kurzor--lathato', bent && !idegen && !kertRejtes);
   };
   const letalpal = () => rajz.classList.remove('bakancs-kurzor__rajz--lep');
+
+  const allasra = (uj) => {
+    if (allas === uj) return;
+    allas = uj;
+    elem.classList.toggle('bakancs-kurzor--emelt', uj === 'emelt');
+    elem.classList.toggle('bakancs-kurzor--visz', uj === 'visz');
+    /* Emelt bakanccsal nem lépünk: az a láb épp nincs a földön. */
+    if (uj !== 'alap') letalpal();
+  };
 
   const mozdul = (e) => {
     /* Ujjal húzva is érkezik `pointermove`. A bakancs az egérmutató
@@ -134,10 +168,18 @@ export function bakancsKoveto(doboz) {
     const y = e.clientY - d.top;
     elem.style.transform = `translate3d(${x}px, ${y}px, 0)`;
 
-    idegen = Boolean(e.target?.closest?.('.maplibregl-marker, .maplibregl-ctrl, .maplibregl-popup'));
+    /* A térkép saját vezérlői (nagyítás, forrásmegjelölés, buborék) nem a
+       térkép felülete: ott a gyári kurzor a helyes. A jelölők viszont
+       igen — azok fölött a bakancs emelkedik. */
+    const cel = e.target?.closest?.('.maplibregl-ctrl, .maplibregl-popup');
+    idegen = Boolean(cel);
+    if (allas !== 'visz') {
+      allasra(e.target?.closest?.('.maplibregl-marker') ? 'emelt' : 'alap');
+    }
     bent = true;
     frissit();
 
+    if (allas !== 'alap') return;
     if (elozoX !== null) megtett += Math.hypot(x - elozoX, y - elozoY);
     elozoX = x;
     elozoY = y;
@@ -159,6 +201,9 @@ export function bakancsKoveto(doboz) {
   return {
     mutat() { kertRejtes = false; frissit(); },
     elrejt() { kertRejtes = true; frissit(); letalpal(); },
+    /* Húzás közben a jelölő nem kapja az egeret (a MapLibre kikapcsolja),
+       ezért a testtartást a térkép mondja meg. */
+    allasra,
     bont() {
       clearTimeout(ora);
       doboz.removeEventListener('pointermove', mozdul);
