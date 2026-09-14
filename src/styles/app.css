@@ -2358,16 +2358,31 @@ input::placeholder { color: var(--muted); }
 
    A kezdőállapot a `.mozgas` osztályhoz van kötve (a kód teszi ki): ha a
    JavaScript nem fut le, a lapok egyszerűen látszanak. */
+/* A BEUGRÁS IRÁNYA. Minden lap a saját oldala felől érkezik: a bal
+   oszlopban állók balról, a jobb oszlopban állók jobbról. Így az érkezés
+   maga mondja meg, hova tart — nem csak „megjelenik”.
+
+   A túllendülést a lendületes időzítés adja (`--ugras`): a lap átmegy egy
+   kicsit a helyén, aztán visszaáll. Átmenettel, nem animációval — így nem
+   ütközik az elhalványulással, amikor a lap kifut a képernyőn. */
+.tura__allomas,
+.tura__szabad {
+  --ugras: cubic-bezier(.34, 1.4, .64, 1);
+  --erkezes: -60px;
+}
+.tura__allomas[data-allomas='jobb'],
+.tura__szabad[data-allomas='jobb'] { --erkezes: 60px; }
+
 .mozgas .tura__allomas,
 .mozgas .tura__szabad {
   transition:
-    opacity 460ms var(--ease-out),
-    transform 460ms var(--ease-out),
+    opacity 380ms var(--ease-out),
+    transform 620ms var(--ugras),
     clip-path 640ms var(--ease-out);
 }
 .mozgas .tura__allomas {
   opacity: 0;
-  transform: scale(.94) translateY(14px);
+  transform: translateX(var(--erkezes)) scale(.96);
   clip-path: circle(10% at 50% 50%);
 }
 .mozgas .tura__allomas[data-feltun='kesz'] {
@@ -2414,15 +2429,16 @@ input::placeholder { color: var(--muted); }
   background: color-mix(in srgb, var(--surface) 93%, transparent);
   box-shadow: var(--lap-keret), var(--lap-arnyek);
 }
-/* Eltolás: a buborékok nem egy vonalban állnak, hanem lépcsősen — így néz
-   ki úgy, mintha az út mellé lennének kirakva, nem egy hasábba rendezve. */
-.tura__szabad .bubor:nth-child(2n) { margin-inline-start: clamp(10px, 4%, 38px); }
-.tura__szabad .bubor:nth-child(3n) { margin-inline-start: clamp(18px, 7%, 66px); }
+/* A buborékok EGY VONALBAN állnak. Volt egy lépcsős változat, de a
+   szemnek nincs mit követnie rajta: a bal szélek összevissza álltak, és a
+   szakasz szétesett. A rendet a közös bal szél adja, a mozgást az érkezés. */
 
+/* Oldalról ugrik be, egy kis túllendüléssel — ugyanaz a mozdulat, mint a
+   lapoké, csak buborékonként, egymás után. */
 @keyframes bubor-fel {
-  0%   { opacity: 0; transform: scale(.6) translateY(12px); }
-  62%  { opacity: 1; transform: scale(1.035) translateY(0); }
-  100% { opacity: 1; transform: scale(1); }
+  0%   { opacity: 0; transform: translateX(var(--erkezes)) scale(.92); }
+  60%  { opacity: 1; transform: translateX(calc(var(--erkezes) * -.12)) scale(1.02); }
+  100% { opacity: 1; transform: none; }
 }
 .mozgas .tura__szabad .bubor,
 .mozgas .tura__szabad .szabad__fej,
@@ -2430,11 +2446,11 @@ input::placeholder { color: var(--muted); }
 .mozgas .tura__szabad[data-feltun='kesz'] .szabad__fej,
 .mozgas .tura__szabad[data-feltun='kesz'] .szabad__apro {
   opacity: 1;
-  animation: bubor-fel 440ms var(--ease-out) backwards;
+  animation: bubor-fel 480ms var(--ugras) backwards;
 }
 .mozgas .tura__szabad[data-feltun='kesz'] .bubor {
   opacity: 1;
-  animation: bubor-fel 520ms var(--ease-out) backwards;
+  animation: bubor-fel 560ms var(--ugras) backwards;
   /* Egymás után, nem egyszerre: a sorrend maga is mondja, mit olvass. */
   animation-delay: calc((var(--i, 0) + 1) * 85ms);
 }
@@ -2447,7 +2463,7 @@ input::placeholder { color: var(--muted); }
    olvashatóságot vinné el. */
 .fooldal { --folt-szin: 246 244 239; }
 :root[data-tema='sotet'] .fooldal,
-:root:not([data-tema='vilagos']) .fooldal { --folt-szin: 4 7 4; }
+:root:not([data-tema='vilagos']) .fooldal { --folt-szin: 14 19 14; }
 @media (prefers-color-scheme: light) {
   :root:not([data-tema='sotet']) .fooldal { --folt-szin: 246 244 239; }
 }
@@ -2458,7 +2474,14 @@ input::placeholder { color: var(--muted); }
   position: relative;
   /* Saját rétegsor, különben a −1 a lap háttere MÖGÉ vinné a foltot. */
   isolation: isolate;
+  --folt-1: .9;
+  --folt-2: .68;
+  --folt-3: .28;
 }
+/* A védjegy mögött a folt jóval halványabb. Ott nagy, vastag betű áll,
+   annak elég egy lehelet — a tömör sötét folt csak elvette az erdőt, és
+   foltnak is látszott, nem fénynek. */
+.hos--folt { --folt-1: .4; --folt-2: .26; --folt-3: .09; }
 .hos--folt::before,
 .szabad__fej::before,
 .szabad__apro::before {
@@ -2468,9 +2491,9 @@ input::placeholder { color: var(--muted); }
   z-index: -1;
   background: radial-gradient(
     56% 58% at 50% 50%,
-    rgb(var(--folt-szin) / .92),
-    rgb(var(--folt-szin) / .72) 52%,
-    rgb(var(--folt-szin) / .3) 74%,
+    rgb(var(--folt-szin) / var(--folt-1)),
+    rgb(var(--folt-szin) / var(--folt-2)) 52%,
+    rgb(var(--folt-szin) / var(--folt-3)) 74%,
     rgb(var(--folt-szin) / 0) 88%
   );
   pointer-events: none;
@@ -2478,8 +2501,8 @@ input::placeholder { color: var(--muted); }
 /* A folt önmagában a nagy betűnek elég, az apró szürkének nem: a
    betűárnyék pont a betű körül sűríti a sötétet, ahol kell. */
 .szabad__fej,
-.szabad__apro,
-.hos--folt { text-shadow: 0 1px 4px rgb(var(--folt-szin) / .9); }
+.szabad__apro { text-shadow: 0 1px 4px rgb(var(--folt-szin) / .9); }
+.hos--folt { text-shadow: 0 2px 14px rgb(var(--folt-szin) / .7); }
 .szabad__apro { --folt-y: -10px; --folt-x: -14px; }
 
 /* ---- Értesítés: a kiemelt példa ----
@@ -2632,7 +2655,9 @@ input::placeholder { color: var(--muted); }
   .tura__allomas,
   .tura__szabad { width: 100%; align-self: stretch; }
   .tura__allomas--ertesites { width: 100%; }
-  .tura__szabad .bubor { margin-inline-start: 0; }
+  /* Keskeny lapon mindkét oszlop ugyanaz: az érkezés is balról jön. */
+  .tura__allomas,
+  .tura__szabad { --erkezes: -40px; }
   .tura__allomas,
   .hos.tura__teljes,
   .szekcio.tura__teljes { padding: var(--space-4); }

@@ -10,32 +10,24 @@ import { halad as haladAranybol } from '../osveny.js';
    a kép saját koordinátáiban (2000×1125) — nem háttérképként, mert annak a
    kivágását egy különálló rajz nem tudná lekövetni.
 
-   A KÍSÉRŐ. A vászon „cover” méretű: ami nem fér a képernyőre, az kilóg.
-   Széles képernyőn ez pár tíz képpont, keskenyen viszont a kép háromnegyede
-   — ott a vonal feje simán kimenne a képből. Ezért a vászon a fej után
-   csúszik: a kivágat mindig ott jár, ahol a vonal tart. Széles lapon ez
-   alig észrevehető sodródás, keskenyen valódi kísérés — mintha a kamera
-   az úton haladóval menne.
+   A KÉP ÁLL. Egy korábbi változatban a vászon a vonal feje után csúszott,
+   hogy keskeny képernyőn se menjen ki a fej a képből. Kimérve jó ötlet
+   volt, nézve viszont nem: görgetés közben az egész háttér folyamatosan
+   sodródott, és ez elvonta a figyelmet arról, amiért az egész van — a
+   vonaltól. Most a kivágat középen áll és nem mozdul; ami nem fér a
+   képernyőre, az egyenlően lóg ki a két oldalon.
 
-   MI KERÜL KÉPKOCKÁNKÉNT PÉNZBE. Görgetéskor összesen három vászon
-   vetemítését írjuk át (`transform`) és egy számot (`--halad`). Se
-   elrendezést nem kérünk a böngészőtől, se szűrőt nem futtatunk újra:
-   ami elmosott, az egyszer készül el, és utána már csak tolódik. A lapok
-   alól ezért tűnt el a `backdrop-filter` is — az mozgó háttér fölött
-   minden képkockán újraszámolt volna.
+   MI KERÜL KÉPKOCKÁNKÉNT PÉNZBE. Görgetéskor egyetlen szám íródik
+   (`--halad`), és abból a CSS rajzolja tovább a vonalat. Elrendezést nem
+   kérünk a böngészőtől, szűrőt nem futtatunk újra: ami elmosott, az
+   egyszer készül el. A lapok alól ezért tűnt el a `backdrop-filter` is.
 
    Az egész réteg a tartalom mögött ül, és egéreseményt nem fog el. */
 
 export default function ErdoHatter() {
   const doboz = useRef(null);
-  const vaszonok = useRef([]);
   const vonal = useRef(null);
   const jaro = useRef(null);
-
-  /* Három réteg mozog együtt: az éles kép, a széleken látszó elmosott
-     másolata, és a rajz. Egy tömbben tartom őket, hogy a kísérő egyetlen
-     körrel végezzen. */
-  const vaszonra = (i) => (elem) => { vaszonok.current[i] = elem; };
 
   useEffect(() => {
     const elem = doboz.current;
@@ -47,42 +39,26 @@ export default function ErdoHatter() {
        fej rossz helyre kerülne. */
     const hossz = ut.getTotalLength();
 
-    /* Amit elég ritkán kiszámolni, azt ne képkockánként kérjük. A
-       `scrollHeight` és az `offsetWidth` OLVASÁSA elrendezést kényszerít a
-       böngészőre — görgetés közben ez pont az, amitől akad. */
-    let meret = { w: 0, h: 0, vw: 0, vh: 0, futas: 0 };
+    /* A görgetési úthosszt elég ritkán kiszámolni. A `scrollHeight`
+       OLVASÁSA elrendezést kényszerít a böngészőre — görgetés közben ez
+       pont az, amitől akad. */
+    let futas = 0;
     const merj = () => {
-      /* Az elsőt, ami tényleg látszik: keskeny lapon az éles réteg
-         kimarad, mert a lágy másolat úgyis eltakarná. */
-      const v = vaszonok.current.find((x) => x && x.offsetWidth);
-      meret = {
-        w: v?.offsetWidth ?? 0,
-        h: v?.offsetHeight ?? 0,
-        vw: elem.clientWidth,
-        vh: elem.clientHeight,
-        futas: document.documentElement.scrollHeight - window.innerHeight,
-      };
+      futas = document.documentElement.scrollHeight - window.innerHeight;
     };
 
-    const kisero = (halad) => {
+    /* Már csak a jelölőt kell a helyére tenni: a vásznak nem mozdulnak. */
+    const fejet = (halad) => {
+      if (!jaro.current) return;
       const p = ut.getPointAtLength(hossz * halad);
-      const { w, h, vw, vh } = meret;
-      const csuszX = Math.max(0, w - vw);
-      const csuszY = Math.max(0, h - vh);
-      /* A fej a képernyő közepére kívánkozik, de a kép széleinél megáll:
-         üres sáv nem kerülhet a kép mellé. */
-      const x = Math.min(Math.max((p.x / KEP_SZELES) * w - vw / 2, 0), csuszX) - csuszX / 2;
-      const y = Math.min(Math.max((p.y / KEP_MAGAS) * h - vh / 2, 0), csuszY) - csuszY / 2;
-      const hova = `translate(-50%, -50%) translate3d(${-x.toFixed(1)}px, ${-y.toFixed(1)}px, 0)`;
-      for (const v of vaszonok.current) if (v) v.style.transform = hova;
-      if (jaro.current) jaro.current.setAttribute('transform', `translate(${p.x.toFixed(1)} ${p.y.toFixed(1)})`);
+      jaro.current.setAttribute('transform', `translate(${p.x.toFixed(1)} ${p.y.toFixed(1)})`);
     };
 
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       /* Csökkentett mozgásnál nincs utazás: az út kirajzolva áll. */
       elem.style.setProperty('--halad', '1');
       merj();
-      kisero(1);
+      fejet(1);
       return undefined;
     }
 
@@ -91,12 +67,12 @@ export default function ErdoHatter() {
     let keret = 0;
     const szamol = () => {
       keret = 0;
-      const arany = meret.futas <= 0 ? 1 : Math.min(1, Math.max(0, window.scrollY / meret.futas));
+      const arany = futas <= 0 ? 1 : Math.min(1, Math.max(0, window.scrollY / futas));
       /* Ugyanazt a képletet használja a lap elrendezése is, hogy tudja,
          hol jár a vonal — ezért közös (`osveny.js`). */
       const halad = haladAranybol(arany);
       elem.style.setProperty('--halad', halad.toFixed(4));
-      kisero(halad);
+      fejet(halad);
     };
     const figyel = () => { if (!keret) keret = requestAnimationFrame(szamol); };
     const ujramer = () => { merj(); figyel(); };
@@ -120,7 +96,7 @@ export default function ErdoHatter() {
 
   return (
     <div className="erdo-szin" ref={doboz} aria-hidden="true">
-      <div className="erdo-szin__vaszon erdo-szin__vaszon--eles" ref={vaszonra(0)}>
+      <div className="erdo-szin__vaszon erdo-szin__vaszon--eles">
         {/* Sima JPEG, 1400 képponton. Készült AVIF is (feleennyi bájt), de
             a `sips` kódolója olyat ad, amit a böngésző BETÖLT — a mérete
             megvan —, kifesteni viszont nem festi ki: kimérve a kép helyén a
@@ -130,10 +106,10 @@ export default function ErdoHatter() {
 
       {/* A két szél lágyítása: ugyanaz a kép, elmosva, és csak a széleken
           látszik. A maszk a burkolaton ül, mert a KÉPERNYŐHÖZ tartozik —
-          a kivágat alatta elcsúszhat. Ugyanez a kép, tehát nem tölt le
-          semmi újat. */}
+          a kivágat nem a képernyő közepéhez igazodik. Ugyanez a kép,
+          tehát nem tölt le semmi újat. */}
       <div className="erdo-szin__oldalak">
-        <div className="erdo-szin__vaszon" ref={vaszonra(1)}>
+        <div className="erdo-szin__vaszon">
           <img className="erdo-szin__kep erdo-szin__kep--lagy" src="/erdo.jpg" alt="" width={KEP_SZELES} height={KEP_MAGAS} />
         </div>
       </div>
@@ -142,7 +118,7 @@ export default function ErdoHatter() {
           képernyőn múlik, nem azon, hol jár a kivágat. */}
       <div className="erdo-szin__fatyol" />
 
-      <div className="erdo-szin__vaszon" ref={vaszonra(2)}>
+      <div className="erdo-szin__vaszon">
         <svg className="erdo-szin__ut" viewBox={`0 0 ${KEP_SZELES} ${KEP_MAGAS}`} preserveAspectRatio="none">
           <defs>
             <radialGradient id="erdoUdvar">

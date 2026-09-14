@@ -17,14 +17,13 @@ export const halad = (arany) => Math.min(1, ELONY + (1 - ELONY) * arany);
    CSS-ben áll: `max(100%, 100vh * 2000 / 1125)`. */
 export const vaszonSzelesseg = (vw, vh) => Math.max(vw, (vh * KEP_SZELES) / KEP_MAGAS);
 
-/* A kísérő állása egy adott fejpontnál: a vászon szélessége, és hogy
-   mennyivel van eltolva. A fej a képernyő közepére kívánkozik, de a kép
-   szélénél megáll. */
-export function kamera(fej, vw, vh) {
+/* A kivágat állása. A kép ÁLL: ami nem fér a képernyőre, az egyenlően lóg
+   ki a két oldalon. (Korábban a vonal feje után csúszott, de a háttér
+   folytonos mozgása görgetés közben zavaró volt — a vonal halad, a kép
+   marad.) */
+export function kamera(vw, vh) {
   const w = vaszonSzelesseg(vw, vh);
-  const csuszX = Math.max(0, w - vw);
-  const kepen = (fej.x / KEP_SZELES) * w;
-  return { w, eltolas: Math.min(Math.max(kepen - vw / 2, 0), csuszX) };
+  return { w, eltolas: Math.max(0, w - vw) / 2 };
 }
 
 /* Egy nyomvonalpont helye a képernyőn, a szélesség arányában:
@@ -59,7 +58,7 @@ export function useAllomasOldalak(kulcs) {
     const merleg = (arany, hossz, vw, vh) => {
       const h = halad(arany);
       const fej = ut.getPointAtLength(hossz * h);
-      const kam = kamera(fej, vw, vh);
+      const kam = kamera(vw, vh);
       let osszeg = 0;
       for (let k = 0; k <= VONAL_MINTAK; k += 1) {
         const p = ut.getPointAtLength(hossz * h * (k / VONAL_MINTAK));
