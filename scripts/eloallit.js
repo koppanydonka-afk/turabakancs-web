@@ -74,7 +74,7 @@ function oldalak(sz) {
       cim: sz('meta.tervezoCim'),
       leiras: sz('meta.tervezoLeiras'),
       tartalom: `
-        <h1>${biztos(sz('nincs.tervezo'))}</h1>
+        <h1>${biztos(sz('tervezo.oldalCim'))}</h1>
         <p>${biztos(sz('meta.tervezoLeiras'))}</p>`,
     },
     {

@@ -76,6 +76,7 @@ export default {
   'tervezo.adatokCimke': 'Datele traseului — {km}, {ido}',
   'tervezo.eszkozok': 'Salvare, trasee gata făcute, GPX',
   'tervezo.vissza': 'Un pas înapoi',
+  'tervezo.oldalCim': 'Planificator de trasee',
   'tervezo.retegek': 'Ce să arate harta',
   'tervezo.ujraKeres': 'Caută în această zonă',
 

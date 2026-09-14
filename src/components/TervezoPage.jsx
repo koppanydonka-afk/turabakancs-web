@@ -529,6 +529,12 @@ export default function TervezoPage() {
 
   return (
     <section className="tervezo">
+      {/* A tervező egy teljes képernyős térkép: nincs rajta látható cím.
+          A lapnak viszont kell egy — az előállított HTML-ben van is, csak
+          a React azt lecseréli erre az alkalmazásra, és a képernyőolvasó
+          onnantól címek nélküli oldalt talál. Ugyanaz a kulcs, mint az
+          előállításban (eloallit.js), hogy a kettő ne tudjon elcsúszni. */}
+      <h1 className="csak-olvasonak">{sz('tervezo.oldalCim')}</h1>
       <div className="tervezo__racs">
         <div className="tervezo__terkep-doboz">
           <Terkep

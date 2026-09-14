@@ -76,6 +76,7 @@ export default {
   'tervezo.adatokCimke': 'Routendaten — {km}, {ido}',
   'tervezo.eszkozok': 'Speichern, fertige Routen, GPX',
   'tervezo.vissza': 'Einen Schritt zurück',
+  'tervezo.oldalCim': 'Routenplaner',
   'tervezo.retegek': 'Was die Karte zeigen soll',
   'tervezo.ujraKeres': 'In diesem Gebiet suchen',
 

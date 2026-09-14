@@ -76,6 +76,7 @@ export default {
   'tervezo.adatokCimke': 'Données de l’itinéraire — {km}, {ido}',
   'tervezo.eszkozok': 'Enregistrer, itinéraires prêts, GPX',
   'tervezo.vissza': 'Un pas en arrière',
+  'tervezo.oldalCim': 'Planificateur d’itinéraires',
   'tervezo.retegek': 'Ce que la carte doit montrer',
   'tervezo.ujraKeres': 'Chercher dans cette zone',
 

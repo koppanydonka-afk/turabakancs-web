@@ -89,6 +89,7 @@ export default {
   'tervezo.adatokCimke': 'Az útvonal adatai — {km}, {ido}',
   'tervezo.eszkozok': 'Mentés, kész útvonalak, GPX',
   'tervezo.vissza': 'Egy lépés vissza',
+  'tervezo.oldalCim': 'Útvonaltervező',
   'tervezo.retegek': 'Mit mutasson a térkép',
   'tervezo.ujraKeres': 'Keresés ezen a területen',
 

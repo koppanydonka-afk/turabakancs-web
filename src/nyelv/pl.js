@@ -76,6 +76,7 @@ export default {
   'tervezo.adatokCimke': 'Dane trasy — {km}, {ido}',
   'tervezo.eszkozok': 'Zapis, gotowe trasy, GPX',
   'tervezo.vissza': 'Krok wstecz',
+  'tervezo.oldalCim': 'Planer tras',
   'tervezo.retegek': 'Co ma pokazywać mapa',
   'tervezo.ujraKeres': 'Szukaj na tym obszarze',
 

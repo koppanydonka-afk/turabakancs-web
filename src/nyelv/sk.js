@@ -76,6 +76,7 @@ export default {
   'tervezo.adatokCimke': 'Údaje o trase — {km}, {ido}',
   'tervezo.eszkozok': 'Uloženie, hotové trasy, GPX',
   'tervezo.vissza': 'O krok späť',
+  'tervezo.oldalCim': 'Plánovač trás',
   'tervezo.retegek': 'Čo má mapa ukazovať',
   'tervezo.ujraKeres': 'Hľadať v tejto oblasti',
 
