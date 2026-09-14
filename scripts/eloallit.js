@@ -170,7 +170,33 @@ function oldalak(sz) {
 
 /* ---- A sablon kitöltése ---- */
 
-function keszit(sablon, oldal, kod = ALAP_NYELV) {
+/* ---- Térképes oldalak előkészítése ----
+
+   A tervező és a példaoldalak betöltése soros lánc volt: fő kód → térkép
+   darabja → stíluslap → csempék. Élesben mérve a térkép darabja csak
+   451 ms-nál indult el, a stíluslap 614-nél.
+
+   Az alábbi két sor ezt bontja meg, de CSAK azokon az oldalakon, ahol
+   tényleg lesz térkép — a kezdőlapnak és a szöveges oldalaknak semmi
+   szükségük rá, ott csak felesleges kapcsolat és letöltés lenne.
+
+   A csempék gazdájához előre nyitunk kapcsolatot (DNS + TLS), a térkép
+   darabját pedig a fő kóddal egy időben kezdjük tölteni. */
+const CSEMPE_GAZDA = 'https://tiles.openfreemap.org';
+const terkepesOldal = (ut) => ut === '/tervezo' || /^\/utvonalak\/.+/.test(ut);
+
+/* A darab neve a build hasheléséből jön, tehát minden kiadásnál más. */
+async function terkepDarabjai() {
+  const konyvtar = path.join(DIST, 'assets');
+  const fajlok = await fs.readdir(konyvtar).catch(() => []);
+  const keres = (minta) => fajlok.find((f) => minta.test(f));
+  return {
+    js: keres(/^Terkep-.*\.js$/),
+    css: keres(/^Terkep-.*\.css$/),
+  };
+}
+
+function keszit(sablon, oldal, kod = ALAP_NYELV, darabok = {}) {
   let html = sablon;
 
   /* A lap nyelve. Enélkül a képernyőolvasó magyarul próbálná felolvasni a
@@ -194,6 +220,20 @@ function keszit(sablon, oldal, kod = ALAP_NYELV) {
   meta('og:locale', NYELVEK[kod]?.locale ?? 'hu_HU');
   meta('twitter:title', oldal.cim, false);
   meta('twitter:description', oldal.leiras, false);
+
+  if (terkepesOldal(oldal.ut)) {
+    const elore = [
+      `    <link rel="preconnect" href="${CSEMPE_GAZDA}" crossorigin />`,
+      /* A stíluslap címe állandó (a sötét változatot magunk festjük), ezért
+         nem kell megvárni vele sem a térkép kódját, sem a React
+         indulását: a kérés mehet a HTML-lel egyszerre. A térkép ugyanezt
+         az egy kérést használja majd (terkepForras.js). */
+      `    <link rel="preload" as="fetch" crossorigin href="${CSEMPE_GAZDA}/styles/liberty" />`,
+      darabok.js ? `    <link rel="modulepreload" href="/assets/${darabok.js}" />` : null,
+      darabok.css ? `    <link rel="preload" as="style" href="/assets/${darabok.css}" />` : null,
+    ].filter(Boolean).join('\n');
+    html = html.replace('</head>', `${elore}\n  </head>`);
+  }
 
   html = html.replace(
     '</head>',
@@ -239,6 +279,7 @@ function keszit(sablon, oldal, kod = ALAP_NYELV) {
 /* ---- Futtatás ---- */
 
 const sablon = await fs.readFile(path.join(DIST, 'index.html'), 'utf8');
+const darabok = await terkepDarabjai();
 
 /* Minden cím MINDEN nyelven. Ez nem kényelmi kérdés: a Cloudflare a
    statikus fájlokat szolgálja ki, tehát ami nincs legyártva, az élesben
@@ -252,7 +293,7 @@ for (const { kod, lista } of nyelviListak) {
     const cim = nyelvesUt(kod, oldal.ut);
     const konyvtar = cim === '/' ? DIST : path.join(DIST, cim);
     await fs.mkdir(konyvtar, { recursive: true });
-    await fs.writeFile(path.join(konyvtar, 'index.html'), keszit(sablon, oldal, kod));
+    await fs.writeFile(path.join(konyvtar, 'index.html'), keszit(sablon, oldal, kod, darabok));
     fajlok += 1;
   }
 }

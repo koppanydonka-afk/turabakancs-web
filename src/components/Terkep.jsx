@@ -8,6 +8,7 @@ import { latvanyKepe } from '../data/kepek.js';
 import { nyelv, sz } from '../nyelv/index.js';
 import { useSotet } from '../data/tema.js';
 import { sotetreFest } from '../data/terkepStilus.js';
+import { stilustKer } from '../data/terkepForras.js';
 import { BAKANCS_KURZOR, PONT_FOGVA, PONT_KURZOR, bakancsKoveto } from '../data/kurzor.js';
 import EszkozRudba from './EszkozRudba.jsx';
 import { KEZDO_KOZEP, KEZDO_ZOOM } from '../data/terkepAlap.js';
@@ -51,14 +52,6 @@ const htmlBiztos = (szoveg) =>
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
 
-/* EGY stíluslap, két bőrben.
-
-   Az OpenFreeMap kínál kész sötét változatot is, de az egy másik térkép:
-   feleannyi réteg, nincsenek háromdimenziós épületek, más úttípusok. Aki
-   sötét módra vált, nem másik térképet kért — ezért ugyanezt festjük át
-   (lásd terkepStilus.js). */
-const STILUS = 'https://tiles.openfreemap.org/styles/liberty';
-
 /* ---- Tartalék: raszteres csempe, ha a vektoros nem jön ----
 
    Az OpenFreeMap egyetlen ember projektje, és maguk mondják ki, hogy
@@ -100,23 +93,24 @@ const raszterStilus = (sotet) => ({
   ],
 });
 
-/* A stíluslapot magunk kérjük le, nem a MapLibre-re bízzuk: csak így
-   derül ki időben, hogy a kiszolgáló áll-e. Ugyanaz az egy kérés, csak
-   mi látjuk az eredményét is. Nyolc másodperc után feladjuk — ennyi
-   idő után a látogató már azt hiszi, elromlott valami. */
+/* EGY stíluslap, két bőrben.
+
+   Az OpenFreeMap kínál kész sötét változatot is, de az egy másik térkép:
+   feleannyi réteg, nincsenek háromdimenziós épületek, más úttípusok. Aki
+   sötét módra vált, nem másik térképet kért — ezért ugyanezt festjük át
+   (lásd terkepStilus.js).
+
+   Magát a lekérést nem itt intézzük: a cím állandó, tehát el tudott
+   indulni jóval a térkép kódja előtt (lásd terkepForras.js). Innen csak
+   megvárjuk, és ráadjuk a sötét bőrt.
+
+   A kapott stíluslapot MINDIG lemásoljuk: ugyanaz az ígéret szolgálja ki
+   a témaváltást is, a MapLibre-nek átadott objektumhoz pedig nem szabad
+   kétszer hozzányúlni. */
 async function stilustHoz(sotet) {
-  const megszakit = new AbortController();
-  const ora = setTimeout(() => megszakit.abort(), 8000);
-  try {
-    const valasz = await fetch(STILUS, { signal: megszakit.signal });
-    if (!valasz.ok) throw new Error(String(valasz.status));
-    const stilus = await valasz.json();
-    return { stilus: sotet ? sotetreFest(stilus) : stilus, tartalek: false };
-  } catch {
-    return { stilus: raszterStilus(sotet), tartalek: true };
-  } finally {
-    clearTimeout(ora);
-  }
+  const { stilus, tartalek } = await stilustKer();
+  if (tartalek || !stilus) return { stilus: raszterStilus(sotet), tartalek: true };
+  return { stilus: sotet ? sotetreFest(stilus) : structuredClone(stilus), tartalek: false };
 }
 
 const URES = { type: 'FeatureCollection', features: [] };
@@ -668,23 +662,32 @@ export default function Terkep({
       const HOSSZ = 1100;
       const indul = performance.now();
       const lepes = (most) => {
-        const arany = Math.min(1, (most - indul) / HOSSZ);
-        /* Lágy kifutás, ugyanaz a görbe, ami a CSS-ben volt. */
-        const t = Math.max(0.0005, 1 - (1 - arany) ** 3);
         if (!terkep.current?.getLayer('ut-vonal')) return;
-        const atmenet = (szin) =>
-          t >= 1
-            ? teljes(szin)
-            : [
-                'interpolate', ['linear'], ['line-progress'],
-                0, szin,
-                t, szin,
-                Math.min(1, t + 0.0004), 'rgba(0,0,0,0)',
-                1, 'rgba(0,0,0,0)',
-              ];
+        const arany = Math.min(1, (most - indul) / HOSSZ);
+        if (arany >= 1) {
+          m.setPaintProperty('ut-talp', 'line-gradient', teljes(talp));
+          m.setPaintProperty('ut-vonal', 'line-gradient', teljes(nyom));
+          return;
+        }
+
+        /* Lágy kifutás, ugyanaz a görbe, ami a CSS-ben volt.
+
+           A vágópont SOSEM érheti el a vonal végét: az `interpolate`
+           szigorúan növekvő megállókat vár, és egynél a vágópont utáni
+           megálló egybeesne a záróval. Enélkül az animáció utolsó
+           képkockái hibára futnak — némán, mert a MapLibre csak a
+           naplóba ír. */
+        const t = Math.min(0.999, Math.max(0.001, 1 - (1 - arany) ** 3));
+        const atmenet = (szin) => [
+          'interpolate', ['linear'], ['line-progress'],
+          0, szin,
+          t, szin,
+          t + 0.0005, 'rgba(0,0,0,0)',
+          1, 'rgba(0,0,0,0)',
+        ];
         m.setPaintProperty('ut-talp', 'line-gradient', atmenet(talp));
         m.setPaintProperty('ut-vonal', 'line-gradient', atmenet(nyom));
-        if (arany < 1) rajzKeret.current = requestAnimationFrame(lepes);
+        rajzKeret.current = requestAnimationFrame(lepes);
       };
       rajzKeret.current = requestAnimationFrame(lepes);
     }

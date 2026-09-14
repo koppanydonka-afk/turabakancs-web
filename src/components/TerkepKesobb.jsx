@@ -1,4 +1,5 @@
-import { Suspense, lazy } from 'react';
+import { Suspense, lazy, useEffect } from 'react';
+import { stilustKer } from '../data/terkepForras.js';
 
 /* A térkép külön csomagban.
 
@@ -12,6 +13,11 @@ import { Suspense, lazy } from 'react';
 const Terkep = lazy(() => import('./Terkep.jsx'));
 
 export default function TerkepKesobb(props) {
+  /* A stíluslapot már most elkérjük, hogy a térkép kódjával PÁRHUZAMOSAN
+     töltsön, ne utána (lásd terkepForras.js). Ez a burkolat a fő kódban
+     van, tehát azonnal fut; a térkép darabja még csak ezután érkezik. */
+  useEffect(() => { stilustKer(); }, []);
+
   return (
     <Suspense
       fallback={
