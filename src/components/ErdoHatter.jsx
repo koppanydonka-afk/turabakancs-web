@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { KEP_MAGAS, KEP_SZELES, KEZDET, UT } from '../data/erdoUt.js';
+import { halad as haladAranybol } from '../osveny.js';
 
 /* Erdei háttér: egy madártávlati fotó kanyargó erdei úttal, és egy vonal,
    ami GÖRGETÉSRE VÉGIGHALAD EZEN AZ ÚTON.
@@ -24,9 +25,6 @@ import { KEP_MAGAS, KEP_SZELES, KEZDET, UT } from '../data/erdoUt.js';
    minden képkockán újraszámolt volna.
 
    Az egész réteg a tartalom mögött ül, és egéreseményt nem fog el. */
-
-/* Görgetés nélkül is látszódjon, hogy van vonal: ennyivel indul. */
-const ELONY = 0.045;
 
 export default function ErdoHatter() {
   const doboz = useRef(null);
@@ -94,7 +92,9 @@ export default function ErdoHatter() {
     const szamol = () => {
       keret = 0;
       const arany = meret.futas <= 0 ? 1 : Math.min(1, Math.max(0, window.scrollY / meret.futas));
-      const halad = Math.min(1, ELONY + (1 - ELONY) * arany);
+      /* Ugyanazt a képletet használja a lap elrendezése is, hogy tudja,
+         hol jár a vonal — ezért közös (`osveny.js`). */
+      const halad = haladAranybol(arany);
       elem.style.setProperty('--halad', halad.toFixed(4));
       kisero(halad);
     };

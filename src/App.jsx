@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { navigal, useMeta, useRoute } from './router.js';
-import { useFeltunes } from './mozgas.js';
+import { useElTunes, useFeltunes } from './mozgas.js';
 import Fejlec from './components/Fejlec.jsx';
 import ErdoHatter from './components/ErdoHatter.jsx';
 import { sz } from './nyelv/index.js';
@@ -52,6 +52,7 @@ export default function App() {
 
   useMeta(meta);
   useFeltunes(path);
+  useElTunes(path);
 
   const oldal = () => {
     if (utvonalId) return <UtvonalPage id={utvonalId} />;

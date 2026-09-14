@@ -11,6 +11,7 @@ import { napkelte, napnyugta, oraPerc, vilagosMeg } from '../data/naptar.js';
 import { menetido, nehezseg } from '../data/ajanlo.js';
 import { useMost } from '../ora.js';
 import { ut } from '../router.js';
+import { useAllomasOldalak } from '../osveny.js';
 import { sz } from '../nyelv/index.js';
 
 /* Főoldal. A tervező innen nyílik, de előbb van mit nézni:
@@ -25,6 +26,10 @@ const perc = (p) =>
 export default function FooldalPage() {
   /* Nem `new Date()`: az egyszer futna le, és a nyitva hagyott lap
      másnap is a tegnapi napkeltét mutatná. */
+  /* Az állomások oldalát az út szabja meg: a lap oda áll, ahol a vonal
+     épp NEM jár. A mérés a háttér nyomvonalából jön. */
+  useAllomasOldalak();
+
   const most = useMost();
   const kelte = napkelte(most, ...BUDAPEST);
   const nyugta = napnyugta(most, ...BUDAPEST);
@@ -65,7 +70,7 @@ export default function FooldalPage() {
           hanem az, ami tényleg kijön belőle. Térképkönyvtár nélkül, pár
           száz bájtból: a főoldalnak gyorsan kell betöltenie. */}
       {kiemelt && (
-        <section className="pelda-sav tura__allomas tura__allomas--bal" data-feltun>
+        <section className="pelda-sav tura__allomas" data-feltun data-allomas="bal" data-tunik>
           <div className="pelda-sav__rajz">
             <UtvonalRajz pontok={kiemelt.pontok} cimke={kiemelt.nev} />
           </div>
@@ -99,7 +104,7 @@ export default function FooldalPage() {
       )}
 
       {nyugta && (
-        <section className="ma tura__allomas tura__allomas--jobb" data-feltun style={{ "--lepcso": 0 }}>
+        <section className="ma tura__allomas" data-feltun data-allomas="jobb" data-tunik>
           <h2 className="ma__cim">{sz('fooldal.ma')}</h2>
           <div className="ma__adatok">
             <div className="ma__elem">
@@ -129,7 +134,7 @@ export default function FooldalPage() {
 
           A sorszám nem dísz: négyet ígér a bevezető, és így meg is
           számolható. */}
-      <section className="szekcio tura__allomas tura__allomas--bal" data-feltun>
+      <section className="szekcio tura__allomas" data-feltun data-allomas="bal" data-tunik>
         <header className="szekcio__fej">
           <h2 className="szekcio__cim">{sz('fooldal.mitTud')}</h2>
           <p className="szekcio__lead">{sz('fooldal.mitTudLead')}</p>
@@ -169,7 +174,7 @@ export default function FooldalPage() {
         </ol>
       </section>
 
-      <section className="szekcio tura__allomas tura__allomas--jobb" data-feltun>
+      <section className="szekcio tura__allomas" data-feltun data-allomas="jobb" data-tunik>
         <header className="szekcio__fej">
           <h2 className="szekcio__cim">{sz('fooldal.jelzesCim')}</h2>
           <p className="szekcio__lead">
@@ -207,7 +212,7 @@ export default function FooldalPage() {
           állomás: egy hasáb, a többivel váltakozva, mellette végig
           látszik az út. A kártyarács fél szélességen magától egy
           oszlopba rendeződik. */}
-      <section className="szekcio tura__allomas tura__allomas--bal" data-feltun>
+      <section className="szekcio tura__allomas" data-feltun data-allomas="bal" data-tunik>
         <header className="szekcio__fej">
           <h2 className="szekcio__cim">{sz('fooldal.keszVonal')}</h2>
           <p className="szekcio__lead">{sz('fooldal.keszVonalLead')}</p>

@@ -2328,15 +2328,58 @@ input::placeholder { color: var(--muted); }
   flex-direction: column;
   gap: var(--space-12);
 }
-/* SORONKÉNT EGY LAP. Korábban kettő fért el egymás mellett, és ketten
-   együtt eltakarták a közepet — épp azt, amiért a háttér van: a vonalat.
-   Most minden állomás a saját sorában áll, hol balra, hol jobbra, és a
-   másik fél mindig szabadon hagyja az utat. */
+/* SORONKÉNT EGY LAP, és sokkal kisebb, mint egy szövegfal. Korábban kettő
+   fért el egymás mellett, és ketten együtt eltakarták a közepet — épp azt,
+   amiért a háttér van: a vonalat.
+
+   AZ OLDALT NEM A SORREND DÖNTI EL, HANEM AZ ÚT. A vonal feje hol a bal,
+   hol a jobb felén jár, és a lap oda áll, ahol a vonal épp nincs. A mérést
+   a `src/osveny.js` végzi ugyanabból a nyomvonalból, amiből a háttér
+   rajzol; a `data-allomas` csak a mérés eredménye. Az előrenderelt HTML-ben
+   kiinduló érték áll benne, hogy kód nélkül se boruljon a lap. */
 .tura__allomas {
-  width: calc(50% - var(--osveny) / 2);
+  width: clamp(230px, 34%, 380px);
+  align-self: flex-start;
 }
-.tura__allomas--jobb { align-self: flex-end; }
+.tura__allomas[data-allomas='jobb'] { align-self: flex-end; }
 .tura__teljes { width: 100%; }
+
+/* ---- Körablak: így jelenik meg egy állomás ----
+
+   Nem egyszerűen beúszik: egy KÖR nyílik ki rajta, és azon át tárul fel a
+   szöveg — mint egy ablak, ami kinyílik. A vágás csak a belépés alatt
+   változik, utána akkora kör marad, ami már semmit nem vág le: a lap
+   árnyékát sem.
+
+   Görgetéssel el is tűnik: ami kifutott a képernyő tetején, elhalványul —
+   és visszafelé görgetve újra előjön. Mindkettőt ÁTMENET csinálja, nem
+   görgetéshez kötött animáció: a látszást és a vetemítést a böngésző
+   magától a kompozitorra bízza, tehát nem kerül képkockánként pénzbe.
+
+   A kezdőállapot a `.mozgas` osztályhoz van kötve (a kód teszi ki): ha a
+   JavaScript nem fut le, a lapok egyszerűen látszanak. */
+.mozgas .tura__allomas {
+  opacity: 0;
+  transform: scale(.94) translateY(14px);
+  clip-path: circle(10% at 50% 50%);
+  transition:
+    opacity 460ms var(--ease-out),
+    transform 460ms var(--ease-out),
+    clip-path 640ms var(--ease-out);
+}
+.mozgas .tura__allomas[data-feltun='kesz'] {
+  opacity: 1;
+  transform: none;
+  clip-path: circle(150% at 50% 50%);
+}
+.mozgas .tura__allomas[data-tunik='el'] {
+  opacity: 0;
+  transform: scale(.97) translateY(-12px);
+}
+@media (prefers-reduced-motion: reduce) {
+  /* A vágás sem maradhat rajta: a lap egyszerűen ott van. */
+  .mozgas .tura__allomas { clip-path: none !important; }
+}
 
 /* A LAP. Erdei háttéren a csupasz szöveg nem olvasható: ami nem kártyán
    ül, annak sajátot adunk. Egy helyen kimondva, hogy minden oldal
@@ -2358,6 +2401,57 @@ input::placeholder { color: var(--muted); }
   background: color-mix(in srgb, var(--surface) 93%, transparent);
   box-shadow: var(--lap-keret), var(--lap-arnyek);
 }
+
+/* ---- Kisebb lapok ----
+
+   Az állomás nem szövegfal, hanem egy pillantásra elolvasható ablak: fele
+   akkora, mint volt, és minden benne apróbb. A méreteket egy helyen, az
+   ÁLLOMÁSON BELÜL húzzuk össze — ugyanezek az elemek a többi oldalon a
+   régi méretükben maradnak. */
+.tura__allomas { padding: var(--space-4); }
+.tura__allomas .szekcio,
+.szekcio.tura__allomas { gap: var(--space-4); }
+.tura__allomas .szekcio__cim { font-size: var(--text-lg); }
+.tura__allomas .szekcio__lead { font-size: var(--text-sm); }
+.tura__allomas .apro { font-size: var(--text-xs); }
+
+/* A kiemelt példa: rajz és szöveg egymás alatt. */
+.pelda-sav.tura__allomas { grid-template-columns: minmax(0, 1fr); gap: var(--space-4); }
+.tura__allomas .pelda-sav__cim { font-size: var(--text-xl); }
+.tura__allomas .pelda-sav__rajz { padding: var(--space-2); }
+.tura__allomas .kalap { font-size: var(--text-xs); }
+
+/* A mai adat. */
+/* Három adat egy keskeny lapon: a szám nagy marad, de nem 2xl — úgy
+   egymásba érne. A `--space-5` NEM LÉTEZIK a skálán; egy ilyen elgépelés
+   nem hibát ad, hanem csendben nullát (érvénytelen a számított értéknél),
+   és a három adat összeragadt. */
+.tura__allomas .ma__adatok { gap: var(--space-4); }
+.tura__allomas .ma__elem strong { font-size: var(--text-xl); }
+.tura__allomas .ma__cim { font-size: var(--text-base); }
+
+/* A négy tudnivaló. */
+.tura__allomas .tud { gap: var(--space-3); padding-block: var(--space-3); }
+.tura__allomas .tud__cim { font-size: var(--text-base); margin-bottom: var(--space-1); }
+.tura__allomas .tud__szoveg { font-size: var(--text-sm); }
+
+/* A jelzések: egy hasáb, apróbb ábrákkal. A szinsor kétoszlopos marad —
+   négy rövid tétel, és így nem lesz belőle oszlopnyi lista. */
+.tura__allomas .szinsor { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-2); }
+.tura__allomas .jelzesek { grid-template-columns: minmax(0, 1fr); gap: var(--space-2); }
+.tura__allomas .jelzes { padding: var(--space-3); gap: var(--space-1); }
+.tura__allomas .jelzes__abra { width: 28px; height: 28px; }
+.tura__allomas .jelzes__cim { font-size: var(--text-sm); }
+.tura__allomas .jelzes__leiras { font-size: var(--text-xs); }
+
+/* A példák: alacsonyabb kártyák, kisebb rajzzal. */
+.tura__allomas .kartyak { grid-template-columns: minmax(0, 1fr); gap: var(--space-3); }
+.tura__allomas .kartya { padding: var(--space-4); gap: var(--space-2); }
+.tura__allomas .kartya__rajz { height: 100px; margin-bottom: 0; }
+.tura__allomas .kartya__cim { font-size: var(--text-base); }
+.tura__allomas .kartya__jegyzet { font-size: var(--text-xs); }
+.tura__allomas .gomb { font-size: var(--text-sm); }
+
 /* A fejléc alatti első lap a védjegyé: átlátszóbb, hogy az erdő látszódjon
    mögötte — ott még nincs mit olvasni, csak a név. */
 .hos.tura__teljes {
@@ -2367,8 +2461,7 @@ input::placeholder { color: var(--muted); }
 
 @media (max-width: 900px) {
   .tura { gap: var(--space-8); }
-  .tura__allomas,
-  .tura__allomas--jobb { width: 100%; align-self: stretch; }
+  .tura__allomas { width: 100%; align-self: stretch; }
   .tura__allomas,
   .hos.tura__teljes,
   .szekcio.tura__teljes { padding: var(--space-4); }
