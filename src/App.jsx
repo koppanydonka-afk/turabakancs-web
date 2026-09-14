@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { navigal, useMeta, useRoute } from './router.js';
 import { useFeltunes } from './mozgas.js';
 import Fejlec from './components/Fejlec.jsx';
+import ErdoHatter from './components/ErdoHatter.jsx';
 import { sz } from './nyelv/index.js';
 import Labjegyzet from './components/Labjegyzet.jsx';
 import FooldalPage from './components/FooldalPage.jsx';
@@ -68,6 +69,10 @@ export default function App() {
 
   return (
     <>
+      {/* Az erdei háttér minden oldal mögött ott van. A tervezőn a térkép
+          egyszerűen eltakarja — ott nem is kell vinni a rajzolás terhét,
+          de a be-kikapcsolgatása több baj lenne, mint haszon. */}
+      <ErdoHatter />
       <Fejlec />
       <main className={`fo${tervezoNezet ? ' fo--tervezo' : ''}`} key={path}>
         {/* A burkolat adja az oldalváltás áttűnését; a key miatt minden

@@ -557,6 +557,8 @@ body.nincs-gorgetes { overflow: hidden; }
 .nezet .panel { box-shadow: var(--lap-keret), var(--lap-arnyek); border-radius: var(--radius-lg); overflow: visible; }
 
 .ertekek {
+  /* A `cqi` a saját dobozához méri a betűt, nem a képernyőhöz. */
+  container-type: inline-size;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1px;
@@ -572,9 +574,13 @@ body.nincs-gorgetes { overflow: hidden; }
   flex-direction: column;
   gap: 2px;
 }
+/* Az ösvény két oldalán a kártya feleakkora, mint volt, és a szám két
+   sorba tört („193 m"). A rács marad kétoszlopos — az érték zsugorodik,
+   ha nem fér. */
 .ertekek__elem strong {
   font-family: var(--font-display);
-  font-size: var(--text-xl);
+  font-size: clamp(var(--text-lg), 4.2cqi, var(--text-xl));
+  white-space: nowrap;
   letter-spacing: var(--tracking-display);
   font-variant-numeric: tabular-nums;
   line-height: 1.1;
@@ -2146,97 +2152,182 @@ input::placeholder { color: var(--muted); }
    (.hh-panel, .ertekek, .fiok, a tanácsok) ott maradt, ahol volt. */
 
 
-/* ---------- Erdő a kezdőlap mögött ----------
+/* ---------- Erdei háttér az egész oldal mögött ----------
 
-   Vonalas fák négy mélységi rétegben, és egy ösvény, ami a védjegy
-   mögött indul. A mélységet NÉGY dolog adja együtt: a csúszás sebessége,
-   a méret, a vonalvastagság és a halványság. Ennyiből a szem mélységet
-   lát — térbeli motor nélkül.
+   A kép 387×516-on érkezett: teljes képernyőre négy-hatszoros nagyítás.
+   A kezelés ezért NEM a lágyság ellen dolgozik, hanem ráerősít — fátyol,
+   szélein elmosás, fent köd. Így a lágyság hangulat lesz, nem hiba.
 
-   Az egész réteg a tartalom MÖGÖTT ül, és egéreseményt nem fog el. */
-.fooldal { position: relative; }
-/* A tartalom a rajz fölé kerül. A `z-index` a rétegsorrendhez kell, a
-   `position` pedig ahhoz, hogy a `z-index` egyáltalán számítson. */
-.fooldal > *:not(.erdo) { position: relative; z-index: 1; }
-
-.erdo {
-  --gorgetes: 0px;
+   A réteg a `body`-hoz tapad és a képernyőhöz van rögzítve: minden
+   oldalon ott van, és görgetésre nem mozdul. A tervezőn a térkép
+   egyszerűen eltakarja. */
+.erdo-szin {
   --halad: 0;
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  overflow: hidden;
+  /* A kép alatt a felület színe: amíg tölt, ne villanjon fehér. */
+  background: var(--bg);
+}
+
+.erdo-szin__kep {
+  position: absolute;
+  inset: 0;
+  /* EGYETLEN JPEG, 30 kilobájt. Készült AVIF is (1600 képpont, 66 kB),
+     de a böngésző `<img>`-ként betölti, HÁTTÉRKÉPKÉNT viszont nem festi
+     ki — kimérve: a lap üresen maradt. Nem éri meg utánamenni: a kép
+     amúgy is lágy, és a kezelés erre épít.
+
+     A kivágat a ködös mélységet mutatja; maga az ösvény rajzolva van
+     rá (lásd `.erdo-szin__ut`). */
+  background-image: url('/erdo.jpg');
+  background-size: cover;
+  background-position: center 46%;
+  filter: saturate(0.9);
+  transform: scale(1.04);
+}
+
+/* Sötétítő fátyol. Két rétegben: egy egyenletes, és egy fentről lefelé
+   világosodó, ami az enyészpont köré fényt hagy. */
+.erdo-szin__fatyol {
+  position: absolute;
+  inset: 0;
+  /* Világos módban a lap szövege sötét tintával íródik, tehát a képet
+     VILÁGOSÍTANI kell, nem sötétíteni: így marad olvasható minden, ami
+     nem lapon ül. A kép ettől ködös erdő lesz — ami illik is hozzá. */
+  background:
+    radial-gradient(58% 40% at 50% 34%, rgb(255 255 255 / .22), transparent 72%),
+    linear-gradient(to bottom, rgb(246 244 239 / .3) 0%, rgb(246 244 239 / .2) 38%, rgb(246 244 239 / .4) 100%);
+}
+:root[data-tema='sotet'] .erdo-szin__fatyol,
+:root:not([data-tema='vilagos']) .erdo-szin__fatyol {
+  /* Sötét módban fordítva: a szöveg világos, tehát a kép sötétedik. */
+  background:
+    radial-gradient(58% 40% at 50% 34%, rgb(255 255 255 / .04), transparent 72%),
+    linear-gradient(to bottom, rgb(10 13 9 / .5) 0%, rgb(10 13 9 / .4) 38%, rgb(10 13 9 / .62) 100%);
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-tema='sotet']) .erdo-szin__fatyol {
+    background:
+      radial-gradient(58% 40% at 50% 34%, rgb(255 255 255 / .22), transparent 72%),
+      linear-gradient(to bottom, rgb(246 244 239 / .3) 0%, rgb(246 244 239 / .2) 38%, rgb(246 244 239 / .4) 100%);
+  }
+}
+
+/* A két szél elmosása: ott ülnek a kártyák. A közép éles marad — az az
+   ösvény. A `mask` teszi, hogy az elmosás a széleken teljes, a közép
+   felé pedig elfogy: nincs látható vágóél. */
+.erdo-szin__oldal {
   position: absolute;
   top: 0;
   bottom: 0;
-  /* A tartalomoszlopból kilépve, a képernyő teljes szélességében: az
-     erdő nem ér véget ott, ahol a szöveg. */
-  left: 50%;
-  width: 100vw;
-  translate: -50% 0;
-  z-index: 0;
-  pointer-events: none;
-  overflow: hidden;
-  /* Szegélyek felé halványul, hogy ne vágja el éles vonal. */
-  mask-image: linear-gradient(to bottom, transparent, #000 1.5%, #000 96%, transparent);
+  /* Csak addig, ameddig a kártyák érnek: a közép marad az ösvényé. */
+  width: 34%;
+  backdrop-filter: blur(5px) saturate(0.92);
+}
+.erdo-szin__oldal--bal {
+  left: 0;
+  mask-image: linear-gradient(to right, #000 55%, transparent);
+}
+.erdo-szin__oldal--jobb {
+  right: 0;
+  mask-image: linear-gradient(to left, #000 55%, transparent);
 }
 
-.erdo__reteg {
+/* ---- Az ösvény vonala ----
+   Fent tű, lent tenyérnyi. A `preserveAspectRatio="none"` itt SZÁNDÉKOS:
+   a vonalnak a képernyő arányát kell követnie, nem a sajátját. */
+.erdo-szin__ut {
   position: absolute;
   inset: 0;
-  /* A parallaxis: minél közelebbi a réteg, annál nagyobbat csúszik.
-
-     SÍKBELI eltolás, `will-change` nélkül: ezek a rétegek a TELJES lap
-     magasságában érnek, és külön rajzlapra emelve egyenként száz
-     megabájtot is elkérnének a videomemóriából. Rajzolni viszont olcsó
-     őket — pár vonalas fa látszik egyszerre, a többi a képernyőn kívül
-     van. */
-  transform: translateY(calc(var(--gorgetes) * var(--melyseg)));
+  width: 100%;
+  height: 100%;
+  /* Görgetésre közeledik: felülről lefelé tárul fel. */
+  clip-path: inset(0 0 calc((1 - var(--halad)) * 62%) 0);
+  transition: clip-path 90ms linear;
 }
-
-.erdo__fa {
-  position: absolute;
-  height: auto;
-  fill: none;
-  stroke: var(--accent);
-  stroke-width: var(--vastag);
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  opacity: calc(var(--halvany) * 0.85);
-  scale: var(--tukor) 1;
-}
-
-/* ---- Az ösvény ---- */
-.erdo__ut {
-  position: absolute;
-  left: 50%;
-  top: 0;
-  translate: -50% 0;
-  /* A vonal a TARTALOMOSZLOP szélességében fut, nem a képernyőében: a
-     szöveg mellett kanyarog, nem a lap szélén. */
-  width: min(1120px, 100%);
-  overflow: visible;
-}
-.erdo__ut-nyom,
-.erdo__ut-vonal {
-  fill: none;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-.erdo__ut-nyom { stroke: var(--line); stroke-width: 2; stroke-dasharray: 1 9; opacity: .55; }
-/* Vékonyabb és halványabb, mint a valódi nyomvonalak: ez összeköti a
-   lapot, nem útvonalat állít. */
-.erdo__ut-vonal {
-  stroke: var(--nyom);
-  stroke-width: 2.6;
+/* Nem tömör alakzat: az ösvény FÉNYE. Az elmosás miatt olyan, mintha a
+   napfény esne rá, nem mintha ráfestettük volna. */
+.erdo-szin__ut-alak {
+  filter: blur(6px);
   opacity: .5;
-  stroke-dasharray: var(--ut-hossz);
-  stroke-dashoffset: calc(var(--ut-hossz) * (1 - var(--halad)));
+  mix-blend-mode: screen;
+}
+:root[data-tema='vilagos'] .erdo-szin__ut-alak { mix-blend-mode: multiply; opacity: .34; }
+@media (prefers-color-scheme: light) {
+  :root:not([data-tema='sotet']) .erdo-szin__ut-alak { mix-blend-mode: multiply; opacity: .34; }
 }
 
-@media (max-width: 680px) {
-  /* Telefonon a szöveg a teljes szélességet elfoglalja: az erdő
-     halványabb, hogy ne zavarjon bele. */
-  .erdo__fa { opacity: calc(var(--halvany) * 0.45); }
-  .erdo__ut-vonal { opacity: .38; }
+@media (max-width: 860px) {
+  /* Keskeny lapon a szöveg a teljes szélességet elfoglalja: az elmosás
+     végig kell, és a fátyol is erősebb. */
+  .erdo-szin__oldal { width: 100%; mask-image: none; backdrop-filter: blur(9px) saturate(0.85); }
+  .erdo-szin__ut { opacity: .5; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .erdo__reteg { transform: none; }
+  .erdo-szin__ut { transition: none; }
+}
+
+
+/* ---------- A lap mint túra: állomások az ösvény két oldalán ----------
+
+   Középen a háttér ösvénye fut, mellette a tartalom áll — hol balra, hol
+   jobbra. Minden állomás LAPRA került: erdei háttéren a csupasz szöveg
+   nem olvasható, a lap viszont elválik tőle.
+
+   Keskeny képernyőn nincs két oldal: az egész egy hasáb lesz, a
+   sorrend marad. */
+.tura {
+  max-width: 1340px;
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1fr)
+    clamp(90px, 13vw, 190px)
+    minmax(0, 1fr);
+  column-gap: var(--space-6);
+  row-gap: var(--space-12);
+  align-items: start;
+}
+.tura__teljes { grid-column: 1 / -1; }
+.tura__allomas { grid-column: 1; }
+.tura__allomas--jobb { grid-column: 3; }
+
+/* A LAP. Erdei háttéren a csupasz szöveg nem olvasható: ami nem kártyán
+   ül, annak sajátot adunk. Egy helyen kimondva, hogy minden oldal
+   ugyanúgy nézzen ki — a kezdőlap állomásai és a többi lap fejlécei,
+   szövegtörzsei is. */
+.tura__allomas,
+.hos.tura__teljes,
+.szekcio.tura__teljes,
+.oldal__fej,
+.oldal .szoveg,
+.oldal .kepjegyzek {
+  position: relative;
+  padding: var(--space-6);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  backdrop-filter: blur(10px) saturate(150%);
+  box-shadow: var(--lap-keret), var(--lap-arnyek);
+}
+/* A fejléc alatti első lap a védjegyé: átlátszóbb, hogy az erdő látszódjon
+   mögötte — ott még nincs mit olvasni, csak a név. */
+.hos.tura__teljes {
+  background: color-mix(in srgb, var(--surface) 66%, transparent);
+  padding-block: var(--space-12);
+}
+
+@media (max-width: 900px) {
+  .tura {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: var(--space-8);
+  }
+  .tura__allomas,
+  .tura__allomas--jobb,
+  .tura__teljes { grid-column: 1; }
+  .tura__allomas,
+  .hos.tura__teljes,
+  .szekcio.tura__teljes { padding: var(--space-4); }
 }

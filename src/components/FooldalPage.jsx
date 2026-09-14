@@ -1,7 +1,6 @@
 import Vedjegy from './Vedjegy.jsx';
 import Csillagok from './Csillagok.jsx';
 import UtvonalRajz from './UtvonalRajz.jsx';
-import ErdoHatter from './ErdoHatter.jsx';
 import { ertekelesSzerint } from '../data/ertekelesek.js';
 import { JELZESEK, SZINEK } from '../data/erdekessegek.js';
 import { RETEGEK } from '../data/szolgaltatasok.js';
@@ -38,12 +37,12 @@ export default function FooldalPage() {
   const kiemeltIdo = kiemelt ? menetido(kiemeltKm, 'gyalog', kiemelt.emelkedo?.fel) : 0;
 
   return (
-    <div className="fooldal">
-      {/* Az erdő és az ösvény a tartalom MÖGÖTT: a kártyák a helyükön
-          maradnak, a vonal köztük fut végig. */}
-      <ErdoHatter />
-
-      <section className="hos">
+    <div className="fooldal tura">
+      {/* A lap egy túra: középen az ösvény fut (a háttérben), a tartalom
+          pedig állomásokként áll mellette — hol jobbra, hol balra. A
+          csupasz szöveg mind lapra került: erdei háttéren csak úgy
+          olvasható. Keskeny képernyőn az egész egy hasáb marad. */}
+      <section className="hos tura__teljes">
         {/* Eddig egyáltalán nem volt h1 az oldalon. A védjegy a cím: a nevet
             ő maga mondja ki (a bakancs `aria-label`-je a hiányzó „k”), ezért
             ide csak a leíró farok kerül — különben kétszer hangzana el. */}
@@ -66,7 +65,7 @@ export default function FooldalPage() {
           hanem az, ami tényleg kijön belőle. Térképkönyvtár nélkül, pár
           száz bájtból: a főoldalnak gyorsan kell betöltenie. */}
       {kiemelt && (
-        <section className="pelda-sav" data-feltun>
+        <section className="pelda-sav tura__allomas tura__allomas--bal" data-feltun>
           <div className="pelda-sav__rajz">
             <UtvonalRajz pontok={kiemelt.pontok} cimke={kiemelt.nev} />
           </div>
@@ -100,7 +99,7 @@ export default function FooldalPage() {
       )}
 
       {nyugta && (
-        <section className="ma" data-feltun style={{ "--lepcso": 0 }}>
+        <section className="ma tura__allomas tura__allomas--jobb" data-feltun style={{ "--lepcso": 0 }}>
           <h2 className="ma__cim">{sz('fooldal.ma')}</h2>
           <div className="ma__adatok">
             <div className="ma__elem">
@@ -130,7 +129,7 @@ export default function FooldalPage() {
 
           A sorszám nem dísz: négyet ígér a bevezető, és így meg is
           számolható. */}
-      <section className="szekcio" data-feltun>
+      <section className="szekcio tura__allomas tura__allomas--bal" data-feltun>
         <header className="szekcio__fej">
           <h2 className="szekcio__cim">{sz('fooldal.mitTud')}</h2>
           <p className="szekcio__lead">{sz('fooldal.mitTudLead')}</p>
@@ -170,7 +169,7 @@ export default function FooldalPage() {
         </ol>
       </section>
 
-      <section className="szekcio" data-feltun>
+      <section className="szekcio tura__allomas tura__allomas--jobb" data-feltun>
         <header className="szekcio__fej">
           <h2 className="szekcio__cim">{sz('fooldal.jelzesCim')}</h2>
           <p className="szekcio__lead">
@@ -203,7 +202,7 @@ export default function FooldalPage() {
         <p className="apro">{sz('fooldal.jelzesApro')}</p>
       </section>
 
-      <section className="szekcio" data-feltun>
+      <section className="szekcio tura__teljes" data-feltun>
         <header className="szekcio__fej">
           <h2 className="szekcio__cim">{sz('fooldal.keszVonal')}</h2>
           <p className="szekcio__lead">{sz('fooldal.keszVonalLead')}</p>
